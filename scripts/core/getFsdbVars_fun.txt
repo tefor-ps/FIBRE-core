@@ -1,0 +1,38 @@
+function getFsdbVars(){
+// These functions search and run INITFSDB_FMAC, which reads in and populates 
+// all ij.Prefs defined in .scripts.config of the fsdb
+// In case it can not find INITFSDB_FMAC (e.g., if this macro is run outside of
+// a fsdb installation), it will demand input from the user. 
+//# the 8 backslashes in the next line are necessary to have two left-over in the macro
+	INITFSDB_FMAC=replace(FIJIDIR+"/macros/fsdb.core/fsdb.core.initFsdb.ijm", "\\\\\\\\", "/");
+	if (File.exists(INITFSDB_FMAC) == 0){
+			getFsdbDir();
+		}
+	print(INITFSDB_FMAC);
+	runMacro(INITFSDB_FMAC);
+}
+
+function getFsdbDir(){
+	FSDBDIR=getDirectory("Unclear installation; please select the directory of your fsdb-installation");
+//# the 8 backslashes in the next line are necessary to have two left-over in the macro
+	FSDBDIR=replace(FSDBDIR,"\\\\\\\\","/");
+	TMP=FSDBDIR+"scripts/Fiji.app/";
+	if(File.isDirectory(TMP)){
+		FIJIDIR=TMP;
+		debugger("success", LOG);
+		INITFSDB_FMAC=FIJIDIR+"/macros/fsdb.core/fsdb.core.initFsdb.ijm";
+	} else {
+		waitForUser("ERROR: input invalid.", FSDBDIR+" does not appear to be a vaild fsdb-installation.\n(couldn't find "+TMP+").\nPlease hit OK and try again." );
+		getFsdbDir(); 
+	}
+}
+
+//# !!! ensure that this call is always in the last line of this file!!!
+// get all varables defined in the .scripts.config of the fsdb
+if (getInfo("os.name") == "Linux"){
+	FIJIDIR=getDirectory("imagej");
+} else {
+	FIJIDIR=File.getDirectory(getInfo("ij.executable"));
+}
+print("FIJIDIR: "+FIJIDIR);
+getFsdbVars();
