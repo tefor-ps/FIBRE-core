@@ -94,7 +94,9 @@ function makeConfig() {
 	if [[ ! -f $fsdbconfig ]]; then
 		resetConfig
 	else
-		ONLINEDOC=$(grep "^ONLINEDOC " $fsdbconfig |cut -d " " -f 2) #TODO: what is ONLINEDOC doing?
+		ONLINEDOC=$(grep "^ONLINEDOC " $fsdbconfig |cut -d " " -f 2) #TODO: $ONLINEDOC is the URL of the repo at gitlab. 
+		# This is intended to open/access the online documentation (in the default browser) but is not at all implemented, yet. 
+		# See https://stackoverflow.com/a/38147878/5269099
 		backup $fsdbconfig
 	fi
 	cat $fsdbconfig
@@ -106,7 +108,8 @@ function makeConfig() {
 }
 
 function resetConfig(){
-	fcd=$getVarDir/../install/templates/fsdb.config.default
+#	fcd=$getVarDir/../install/templates/fsdb.config.default
+	fcd=$(find $getVarDir/../../ -name "fsdb.config.default")
 	cp $fcd $fsdbconfig
 	ONLINEDOC=$(grep "^ONLINEDOC " $fcd |cut -d " " -f 2)
 }
@@ -119,8 +122,15 @@ function editConfig(){
 
 function updateConfig(){
 	# List of configs to compare.  
-	configs=$(find $(realpath $CONFIGDIR) -name "*.config" |grep -v $config )
-	dbg2 "$(ls -l ${configs[@]})"
+#	configs=$(find $(realpath $CONFIGDIR) -name "*.config" |grep -v $config )
+	localConfigs=$(find $(realpath $CONFIGDIR) -name "*.config" |grep -v $config )
+	dbg2 "localConfigs at $(realpath $CONFIGDIR)\n$(ls -l ${localConfigs[@]})"
+
+	moduleConfigs=$(find $(realpath $thisDir) -name "*.config" |grep -v $config )
+	dbg2 "moduleConfigs at ${thisDir}\n$(ls -l ${moduleConfigs[@]})"
+
+	configs=("${localConfigs[@]}" "${moduleConfigs[@]}")
+	dbg2 "all configs\n$(ls -l ${configs[@]})"
 	
 	# Check if $config exists, if not create it
 	if [ ! -f $config ]; then
@@ -204,7 +214,7 @@ fi
 function backup() {
 # This function creates a dated and numbered backup of the input file 
 		if [[ -d $2 ]]; then 
-			bupdir=$(realpath $2) 
+			bupdir=$(realpath $2) #TODO: restructure to get rid of the $2
 		else
 			bupdir=$(dirname $(realpath $1))
 		fi
