@@ -1,0 +1,32 @@
+# ==fsdb core functions==
+CORENAME core
+COREDIR $SCRIPTSDIR/core
+COREMACROS $MACROSDIR/fsdb.core
+
+# ==CORE SCRIPTS==
+MAKEINDEX $COREDIR/makeIndex.sh
+MAKEFSDBINIT $COREDIR/makeFsdbInit.sh	# <-- translates the label/value-pairs of scripts.config into ij.Prefs for use in fiji
+FIJIONSERVER $COREDIR/fijiOnServer.sh
+COMPLISTS $COREDIR/compareLists.sh		# <-- compares the fist column of two lists (files)
+UPDATEFSDB $COREDIR/updateFsdb.sh		# <-- updates the fsdb from online repo
+UPDATEMACROS $COREDIR/updateMacros.sh		# <-- updates fsdb-macros from import location to active location (FIJIDIR)
+POPVARS_SCR $COREDIR/populateVarsInMacro.sh 	# <-- populates/updates fsdb-variables within macros
+POPVARS_FUN $COREDIR/getFsdbVars_fun.txt      # <-- transplantable function used by POPVARS_SCR
+CHECKPATH $COREDIR/checkFilePath.sh		# <-- eliminates incompatible filenames
+REMOVERAWDATA $COREDIR/removeRawDataFromFsdb.sh
+
+# functional (helper) core macros
+INITLOG_FMAC $COREMACROS/fsdb.core.initLOG.ijm
+DEBUG_FMAC $COREMACROS/fsdb.core.logger.ijm
+MAKEDIR_FMAC $COREMACROS/fsdb.core.makeDirRecursively.ijm
+TIMESTAMP_FMAC $COREMACROS/fsdb.core.ts.ijm
+DISSECTNAME_FMAC $COREMACROS/fsdb.core.dissectFilename.ijm
+SAVEPNG_FMAC $SECDATAMACROS/fsdb.sdg.savePng.ijm 
+# the following initially does not exist but is dynamically created by MAKEFSDBINIT
+INITFSDB_FMAC $COREMACROS/fsdb.core.initFsdb.ijm
+
+### == VARIABLES==
+LEICA_FT lif
+ZEISS_FT czi
+NIKON_FT nd2
+STACKEXTENSION nd2 lif		# <-- expandible list of treated file extension (currently possible values: nd2 czi lif)

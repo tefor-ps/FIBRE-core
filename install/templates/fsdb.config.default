@@ -1,0 +1,53 @@
+### ==ACCOUNTS==
+ADMIN yourAdmin			# <-- sudo-enabled UNIX account
+CONSORTIUM yourAssociation		# <-- normal UNIX account
+GROUP yourTeam			# <-- UNIX group, which groups the users of a lab
+DEV yourDevTeam			# <-- developer accounts have access to the scripts without being ADMIN
+DEVACCOUNTS devacc1 devacc2 devacc3	# <-- developers of the fsdb
+ADMINACCOUNTS adminacc1 adminacc2 adminacc3	# <-- other system administrators, sudo-enabled 
+USERACCOUNTS useracc1 useracc2 useracc3	# <-- list of linux user accounts 
+### ==DIRECTORIES==
+LAB yourTeamName			# <-- name of the local lab for the file system structure
+USER user1 user2 user3		# <-- names of users, space delimited, defining their storage locations on microscopes
+### == VARIABLES==
+# D and STARTDATE are set dynamically within getVar
+DEBUGLEVEL 1			# <-- default debug verbosity level (0: silent, 1:some output, 2:verbose)
+HOSTS 127.0.0.1		# <-- allowed hosts for smb.conf, comma-separated
+
+#### MODIFICATIONS BELOW THIS POINT ARE POSSIBLE BUT NOT RECOMMENDED ####
+### ==ACCOUNTS==
+GROUPACCOUNTS $ADMIN $GROUP $CONSORTIUM $DEV
+### ==DIRECTORIES==
+FSDBVERSION fsdb23			# <-- version number of the fsdb
+DATAROOT /DATA				# <-- root of the fsdb
+BUPROOT /BUP				# <-- root of the hot backup archive
+LABDIR $DATAROOT/${LAB}		# <-- all data of a given lab goes into a structured tree, which is rooted here
+EXPORTDIR $DATAROOT/export/${LAB}	# <-- folder accessible to all labs of the same consortium - within the same network.
+STORAGEDIR $LABDIR/storage	# <-- hidden/protected storage location for raw data
+LABDATADIR $LABDIR/labdata	# <-- lab-accessible location for all data (raw, secondary, tertiary, annotation, ...)
+ATTICDIR $LABDIR/sysadmin	# <-- hidden storage location for the systems administrator
+DUMPDIR $LABDIR/dump		# <-- intermediate storage location for the clean-up processes
+IMPORTS imports				# <-- subfolder in both storage locations; facilitates introduction of other data modalities
+ARCHIVEDIR $LABDATADIR/archive	# <-- output folder for table of content of compressed archives 
+EXCHANGEDIR $LABDATADIR/exchange	# <-- central storage location for lab-interal file-exchange, read-writable for lab members
+PROJECTSDIR $LABDATADIR/projects	# <-- same data as in $LABDATA; but sorted by projectID
+LOGDIR $WORKDIR/logs		# <-- storage location for the fsdb log files
+INDEXDIR $WORKDIR/index		# <-- storage location for the fsdb index files
+MATDIR $WORKDIR/install		# <-- location for installation components
+TEMPLATESDIR $MATDIR/templates	# <-- location for configuration file templates
+
+### ==MAIN CONFIGURATION==
+# DO NOT EDIT THE MAIN CONFIGURATION FILE AS IT WILL BE COMPLETELY OVERWRITTEN
+# AS SOON AS A SUB-CONFIGURATION FILE IS MODIFIED
+CONFIG ${SCRIPTSDIR}/.scripts.config
+
+## ==extenal softwares==
+FIJIDIR $SCRIPTSDIR/Fiji.app	# <-- location of the integrated instance of fiji
+ONLINEDOC https://gitlab.com/arnimjenett/fsdb23#installation-of-the-fsdb
+
+### ==FILES==
+LOGO $SCRIPTSDIR/logo.png	# <-- storage location of the lab's logo for integration into the movies
+
+### ==CENTRALLY DEFINED PARAMETERS==
+permissibleAgeOfIndex 360	# <-- used in makeIndex to prevent rewriting a recently written index
+TIMEOUTMINUTES 30		# <-- time in minutes allowed for all secData-generation processes (per raw dataset).
