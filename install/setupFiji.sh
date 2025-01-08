@@ -16,11 +16,15 @@ else
 	DEVDIR=$1
 fi
 
+FIJIDIR=$DEVDIR/fsdb-minimal/scripts/Fiji.app/
+mkdir -pv $FIJIDIR
+
 # create temporary directory for download and unpacking.
 TMPDIR=$DEVDIR/tmp
 mkdir -pv $TMPDIR
 cd $TMPDIR
 
+printf "\n ... installing FIJI for "
 # download OS-specific Fiji-version
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 	# Linux
@@ -48,17 +52,17 @@ elif [[ "$OSTYPE" == "freebsd"* ]]; then
 	wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip
 else
 	# Unknown.
-	echo "Unknown OS. Exiting."
+	printf "\r\t\tUnknown OS. Exiting."
 	uname -a
 	exit
 fi
 
 # unpack Fiji, move it to the correct location, and remove the temporary directory
-unzip fiji*zip
-rsync -Sauv --remove-source-files Fiji.app/ $DEVDIR/fsdb-minimal/scripts/Fiji.app/
+mkdir -pv $FIJIDIR
+unzip fiji*zip -d $FIJIDIR
 rm -rf $TMPDIR
 
 # update fiji
-cd $DEVDIR/fsdb-minimal/scripts/Fiji.app/
+cd $FIJIDIR
 FIJI=$(find . -maxdepth 1 -type f |grep mage)
 sudo $FIJI --update update
