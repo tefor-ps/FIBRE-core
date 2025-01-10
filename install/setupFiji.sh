@@ -59,7 +59,7 @@ fi
 
 # unpack Fiji, move it to the correct location, and remove the temporary directory
 mkdir -pv $FIJIDIR
-unzip fiji*zip -d $FIJIDIR
+unzip fiji*zip -d $FIJIDIR/..
 rm -rf $TMPDIR
 
 # update fiji
