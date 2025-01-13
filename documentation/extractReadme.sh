@@ -7,6 +7,8 @@ This script is writing this README by extracting:
 and compiles them into a documentation in markdown format.
 README
 
+#TODO: This script does not work (yet),as intended. Needs a general overhaul.
+
 debug=2
 
 # set all global variables
