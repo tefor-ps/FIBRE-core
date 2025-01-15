@@ -68,10 +68,10 @@ source $thisDir/../core/getVar.sh
 
 intro $0
 
-#debug=1
+#debug=2
 
 FORCEINDEX=0
-PSTRING="."
+PSTRING=""
 
 # get parameters/options passed at call of this script
 while getopts ":p:fh" opt; do
@@ -107,6 +107,7 @@ dbg3 "search string: $SEARCHSTRING"
 
 # update index - this call gives the user to force the ceartion of a new index before anything else 
 dbg "forcing new index generation"
+dbg2 "$MAKEINDEX $PSTRING $FSTRING"
 if [[ $debug -gt 0 ]]; then
 	bash $MAKEINDEX $PSTRING $FSTRING 2>&1 |tee -a $LOG
 else
@@ -115,6 +116,7 @@ fi
 
 # synchronize the data in the hidden storage location (STORAGESDIR) with the accessible one (LABDATADIR)
 dbg "make sure, that the images are at the right location in $STORAGEDIR and $LABDATADIR"
+dbg2 $CLEANIMPORTS
 if [[ $debug -gt 0 ]]; then
 	bash $CLEANIMPORTS 2>&1 |tee -a $LOG
 else
@@ -124,6 +126,7 @@ fi
 
 # re-sort data in LABDATADIR/IMPORTS into project based directories in PROJECTSDIR
 dbg "generate project directories"
+dbg2 "$MAKEPROJECTDIRS $PSTRING $FSTRING"
 if [[ $debug -gt 0 ]]; then
 	bash $MAKEPROJECTDIRS $PSTRING $FSTRING 2>&1 |tee -a $LOG
 else
@@ -132,6 +135,7 @@ fi
 
 # remove all data older than 30 days from the directory EXCHANGEDIR
 dbg "clean exchange folder"
+dbg2 $CLEANEXCHANGE
 if [[ $debug -gt 0 ]]; then
 	bash $CLEANEXCHANGE 2>&1 |tee -a $LOG
 else
@@ -140,6 +144,7 @@ fi
 
 # remove all data older than 30 days from the directory /tmp/
 dbg "clean the /tmp directory from outdated files"
+dbg2 $CLEANTMP
 if [[ $debug -gt 0 ]]; then
 	bash $CLEANTMP 2>&1 |tee -a $LOG
 else
@@ -148,6 +153,7 @@ fi
 
 # remove all data older than 180 days from the directory DUMPDIR
 dbg "remove data older than 180 days from dump"
+dbg2 $CLEANDUMP
 if [[ $debug -gt 0 ]]; then
 	bash $CLEANDUMP 2>&1 |tee -a $LOG
 else
@@ -166,6 +172,7 @@ fi
 
 # remove 'lifext'-files 
 dbg "remove unwanted lifext files"
+dbg2 $CLEANLIFEXT
 if [[ $debug -gt 0 ]]; then
 	bash $CLEANLIFEXT 2>&1 |tee -a $LOG
 else
@@ -174,6 +181,7 @@ fi
 
 # remove old lock files
 dbg "remove the lock files of yesterday"
+dbg2 "$CLEANLOCKS $FSTRING $PSTRING"
 if [[ $debug -gt 0 ]]; then
 	bash $CLEANLOCKS $FSTRING $PSTRING 2>&1 |tee -a $LOG
 else
