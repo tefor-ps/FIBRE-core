@@ -58,7 +58,7 @@ populates the following variables:
 	secData-Generator
 
 README
-#fsdb-rev-date: 230922
+#fsdb-rev-date: 250205
 
 ## ======
 ## FUNCTION DEFINITIONS
@@ -200,17 +200,6 @@ function restructureConfig(){
 	done < $1	
 }
 
-sudoer() {
-## ROOT PRIVILEDGES
-# Because for the installation of software and generation of directories 
-# on shares with limited write permissions root rights are needed, check for 
-# these at the very beginning. 
-if [ $(whoami) != "root" ]; then 
-	error "WARNING: This script needs to be run with root-priviledges."
-	exit
-fi
-}
-
 function backup() {
 # This function creates a dated and numbered backup of the input file 
 		if [[ -d $2 ]]; then 
@@ -268,24 +257,20 @@ config=$(realpath $CONFIGDIR/.scripts.config)
 #config=$(find $(realpath $CONFIGDIR) -name ".scripts.config")
 fsdbconfig=$(realpath $CONFIGDIR/fsdb.config)
 #fsdbconfig=$(find $(realpath $CONFIGDIR) -name "fsdb.config")
-#GVconf=$getVarDir/.gv.config #TODO: implement this for the export of getVar-variables to fiji
-#rm $GVconf
 
 # the global debug level is set as parameter to fun_colMsg (0-2; default 1)
 source $getVarDir/fun_colMsg.sh $DEBUGLEVEL
 
 # timestamp for index files
 D=$(date +%y%m%d)
-# define 'D' (timestamp) centally
+# define 'D' (timestamp) centrally
 export "D=$(echo $D)"
-#echo "D $D" |tee -a $GVconf
 # for processes, which may run longer than a day 
 # (and by that will change D)
 # define a fixed STARTDATE. 
 # This will be set at the first run only.
 if [ -z $STARTDATE ]; then 
 	export "STARTDATE=$(echo $D)"
-	#echo "STARTDATE $D" |tee -a $GVconf
 fi
 
 # check, if $config exists and is up-to-date
