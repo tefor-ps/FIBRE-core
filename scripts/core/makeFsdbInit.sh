@@ -29,6 +29,20 @@ function getModeCoreCat(){
 	fi
 }
 
+usage() {
+	printf "Usage: $(basename $0) [-f] [-h] [-p project]  
+				
+	-f	force creation of INITFSDB_FMAC
+			Recreates INITFSDB_FMAC not matter what age.
+
+	-h	help
+			Displays this help.
+
+
+" 1>&2;
+	exit 1;
+}
+
 #============================
 # define variables and generate directories as needed
 #============================
@@ -36,13 +50,44 @@ function getModeCoreCat(){
 thisDir=$(dirname $(realpath $0))
 source $thisDir/../core/getVar.sh
 
-debug=1
+intro $0
+
+debug=2
 
 SCRIPT=~/tmp
 cat=""
 base="fsdb"
+FORCEINDEX=0
 
-if [[ $(find $INITFSDB_FMAC -ignore_readdir_race -mmin -$permissibleAgeOfIndex 2>/dev/null |wc -l) -eq 1 ]] && [[ $FORCEINDEX -eq 0 ]];  then
+# get parameters/options passed at call of this script
+while getopts ":p:fh" opt; do
+	case $opt in
+		f)
+			guardian $OPTARG
+			dbg2 "Option -f was triggered, this will force index generation"
+			FORCEINDEX=1
+			FSTRING="-f"
+			;;
+		h)
+			usage
+			;;
+		\?)
+			error "Invalid option: -$OPTARG" 
+			exit 1
+			;;
+		:)
+			error "Option -$OPTARG requires an argument." 
+			exit 1
+			;;
+	esac
+done
+shift $((OPTIND-1))
+
+dbg2 "INITFSDB_FMAC newer than $permissibleAgeOfIndex: $(find $INITFSDB_FMAC -ignore_readdir_race -mmin -$permissibleAgeOfIndex 2>/dev/null |wc -l)"
+dbg2 "FORCEINDEX: $FORCEINDEX"
+#exit 1
+
+if [[ $(find $INITFSDB_FMAC -ignore_readdir_race -mmin -$permissibleAgeOfIndex 2>/dev/null |wc -l) -eq 0 ]] || [[ $FORCEINDEX -eq 1 ]];  then
 	
 	printf "// created " > $SCRIPT
 	date >> $SCRIPT
@@ -106,4 +151,6 @@ if [[ $(find $INITFSDB_FMAC -ignore_readdir_race -mmin -$permissibleAgeOfIndex 2
 	dbg "wrote $INITFSDB_FMAC"
 	rm $SCRIPT
 	
+else	
+	msg "$INITFSDB_FMAC already exists. Skipping.\n"
 fi
