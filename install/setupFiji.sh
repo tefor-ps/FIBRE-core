@@ -28,14 +28,14 @@ if [[ -f $(find . -name "ImageJ-*") ]]; then
 fi
 # create temporary directory for download and unpacking.
 TMPDIR=$DEVDIR/tmp
-mkdir -pv $TMPDIR
-cd $TMPDIR
+mkdir -pv "$TMPDIR"
+cd "$TMPDIR" || exit
 
 printf "\n ... installing FIJI for "
 # download OS-specific Fiji-version
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 	# Linux
-	if [[ $(uname -r |grep -c [mM]icrosoft) -gt 0 ]]; then
+	if [[ $(uname -r |grep -c "[mM]icrosoft") -gt 0 ]]; then
 		echo "WSL"
 	else
 		echo "Linux"
@@ -65,12 +65,12 @@ else
 fi
 
 # unpack Fiji, move it to the correct location, and remove the temporary directory
-mkdir -pv $FIJIDIR
-unzip fiji*zip -d $FIJIDIR/..
-rm -rf $TMPDIR
+mkdir -pv "$FIJIDIR"
+unzip fiji*zip -d "$FIJIDIR/.."
+rm -rf "$TMPDIR"
 
 # update fiji
-cd $FIJIDIR
+cd "$FIJIDIR" || exit
 FIJI=$(find . -maxdepth 1 -type f |grep mage)
 printf "\n ... updating Fiji\n"
-sudo $FIJI --update update
+sudo "$FIJI" --update update
