@@ -72,4 +72,5 @@ rm -rf $TMPDIR
 # update fiji
 cd $FIJIDIR
 FIJI=$(find . -maxdepth 1 -type f |grep mage)
+printf "\n ... updating Fiji\n"
 sudo $FIJI --update update
