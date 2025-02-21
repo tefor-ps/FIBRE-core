@@ -9,11 +9,12 @@ README
 
 #TODO: This script does not work (yet),as intended. Needs a general overhaul.
 
-debug=2
 
 # set all global variables
 thisDir=$(dirname $(realpath $0))
 source $thisDir/../scripts/core/getVar.sh
+
+debug=2
 
 #define documentation input directory
 callDir=$(find $(pwd) -type d -name "documentation")
