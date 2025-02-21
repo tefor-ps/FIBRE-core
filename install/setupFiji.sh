@@ -10,15 +10,22 @@ if [[ "$(whoami)" != "root" ]]; then
 	exit
 fi
 
+# define the location of your Fiji installation
 if [[ -z $1 ]]; then
-	DEVDIR=dev-dir
+	if [[ $(pwd |grep -c fsdb-minimal) -eq 0 ]]; then
+		DEVDIR="$(pwd)/dev-dir"
+	else
+		DEVDIR="$(pwd |sed 's@/fsdb-minimal.*@@')"
+	fi
 else
-	DEVDIR=$1
+	DEVDIR="$(realpath "$1")"
 fi
 
-FIJIDIR=$DEVDIR/fsdb-minimal/scripts/Fiji.app/
-mkdir -pv $FIJIDIR
-
+FIJIDIR="$DEVDIR/fsdb-minimal/scripts/Fiji.app/"
+if [[ -d "$FIJIDIR" ]]; then
+	echo "$FIJIDIR already exists. Exiting."
+	exit
+fi
 # create temporary directory for download and unpacking.
 TMPDIR=$DEVDIR/tmp
 mkdir -pv $TMPDIR

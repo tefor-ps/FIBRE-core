@@ -4,31 +4,50 @@ This script sets up the minimal version of the fsdb.
 
 README
 
+if [[ "$(whoami)" != "root" ]]; then
+	echo "This script needs to be run with sudo. Exiting."
+	exit
+fi
+
+err_report() {
+    echo "Error on line $1"
+}
+
+trap 'err_report $LINENO' ERR
+
 # define the location of your development environment/location
 if [[ -z $1 ]]; then
-	DEVDIR=$(pwd)/dev-dir
+	if [[ $(pwd |grep -c fsdb-minimal) -eq 0 ]]; then
+		DEVDIR="$(pwd)/dev-dir"
+	else
+		DEVDIR="$(pwd |sed 's@/fsdb-minimal.*@@')"
+	fi
 else
-	DEVDIR=$1
+	DEVDIR="$(realpath "$1")"
 fi
-# create development location and move into it 
-mkdir -pv $DEVDIR
-cd $DEVDIR
 
+# create development location and move into it 
+mkdir -pv "$DEVDIR"
+echo "$DEVDIR" 
+
+if [[ $(pwd |grep -c fsdb-minimal) -eq 0 ]]; then
 # clone the minimal version of the fsdb into your development location
-printf "\n... getting https://gitlab.com/tefor/fsdb-minimal.git\n"
-git clone https://gitlab.com/tefor/fsdb-minimal.git
-if [[ $? -gt 0 ]] ;then
-	printf "WARNING: Cloning failed, try again."
+	cd "$DEVDIR" || exit 
+	printf "\n... getting https://gitlab.com/tefor/fsdb-minimal.git\n"
 	git clone https://gitlab.com/tefor/fsdb-minimal.git
-fi	
+else
+	cd "$DEVDIR/fsdb-minimal/" || exit
+	printf "\n... pulling https://gitlab.com/tefor/fsdb-minimal.git\n"
+	git pull
+fi
 # activate default configs within fsdb-minimal
-for defaultConfig in $(find $DEVDIR/fsdb-minimal/ -name "*config.default"); do
-	config=$(echo $defaultConfig |sed 's@.default@@')
-	cp -v $defaultConfig $config
+for defaultConfig in $(find "$DEVDIR/fsdb-minimal/" -name "*config.default"); do
+	config=${defaultConfig//.default/}
+	cp -v "$defaultConfig" "$config"
 done
 
 # as Fiji is OS-specific it is installed directly from https://imagej.net/
-FIJIINSTALLER=$(find $DEVDIR -name setupFiji.sh)
-echo $FIJIINSTALLER
-sudo bash $FIJIINSTALLER $(pwd)
+FIJIINSTALLER=$(find "$DEVDIR" -name setupFiji.sh)
+echo "$FIJIINSTALLER"
+sudo bash "$FIJIINSTALLER" "$DEVDIR"
 
