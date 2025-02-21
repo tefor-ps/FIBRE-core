@@ -41,7 +41,7 @@ else
 	git pull
 fi
 # activate default configs within fsdb-minimal
-for defaultConfig in $(find "$DEVDIR/fsdb-minimal/" -name "*config.default"); do
+find "$DEVDIR/fsdb-minimal/" -name "*config.default" |while read -r defaultConfig; do
 	config=${defaultConfig//.default/}
 	cp -v "$defaultConfig" "$config"
 done
