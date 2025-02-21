@@ -22,8 +22,8 @@ else
 fi
 
 FIJIDIR="$DEVDIR/fsdb-minimal/scripts/Fiji.app/"
-if [[ -d "$FIJIDIR" ]]; then
-	echo "$FIJIDIR already exists. Exiting."
+if [[ -f $(find . -name "ImageJ-*") ]]; then
+	echo "Fiji already exists. Exiting."
 	exit
 fi
 # create temporary directory for download and unpacking.
