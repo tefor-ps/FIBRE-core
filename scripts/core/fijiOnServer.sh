@@ -178,7 +178,6 @@ if [ $(uname) == "Linux" ]; then
 else
 	fijiOnWindows
 fi
-echo "fiji: $FIJI" |tee -a $LOG
 
 # clean-up leftovers of this run
 sudo rm -vf /tmp/ImageJ-*stub
