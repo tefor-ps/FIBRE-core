@@ -48,7 +48,7 @@ fijiOnWSL(){
 	cd "$FIJIDIR" || exit
 	FIJI="$FIJIDIR/ImageJ-linux64"
 	
-	sudo timeout -k 10 ${TIMEOUTMINUTES}m "$FIJI" -macro "$MACRO" "$IMG" 2>>"$LOG"
+	timeout ${TIMEOUTMINUTES}m "$FIJI" "-macro $MACRO $IMG" 2>>"$LOG"
 }
 
 fijiOnLinux(){
@@ -60,10 +60,12 @@ fijiOnLinux(){
 		echo "fatal error: $COREDIR/xvfb-run-safe.sh appears to be missing. exiting."
 		exit
 	fi
+	
+	echo "timeout time: ${TIMEOUTMINUTES}m" >>$LOG
 
 # run secdataGeneration in virtual environment (not headlessly) for as long as $TIMEOUTMINUTES minutes.
 # after $TIMEOUTMINUTES minutes, kill process because we have to assume, that it is stuck.
-	sudo timeout -k 10 ${TIMEOUTMINUTES}m "$COREDIR/xvfb-run-safe.sh $FIJI" -macro "$MACRO" "$IMG" 2>>"$LOG"
+	timeout ${TIMEOUTMINUTES}m "$COREDIR/xvfb-run-safe.sh" "$FIJI -macro $MACRO $IMG" 2>>"$LOG"
 }
 
 fijiOnWindows() {
