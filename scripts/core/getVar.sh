@@ -224,10 +224,11 @@ function makeDirs() {
 # create default directories as defined in .scripts.config
 	for defaultdir in $(cut -d " " -f 1 "$config" |grep -v "#" |grep DIR$); do
 		path=$(grep "^$defaultdir " "$config" |awk -F "|" '{print $NF}'|cut -d " " -f 2 |sed -e 's@\t.*@@' -e 's@#.*@@')
-		dbg2 "$(eval echo $path)"
-		mkdir -pv "$(eval echo "$path")" >> "$LOG" 2>&1
-		chown -R "$ADMIN":"$GROUP" "$(eval echo "$path")" >> "$LOG" 2>&1
-		chmod -R 770 "$(eval echo "$path")" >> "$LOG" 2>&1
+		defaultpath="$(eval echo "$path" |cut -d " " -f 1)"
+		dbg2 "$defaultpath"
+		mkdir -pv "$defaultpath" >> "$LOG" 2>&1
+		chown -R "$ADMIN":"$GROUP" "$defaultpath" >> "$LOG" 2>&1
+		chmod -R 770 "$defaultpath" >> "$LOG" 2>&1
 	done
 }
 
