@@ -224,6 +224,7 @@ function makeDirs() {
 # create default directories as defined in .scripts.config
 	for defaultdir in $(cut -d " " -f 1 "$config" |grep -v "#" |grep DIR$); do
 		path=$(grep "^$defaultdir " "$config" |awk -F "|" '{print $NF}'|cut -d " " -f 2 |sed -e 's@\t.*@@' -e 's@#.*@@')
+		echo "$path"
 		defaultpath="$(eval echo "$path" |cut -d " " -f 1)"
 		dbg2 "$defaultpath"
 		mkdir -pv "$defaultpath" >> "$LOG" 2>&1
