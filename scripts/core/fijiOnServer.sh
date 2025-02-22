@@ -45,6 +45,7 @@ function complain(){
 }
 
 fijiOnX11(){
+	dbg "X11"
 	cd "$FIJIDIR" || exit
 	FIJI="$FIJIDIR/ImageJ-linux64"
 
@@ -53,6 +54,7 @@ fijiOnX11(){
 }
 
 fijiOnLinux(){
+	dbg "Linux - xvbf"
 	FIJI="$FIJIDIR/ImageJ-linux64"
 
 #check if helper script exists
@@ -70,6 +72,7 @@ fijiOnLinux(){
 }
 
 fijiOnWindows() {
+	dbg "Windows"
 	#for e.g., MobaXterm; doesn't really start-up
 	# TODO: make this work
 	cd "$FIJIDIR" ||exit
