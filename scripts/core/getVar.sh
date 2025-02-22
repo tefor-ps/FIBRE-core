@@ -77,9 +77,9 @@ function checkConfig(){
 		if  [[ "$1" == "config" ]]; then
 			intro "Welcome to the reconfiguration of an existing fsdb-installation
 	In the following you can change the configuration and layout of your fsdb-installation or create a completely new one."
-			cat $fsdbconfig
+			cat "$fsdbconfig"
 			warn "$config already exists."
-			backup $config
+			backup "$config"
 			skipRest "Above you find the contents of your current fsdb.config.\nDo you want to reset it to default values." resetConfig
 			editConfig
 		fi
@@ -91,50 +91,50 @@ function checkConfig(){
 function makeConfig() {
 # This function creates a new configuration file on the basis of the provided 
 # default configuration and allows the user to modify it
-	if [[ ! -f $fsdbconfig ]]; then
+	if [[ ! -f "$fsdbconfig" ]]; then
 		resetConfig
 	else
-		ONLINEDOC=$(grep "^ONLINEDOC " $fsdbconfig |cut -d " " -f 2) #TODO: $ONLINEDOC is the URL of the repo at gitlab. 
+		ONLINEDOC="$(grep "^ONLINEDOC " "$fsdbconfig" |cut -d " " -f 2)" #TODO: $ONLINEDOC is the URL of the repo at gitlab. 
 		# This is intended to open/access the online documentation (in the default browser) but is not at all implemented, yet. 
 		# See https://stackoverflow.com/a/38147878/5269099
-		backup $fsdbconfig
+		backup "$fsdbconfig"
 	fi
-	cat $fsdbconfig
+	cat "$fsdbconfig"
 	echo
 	skipPerm "Above you find the content of your $fsdbconfig. Preparing editor.\nThe next step will give you the opportunity to edit a preformatted fsdb.config file in you default text editor.\nFor details on this please refer to the README at this project's gitlab page:\n$ONLINEDOC" editor $fsdbconfig
 	updateConfig
 # making backup of modified configuration.	
-	backup $config 
+	backup "$config" 
 }
 
 function resetConfig(){
 #	fcd=$getVarDir/../install/templates/fsdb.config.default
-	fcd=$(find $getVarDir/../../ -name "fsdb.config.default")
-	cp $fcd $fsdbconfig
+	fcd="$(find "$getVarDir/../../" -name "fsdb.config.default")"
+	cp "$fcd" "$fsdbconfig"
 	ONLINEDOC=$(grep "^ONLINEDOC " $fcd |cut -d " " -f 2)
 }
 
 function editConfig(){
 	skipPerm "Do you want to modify your fsdb.config?\n" editor $fsdbconfig
 	intro "Below you find the content of your new $fsdbconfig\n"
-	cat $fsdbconfig
+	cat "$fsdbconfig"
 }
 
 function updateConfig(){
 	# List of configs to compare.  
 #	configs=$(find $(realpath $CONFIGDIR) -name "*.config" |grep -v $config )
-	localConfigs=$(find $(realpath $CONFIGDIR) -name "*.config" |grep -v $config )
+	localConfigs=$(find "$(realpath "$CONFIGDIR")" -name "*.config" |grep -v "$config" )
 	dbg2 "localConfigs at $(realpath $CONFIGDIR)\n$(ls -l ${localConfigs[@]})"
 
-	moduleConfigs=$(find $(realpath $thisDir) -name "*.config" |grep -v $config )
+	moduleConfigs=$(find "$(realpath "$thisDir")" -name "*.config" |grep -v "$config" )
 	dbg2 "moduleConfigs at ${thisDir}\n$(ls -l ${moduleConfigs[@]})"
 
 	configs=("${localConfigs[@]}" "${moduleConfigs[@]}")
 	dbg2 "all configs\n$(ls -l ${configs[@]})"
 	
 	# Check if $config exists, if not create it
-	if [ ! -f $config ]; then
-		touch $config
+	if [ ! -f "$config" ]; then
+		touch "$config"
 		update=1
 	else
 	# Set a flag to indicate whether $config needs to be updated (default: no update)
@@ -142,13 +142,13 @@ function updateConfig(){
 	fi
 	
 	# Get the modification time of $config
-	config_time=$(stat -c %Y $config)
+	config_time=$(stat -c %Y "$config")
 	dbg2 "$config $config_time"
 	
 	# Check if $config needs to be updated by checking the modification time of each file in the list
 	if [[ $update -eq 0 ]]; then 
 		for file in ${configs[@]}; do
-			mod_time=$(stat -c %Y $file)
+			mod_time=$(stat -c %Y "$file")
 			dbg2 "$file $mod_time"
 			if [ "$mod_time" -gt "$config_time" ]; then
 				update=1
@@ -159,17 +159,17 @@ function updateConfig(){
 	# If any sub-config is newer than $config, update $config
 	if [[ $update -eq 1 ]]; then
 		dbg "Updating $config with the content of all sub-configs..."
-		backup $config
+		backup "$config"
 		printf "## DO NOT MODIFY THIS FILE. 
 ## IT WILL BE OVERWRITTEN BY getVar.sh AS SOON AS THE NON-HIDDEN CONFIG-FILES ARE MODIFIED.
 ## APPLY MODIFICATIONS IN THE CORRSPONDING SUB-CONFIG FILE.
-## LAST UPDATE: $(date)" > $config
+## LAST UPDATE: $(date)" > "$config"
 		# As fsdb.config defines very basic variables it needs special treatment: always first in $config.
-		restructureConfig $fsdbconfig >> $config 
+		restructureConfig "$fsdbconfig" >> "$config" 
 		# Add the contents of the other config-files (with the exception of $fsdbconfig
-		for file in $( ls ${configs[@]} |grep -v ${fsdbconfig}); do
-			restructureConfig ${file}
-		done >> $config
+		for file in $( ls ${configs[@]} |grep -v "${fsdbconfig}"); do
+			restructureConfig "${file}"
+		done >> "$config"
 	else
 		dbg2 "No configs have been modified since $config was last updated."
 	fi
@@ -181,53 +181,53 @@ function restructureConfig(){
 # them (under the corresponding headline) into .scripts.config
 	printf "\n\n# ==> Modify values below in ${1} <==\n"
 	
-	bn=$(basename $1 .config)
+	bn=$(basename "$1" .config)
 	
 # make sure all sub-configs end on an empty line
-	lastline=$(tail -1 $1)
+	lastline=$(tail -1 "$1")
 	if [[ "$lastline" != "" ]]; then 
-		printf "\n" >> $1
+		printf "\n" >> "$1"
 	fi
 
-	while read line; do
+	while read -r line; do
 			if [[ $(echo "$line" |grep -c '^\#.*$') -gt 0 || -z $line ]];then
-					echo $line
+					echo "$line"
 			else
-					key=$(echo $line |cut -d " " -f 1)
-					value=$(echo $line |cut -d " " -f 2- |sed 's@\#.*@@')
+					key=$(echo "$line" |cut -d " " -f 1)
+					value=$(echo "$line" |cut -d " " -f 2- |sed 's@\#.*@@')
 					printf "$key | $bn | $value\n"
 			fi
-	done < $1	
+	done < "$1"	
 }
 
 function backup() {
 # This function creates a dated and numbered backup of the input file 
-		if [[ -d $2 ]]; then 
-			bupdir=$(realpath $2) #TODO: restructure to get rid of the $2
+		if [[ -d "$2" ]]; then 
+			bupdir=$(realpath "$2") #TODO: restructure to get rid of the $2
 		else
-			bupdir=$(dirname $(realpath $1))
+			bupdir="$(dirname "$(realpath "$1")")"
 		fi
-        bup=$(basename $1)
+        bup="$(basename "$1")"
         counter=0
-        bf=${bupdir}/${bup}.bup${D}
-        while [[ -f $bf ]]; do
-                counter=$[counter+1]
+        bf="${bupdir}/${bup}.bup${D}"
+        while [[ -f "$bf" ]]; do
+                counter=$((counter+1))
                 bf=${bupdir}/${bup}.bup${D}-$counter
-                dbg2 $bf
+                dbg2 "$bf"
         done
-        cp $1 $bf
+        cp "$1" "$bf"
         dbg "Backup of $1 written to $bf ."
 }
 
 
 function makeDirs() {
 # create default directories as defined in .scripts.config
-	for defaultdir in $(cut -d " " -f 1 $config |grep -v "#" |grep DIR$); do
-		path=$(grep "^$defaultdir " $config |awk -F "|" '{print $NF}'|cut -d " " -f 2 |sed -e 's@\t.*@@' -e 's@#.*@@')
+	for defaultdir in $(cut -d " " -f 1 "$config" |grep -v "#" |grep DIR$); do
+		path=$(grep "^$defaultdir " "$config" |awk -F "|" '{print $NF}'|cut -d " " -f 2 |sed -e 's@\t.*@@' -e 's@#.*@@')
 		#dbg2 "$(eval echo $path)"
-		mkdir -pv $(eval echo $path) >>$LOG 2>&1
-		chown $ADMIN:$GROUP $(eval echo $path) >>$LOG 2>&1
-		chmod 770 $(eval echo $path) >>$LOG 2>&1
+		mkdir -pv "$(eval echo "$path")" >> "$LOG" 2>&1
+		chown "$ADMIN":"$GROUP" "$(eval echo "$path")" >> "$LOG" 2>&1
+		chmod 770 "$(eval echo "$path")" >> "$LOG" 2>&1
 	done
 }
 
@@ -236,7 +236,7 @@ sudoer() {
 # Because for the installation of software and generation of directories 
 # on shares with limited write permissions root rights are needed, check for 
 # these at the very beginning. 
-	if [ $(whoami) != "root" ]; then 
+	if [ "$(whoami)" != "root" ]; then 
 		printf $'\r\e[2K\t\e[31;1;40m'"WARNING: This script needs to be run with root-priviledges."$'\e[0m\n' 
 		exit
 	fi
@@ -251,15 +251,15 @@ sudoer
 
 #debug=2
 
-getVarDir=$(realpath $(dirname $BASH_SOURCE))
-CONFIGDIR=$getVarDir/..
-config=$(realpath $CONFIGDIR/.scripts.config)
+getVarDir="$(realpath "$(dirname "$BASH_SOURCE")")"
+CONFIGDIR="$getVarDir/.."
+config="$(realpath "$CONFIGDIR/.scripts.config")"
 #config=$(find $(realpath $CONFIGDIR) -name ".scripts.config")
-fsdbconfig=$(realpath $CONFIGDIR/fsdb.config)
+fsdbconfig="$(realpath "$CONFIGDIR/fsdb.config")"
 #fsdbconfig=$(find $(realpath $CONFIGDIR) -name "fsdb.config")
 
 # the global debug level is set as parameter to fun_colMsg (0-2; default 1)
-source $getVarDir/fun_colMsg.sh $DEBUGLEVEL
+source "$getVarDir/fun_colMsg.sh" $DEBUGLEVEL
 
 # timestamp for index files
 D=$(date +%y%m%d)
@@ -269,7 +269,7 @@ export "D=$(echo $D)"
 # (and by that will change D)
 # define a fixed STARTDATE. 
 # This will be set at the first run only.
-if [ -z $STARTDATE ]; then 
+if [ -z "$STARTDATE" ]; then 
 	export "STARTDATE=$(echo $D)"
 fi
 
@@ -278,32 +278,32 @@ checkConfig $@
 
 # define WORKDIR, which is the root of the fsdb, dynamically on the basis of the 
 # location of this script
-td=$(realpath $getVarDir/..)
+td="$(realpath "$getVarDir/..")"
 dbg2 "SCRIPTSDIR = $td"
-export "SCRIPTSDIR=$(eval echo $td)"
+export "SCRIPTSDIR=$(eval echo "$td")"
 #echo "SCRIPTSDIR $td" |tee -a $GVconf
-td=$(realpath $SCRIPTSDIR/..)
-export "WORKDIR=$(eval echo $td)"
+td="$(realpath "$SCRIPTSDIR/..")"
+export "WORKDIR=$(eval echo "$td")"
 #echo "WORKDIR $td" |tee -a $GVconf
 # define Fiji directories
-fd=$(grep FIJIDIR $config  |grep -v ^# |awk -F "|" '{print $NF}'|cut -d " " -f 2|cut -f 1)
-dbg2 "FIJIDIR = $(eval echo $fd)"
-export "FIJIDIR=$(eval echo $fd)"
+fd="$(grep FIJIDIR "$config"  |grep -v ^# |awk -F "|" '{print $NF}'|cut -d " " -f 2|cut -f 1)"
+dbg2 "FIJIDIR = $(eval echo "$fd")"
+export "FIJIDIR=$(eval echo "$fd")"
 #echo "FIJIDIR $fd" |tee -a $GVconf
-export "MACROSDIR=$(eval echo $FIJIDIR/macros)"
+export "MACROSDIR=$(eval echo "$FIJIDIR/macros")"
 #echo "MACROSDIR $FIJIDIR/macros" |tee -a $GVconf
 
 # for each element in the first column of .scripts.config 
 # export all following values as content of the variable 
 # with the name of the element in the first column.
-for i in $(cut -d " " -f 1 $config |grep -v "#"); do
+for i in $(cut -d " " -f 1 "$config" |grep -v "#"); do
 #	echo ":getVar:$0: $i"
-	d=$(grep "^$i " $config)
-   if [[ $(echo $d |grep -c "|" ) -eq 0 ]]; then #check for existence of a category (e.g., |cat|)
+	d="$(grep "^$i " "$config")"
+   if [[ $(echo "$d" |grep -c "|" ) -eq 0 ]]; then #check for existence of a category (e.g., |cat|)
       # the outer subshell is needed for expanding variables within the read-in values
-      export "$i=$(eval echo $(echo $d |cut -d " " -f 2- |sed -e 's@\t.*@@' -e 's@#.*@@' -e 's@^ @@'))"
+      export "$i=$(eval echo $(echo "$d" |cut -d " " -f 2- |sed -e 's@\t.*@@' -e 's@#.*@@' -e 's@^ @@'))"
    else
-   	   export "$i=$(eval echo $(echo $d |awk -F "|" '{print $NF}'|cut -d " " -f 2- |sed -e 's@\t.*@@' -e 's@#.*@@' -e 's@^ @@'))"
+   	   export "$i=$(eval echo $(echo "$d" |awk -F "|" '{print $NF}'|cut -d " " -f 2- |sed -e 's@\t.*@@' -e 's@#.*@@' -e 's@^ @@'))"
   fi
   dbg2 "$i = ${!i}" |grep -e "DIR "
 done
@@ -370,7 +370,7 @@ case $(hostname) in
 		;;
 esac
 dbg2 "getVar: $COMP $ORDER"
-export "COMP=$(echo $COMP)"
+export "COMP="$(echo "$COMP")""
 #echo "COMP $COMP" |tee -a $GVconf
 export "maxsize=$maxsize"
 export "minsize=$minsize"
@@ -380,13 +380,13 @@ export "FIJIONSERVER=$FIJIONSERVER"
 #echo "FIJIONSERVER $FIJIONSERVER" 
 
 # log file for debugging and cleanup
-mkdir -p $LOGDIR
-LOG="$LOGDIR/$D.$(basename $0 .sh).log"
+mkdir -p "$LOGDIR"
+LOG="$LOGDIR/$D.$(basename "$0" .sh).log"
 dbg "logs at $LOG"
 #if [ -f $LOG ]; then
 #	sudo rm $LOG
 #fi
-date >> $LOG
+date >> "$LOG"
 export "LOG=$LOG"
 
 # make sure, that all default directories (as defined in .scripts.config) exist
