@@ -48,7 +48,7 @@ fijiOnWSL(){
 	cd "$FIJIDIR" || exit
 	FIJI="$FIJIDIR/ImageJ-linux64"
 	
-	timeout ${TIMEOUTMINUTES}m "$FIJI" "-macro $MACRO $IMG" 2>>"$LOG"
+	timeout ${TIMEOUTMINUTES}m "$FIJI -macro $MACRO $IMG" 2>>"$LOG"
 }
 
 fijiOnLinux(){
@@ -83,9 +83,9 @@ fijiOnWindows() {
 
 # set all global variables
 thisDir="$(realpath "$(dirname "$0")")"
-source "$thisDir/../core/getVar.sh"
+source "$thisDir/getVar.sh"
 
-intro $0
+intro "$0"
 
 debug=1
 
@@ -120,25 +120,25 @@ echo "fiji: $FIJI" |tee -a "$LOG"
 
 # populate variables
 if [[ "$(echo "$1" |awk -F "." '{print $NF}')" == "ijm" ]]; then
-	if [[ -n "$1" ]]; then 
+	if [[ -f "$1" ]]; then 
 		MACRO="$(realpath "$1")"
 	else
 		echo "first parameter empty. exiting."
 		exit
 	fi
-	if [[ -n "$2" ]]; then
+	if [[ -f "$2" ]]; then
 		IMG="$(realpath "$2")"
 	else
 		echo "second parameter empty."
 	fi
 
 elif [[ "$(echo "$2" |awk -F "." '{print $NF}')" == "ijm" ]]; then
-	if [[ -n "$2" ]]; then
+	if [[ -f "$2" ]]; then
 		MACRO="$(realpath "$2")"
 	else
 		echo "second parameter empty."
 	fi
-	if [[ -n "$1" ]]; then 
+	if [[ -f "$1" ]]; then 
 		IMG="$(realpath "$1")"
 	else
 		echo "first parameter empty. exiting."
@@ -161,7 +161,7 @@ else
 	fileSize="$minsize"
 fi 
 
-echo "filesize: $fileSize"
+echo "filesize: $fileSize" |tee -a "$LOG"
 
 if [[ "$fileSize" -gt "$maxsize"  ||  "$fileSize" -lt "$minsize" ]]; then
 	complain
