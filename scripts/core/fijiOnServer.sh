@@ -47,7 +47,7 @@ function complain(){
 fijiOnX11(){
 	cd "$FIJIDIR" || exit
 	FIJI="$FIJIDIR/ImageJ-linux64"
-	cd $FIJIDIR
+
 	#timeout ${TIMEOUTMINUTES}m "$FIJI -macro $MACRO $IMG" 2>>"$LOG"
 	timeout ${TIMEOUTMINUTES}m "./ImageJ-linux64 -macro $MACRO $IMG" 2>>"$LOG"
 }
