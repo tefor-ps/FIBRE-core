@@ -44,7 +44,7 @@ function complain(){
 	fi
 }
 
-fijiOnWSL(){
+fijiOnX11(){
 	cd "$FIJIDIR" || exit
 	FIJI="$FIJIDIR/ImageJ-linux64"
 	
@@ -172,12 +172,17 @@ fi
 if [[ "$(uname)" == "Linux" ]]; then
 	if [[ $(grep -ic microsoft /proc/version) -gt 0 ]]; then
 		echo "WSL" |tee -a "$LOG"
-		fijiOnWSL
+		fijiOnX11
 	else
 		echo "Linux" |tee -a "$LOG"
-		fijiOnLinux
+		if [[ $( echo $DISPLAY |wc -c ) -gt 1 ]]; then
+			fijiOnX11
+		else
+			fijiOnLinux
+		fi
 	fi
 else
+	echo "Windows" |tee -a "$LOG"
 	fijiOnWindows
 fi
 
