@@ -253,7 +253,7 @@ sudoer() {
 # make sure, that the sourcing script is run as superuser/root
 sudoer
 
-debug=2
+#debug=2
 
 getVarDir="$(realpath "$(dirname "$BASH_SOURCE")")"
 CONFIGDIR="$getVarDir/.."
