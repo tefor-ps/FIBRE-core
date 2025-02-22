@@ -168,6 +168,7 @@ function updateConfig(){
 		restructureConfig "$fsdbconfig" >> "$config" 
 		# Add the contents of the other config-files (with the exception of $fsdbconfig
 		for file in $( ls ${configs[@]} |grep -v "${fsdbconfig}"); do
+			#dbg2 "updating $config with $file"
 			restructureConfig "${file}"
 		done >> "$config"
 	else
@@ -224,8 +225,9 @@ function makeDirs() {
 # create default directories as defined in .scripts.config
 	for defaultdir in $(cut -d " " -f 1 "$config" |grep -v "#" |grep DIR$); do
 		path=$(grep "^$defaultdir " "$config" |awk -F "|" '{print $NF}'|cut -d " " -f 2 |sed -e 's@\t.*@@' -e 's@#.*@@')
-		echo "$path"
-		defaultpath="$(eval echo "$path" |cut -d " " -f 1)"
+		#echo "$path"
+	#	defaultpath="$(realpath $(eval echo "$path" |cut -d " " -f 1))"
+		defaultpath="$(realpath $(eval echo "$path"))"
 		dbg2 "$defaultpath"
 		mkdir -pv "$defaultpath" >> "$LOG" 2>&1
 		chown -R "$ADMIN":"$GROUP" "$defaultpath" >> "$LOG" 2>&1
