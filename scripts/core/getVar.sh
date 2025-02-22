@@ -321,6 +321,15 @@ case $(hostname) in
 #		ORDER="age"
 #		FIJIONSERVER=fijiOnMonster.sh
 		;;
+        beast)
+                COMP="beast"
+#               14GB =  14771089024
+                maxsize=250000000000    #250GB @ 512GB RAM --> process everything
+                minsize=100000000               #--> process everything bigger than 100MB
+                ORDER="size"
+#               ORDER="age"
+#               FIJIONSERVER=fijiOnMonster.sh
+                ;;
 	PWE-T630-TEFOR-2)
 		COMP="beast"
 #       14GB =  14771089024
