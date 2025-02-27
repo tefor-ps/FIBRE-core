@@ -45,6 +45,7 @@ function complain(){
 }
 
 fijiOnX11(){
+# TODO: needs testing and potentially setup/modification of XAuth	
 	dbg "X11"
 	cd "$FIJIDIR" || exit
 	FIJI="$FIJIDIR/ImageJ-linux64"
