@@ -16,32 +16,7 @@ Documentation on the actions of the shell-scripts of the fsdb are included into 
 
 ## installation of the fsdb
 
-We are offering two methods for the installation of the fsdb. Both are guiding you through the installation and give you the opportunity to decide, which part of the installtion you want to run - or not. 
-
-# automatic install
-
-The easiest for a stright-forward (de-novo) installation of the fsdb is to clone the repository fsdb-install and run the fsdb-install.sh
-```
-[git clone  https://gitlab.com/arnimjenett/fsdb-install/-/tree/main](https://gitlab.com/arnimjenett/fsdb-install/-/tree/main)
-cd ./fsdb-install
-sudo bash fsdb-install.sh
-```
-
-# manual install
-
-For a manual installation please download the `initializeFsdb.sh` from the [*install* directory](https://gitlab.com/arnimjenett/fsdb23/-/tree/main/install) of this [project](https://gitlab.com/arnimjenett/fsdb23.git) and run in a terminal using sudo.
-```
-sudo bash [path to your download directory]/initializeFsdb.sh
-```
-This will install all necessary Unix tools, download the rest of the fsdb and guide you through the process of installing and configuring your fsdb instance.   
-
-For an update or repair of a pre-existing installation of the fsdb you can run the script `installFsdb.sh` from the local *install* directory. 
-```
-sudo bash [path to your local installation]/install/installFsdb.sh
-```
-This will update the scripts of fsdb (from its [gitlab repo](https://gitlab.com/arnimjenett/fsdb23/)) and guide you through the updating process.   
-
-While the fsdb is meant to run in the background (non-interactive) on a Linux server it can - with some limitation - also be run in the 'Windows Subsystem for Linux' (wsl2).
+The easiest for a straight-forward (de-novo) installation of the fsdb is to download the setup script [`setup-fsdb-minimal.sh`](https://gitlab.com/tefor/fsdb-minimal/-/blob/main/setup-fsdb-minimal.sh?ref_type=heads) from this repository and run it:
 
 #### preparation of the image acquisition systems (IAS)
 
