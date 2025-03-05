@@ -33,11 +33,11 @@ echo "$DEVDIR"
 if [[ $(pwd |grep -c fsdb-minimal) -eq 0 ]]; then
 # clone the minimal version of the fsdb into your development location
 	cd "$DEVDIR" || exit 
-	printf "\n... getting https://gitlab.com/tefor/fsdb-minimal.git\n"
+	printf "\n... getting https://gitlab.com/tefor/fsdb-minimal.git\nYou may need to type your credentials for this operation.\n"
 	git clone https://gitlab.com/tefor/fsdb-minimal.git
 else
 	cd "$DEVDIR/fsdb-minimal/" || exit
-	printf "\n... pulling https://gitlab.com/tefor/fsdb-minimal.git\n"
+	printf "\n... pulling https://gitlab.com/tefor/fsdb-minimal.git\nYou may need to type your credentials for this operation.\n"
 	git pull
 fi
 # activate default configs within fsdb-minimal
