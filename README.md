@@ -16,7 +16,7 @@ Documentation on the actions of the shell-scripts of the fsdb are included into 
 
 ## installation of the fsdb
 
-The easiest for a straight-forward (de-novo) installation of the fsdb is to download the setup script [`setup-fsdb-minimal.sh`](https://gitlab.com/tefor/fsdb-minimal/-/blob/main/setup-fsdb-minimal.sh?ref_type=heads) from this repository and run it:
+The easiest for a straight-forward (de-novo) installation of the fsdb is to download the setup script [`setup-fsdb-minimal.sh`](https://gitlab.com/tefor/fsdb-minimal/-/blob/main/setup-fsdb-minimal.sh?ref_type=heads) from this repository and run it.
 
 #### preparation of the image acquisition systems (IAS)
 
