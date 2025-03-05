@@ -18,7 +18,7 @@ trap 'err_report $LINENO' ERR
 # define the location of your development environment/location
 if [[ -z $1 ]]; then
 	if [[ $(pwd |grep -c fsdb-minimal) -eq 0 ]]; then
-		DEVDIR="$(pwd)/dev-dir"
+		DEVDIR="$(pwd)/fsdb25"
 	else
 		DEVDIR="$(pwd |sed 's@/fsdb-minimal.*@@')"
 	fi
