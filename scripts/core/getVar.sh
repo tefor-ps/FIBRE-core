@@ -122,14 +122,15 @@ function editConfig(){
 
 function updateConfig(){
 	# List of configs to compare.  
-#	configs=$(find $(realpath $CONFIGDIR) -name "*.config" |grep -v $config )
-	localConfigs=$(find "$(realpath "$CONFIGDIR")" -name "*.config" |grep -v "$config" )
-	dbg2 "localConfigs at $(realpath $CONFIGDIR)\n$(ls -l ${localConfigs[@]})"
+#	configs=$(find $(realpath $SCRIPTSDIR) -name "*.config" |grep -v $config )
+	localConfigs=$(find "$(realpath "$SCRIPTSDIR")" -name "*.config" |grep -v "$config" )
+	dbg2 "localConfigs at $(realpath $SCRIPTSDIR)\n$(ls -l ${localConfigs[@]})"
 
-	moduleConfigs=$(find "$(realpath "$thisDir")" -name "*.config" |grep -v "$config" )
-	dbg2 "moduleConfigs at ${thisDir}\n$(ls -l ${moduleConfigs[@]})"
+	moduleConfigs=$(find "$(realpath "$FSDBDIR")" -name "*.config" |grep -v -e "$config" -e "install" )
+	dbg2 "moduleConfigs at ${FSDBDIR}\n$(ls -l ${moduleConfigs[@]})"
 
 	configs=("${localConfigs[@]}" "${moduleConfigs[@]}")
+	configs=($(echo "${configs[@]}" |tr " " "\n" |sort -u |tr "\n" " "))
 	dbg2 "all configs\n$(ls -l ${configs[@]})"
 	
 	# Check if $config exists, if not create it
@@ -158,8 +159,9 @@ function updateConfig(){
 	
 	# If any sub-config is newer than $config, update $config
 	if [[ $update -eq 1 ]]; then
-		dbg "Updating $config with the content of all sub-configs..."
+		dbg "Backup $config"
 		backup "$config"
+		dbg "Updating $config with the content of all sub-configs..."
 		printf "## DO NOT MODIFY THIS FILE. 
 ## IT WILL BE OVERWRITTEN BY getVar.sh AS SOON AS THE NON-HIDDEN CONFIG-FILES ARE MODIFIED.
 ## APPLY MODIFICATIONS IN THE CORRSPONDING SUB-CONFIG FILE.
@@ -168,9 +170,9 @@ function updateConfig(){
 		restructureConfig "$fsdbconfig" >> "$config" 
 		# Add the contents of the other config-files (with the exception of $fsdbconfig
 		for file in $( ls ${configs[@]} |grep -v "${fsdbconfig}"); do
-			#dbg2 "updating $config with $file"
-			restructureConfig "${file}"
-		done >> "$config"
+			dbg2 "updating $config with $file"
+			restructureConfig "${file}" >> "$config"
+		done 
 	else
 		dbg2 "No configs have been modified since $config was last updated."
 	fi
@@ -223,15 +225,18 @@ function backup() {
 
 function makeDirs() {
 # create default directories as defined in .scripts.config
-	for defaultdir in $(cut -d " " -f 1 "$config" |grep -v "#" |grep DIR$); do
+	for defaultdir in $(cut -d " " -f 1 "$config" |grep -v "#" |grep DIR$ |sort -u); do
 		path=$(grep "^$defaultdir " "$config" |awk -F "|" '{print $NF}'|cut -d " " -f 2 |sed -e 's@\t.*@@' -e 's@#.*@@')
 		#echo "$path"
 	#	defaultpath="$(realpath $(eval echo "$path" |cut -d " " -f 1))"
-		defaultpath="$(realpath $(eval echo "$path"))"
-		dbg2 "$defaultpath"
+	#	defaultpath="$(realpath $(eval echo "$path"))"
+		defaultpath="$(eval echo "$path" |tail -1)"
 		mkdir -pv "$defaultpath" >> "$LOG" 2>&1
+	#	defaultpath="$(realpath $(eval echo "$defaultpath"))"
+		dbg2 "${defaultdir}: ${path}: $defaultpath"
 		chown -R "$ADMIN":"$GROUP" "$defaultpath" >> "$LOG" 2>&1
 		chmod -R 770 "$defaultpath" >> "$LOG" 2>&1
+		export "${defaultdir}=${defaultpath}"
 	done
 }
 
@@ -256,11 +261,17 @@ sudoer
 #debug=2
 
 getVarDir="$(realpath "$(dirname "$BASH_SOURCE")")"
-CONFIGDIR="$getVarDir/.."
-config="$(realpath "$CONFIGDIR/.scripts.config")"
-#config=$(find $(realpath $CONFIGDIR) -name ".scripts.config")
-fsdbconfig="$(realpath "$CONFIGDIR/fsdb.config")"
-#fsdbconfig=$(find $(realpath $CONFIGDIR) -name "fsdb.config")
+
+# define SCRIPTSDIR, WORKDIR, and FSDBDIR, which is the root of the fsdb, 
+# dynamically on the basis of the location of this script
+SCRIPTSDIR="$(realpath "$getVarDir/..")"
+WORKDIR="$(realpath "$SCRIPTSDIR/..")"
+FSDBDIR="$(realpath "$WORKDIR/..")"
+
+config="$(realpath "$SCRIPTSDIR/.scripts.config")"
+#config=$(find $(realpath $SCRIPTSDIR) -name ".scripts.config")
+fsdbconfig="$(realpath "$SCRIPTSDIR/fsdb.config")"
+#fsdbconfig=$(find $(realpath $SCRIPTSDIR) -name "fsdb.config")
 
 # the global debug level is set as parameter to fun_colMsg (0-2; default 1)
 source "$getVarDir/fun_colMsg.sh" $DEBUGLEVEL
@@ -280,36 +291,31 @@ fi
 # check, if $config exists and is up-to-date
 checkConfig $@
 
-# define WORKDIR, which is the root of the fsdb, dynamically on the basis of the 
-# location of this script
-td="$(realpath "$getVarDir/..")"
-dbg2 "SCRIPTSDIR = $td"
-export "SCRIPTSDIR=$(eval echo "$td")"
-#echo "SCRIPTSDIR $td" |tee -a $GVconf
-td="$(realpath "$SCRIPTSDIR/..")"
-export "WORKDIR=$(eval echo "$td")"
-#echo "WORKDIR $td" |tee -a $GVconf
-# define Fiji directories
-fd="$(grep FIJIDIR "$config"  |grep -v ^# |awk -F "|" '{print $NF}'|cut -d " " -f 2|cut -f 1)"
-dbg2 "FIJIDIR = $(eval echo "$fd")"
-export "FIJIDIR=$(eval echo "$fd")"
-#echo "FIJIDIR $fd" |tee -a $GVconf
-export "MACROSDIR=$(eval echo "$FIJIDIR/macros")"
-#echo "MACROSDIR $FIJIDIR/macros" |tee -a $GVconf
+# export directories defined above
+dbg2 "SCRIPTSDIR = $SCRIPTSDIR"
+export "SCRIPTSDIR=$(eval echo "$SCRIPTSDIR")"
+dbg2 "WORKDIR = $WORKDIR"
+export "WORKDIR=$(eval echo "$WORKDIR")"
+dbg2 "FSDBDIR = $FSDBDIR"
+export "FSDBDIR=$(eval echo "$FSDBDIR")"
 
 # for each element in the first column of .scripts.config 
 # export all following values as content of the variable 
 # with the name of the element in the first column.
-for i in $(cut -d " " -f 1 "$config" |grep -v "#"); do
-#	echo ":getVar:$0: $i"
-	d="$(grep "^$i " "$config")"
-   if [[ $(echo "$d" |grep -c "|" ) -eq 0 ]]; then #check for existence of a category (e.g., |cat|)
-      # the outer subshell is needed for expanding variables within the read-in values
-      export "$i=$(eval echo $(echo "$d" |cut -d " " -f 2- |sed -e 's@\t.*@@' -e 's@#.*@@' -e 's@^ @@'))"
-   else
-   	   export "$i=$(eval echo $(echo "$d" |awk -F "|" '{print $NF}'|cut -d " " -f 2- |sed -e 's@\t.*@@' -e 's@#.*@@' -e 's@^ @@'))"
-  fi
-  dbg2 "$i = ${!i}" |grep -e "DIR "
+for i in $(cut -d " " -f 1 "$config" |grep -v "#" |sort -u); do
+	d="$(grep "^$i " "$config" |sort)"
+	if [[ $(grep -c "^$i " "$config") -gt 1 ]]; then
+		warn "multiple instances of $i:\n$d"
+		d="$(grep "^$i " "$config" |sort |tail -1)"
+		warn "keeping $d"
+	fi
+	if [[ $(echo "$d" |grep -c "|" ) -eq 0 ]]; then #check for existence of a category (e.g., |cat|)
+	  # the outer subshell is needed for expanding variables within the read-in values
+	  export "$i=$(eval echo $(echo "$d" |cut -d " " -f 2- |sed -e 's@\t.*@@' -e 's@#.*@@' -e 's@^ @@') |awk '{print $1}')"
+	else
+	   export "$i=$(eval echo $(echo "$d" |awk -F "|" '{print $NF}'|cut -d " " -f 2- |sed -e 's@\t.*@@' -e 's@#.*@@' -e 's@^ @@' |awk '{print $1}'))"
+	fi
+	dbg2 "getVar: $i = ${!i}"
 done
 
 dbg "global debug level: $DEBUGLEVEL"
@@ -375,13 +381,10 @@ case $(hostname) in
 esac
 dbg2 "getVar: $COMP $ORDER"
 export "COMP="$(echo "$COMP")""
-#echo "COMP $COMP" |tee -a $GVconf
 export "maxsize=$maxsize"
 export "minsize=$minsize"
 export "ORDER=$ORDER"
-#echo "ORDER $ORDER" |tee -a $GVconf
 export "FIJIONSERVER=$FIJIONSERVER"
-#echo "FIJIONSERVER $FIJIONSERVER" 
 
 # log file for debugging and cleanup
 mkdir -p "$LOGDIR"
