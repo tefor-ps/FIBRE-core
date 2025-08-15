@@ -304,7 +304,7 @@ export "FSDBDIR=$(eval echo "$FSDBDIR")"
 # with the name of the element in the first column.
 #for i in $(cut -d " " -f 1 "$config" |grep -v "#" |sort -u); do
 for i in $(cut -d " " -f 1 "$config" |grep -v "#"); do
-	echo $i
+	#echo $i
 	d="$(grep "^$i " "$config" |sort)"
 	if [[ $(grep -c "^$i " "$config") -gt 1 ]]; then
 		warn "multiple instances of $i:\n$d"
