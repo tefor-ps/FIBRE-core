@@ -40,28 +40,41 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 	else
 		echo "Linux"
 	fi
-	wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip
+	FIJI=fiji-latest-linux64-jdk.zip
+	MD5=${FIJI}.md5
 elif [[ "$OSTYPE" == "darwin"* ]]; then
 	# Mac OSX
 	echo "MacOSX"
-	wget https://downloads.imagej.net/fiji/latest/fiji-macosx.zip
+	FIJI=fiji-latest-macos64-jdk.zip
+	MD5=${FIJI}.md5
 elif [[ "$OSTYPE" == "cygwin" ]]; then
 	# POSIX compatibility layer and Linux environment emulation for Windows
 	echo "cygwin"
-	wget https://downloads.imagej.net/fiji/latest/fiji-win64.zip
+	FIJI=fiji-latest-win64-jdk.zip
+	MD5=${FIJI}.md5
 elif [[ "$OSTYPE" == "msys" ]]; then
 	# Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
 	echo "Windows; e.g., Git Bash, msysGit, Mingw32"
-	wget https://downloads.imagej.net/fiji/latest/fiji-win64.zip
+	FIJI=fiji-latest-win64-jdk.zip
+	MD5=${FIJI}.md5
 elif [[ "$OSTYPE" == "freebsd"* ]]; then
 	# FreeBSD
 	echo "FreeBSD"
-	wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip
+	FIJI=fiji-latest-linux64-jdk.zip
+	MD5=${FIJI}.md5
 else
 	# Unknown.
 	printf "\r\t\tUnknown OS. Exiting."
 	uname -a
 	exit
+fi
+
+wget https://downloads.imagej.net/fiji/latest/$FIJI
+wget https://downloads.imagej.net/fiji/latest/$MD5
+
+if [[ "$(md5sum fiji-latest-linux-arm64-jdk.zip |awk '{print $1}')" != "$(cat $MD5)" ]]; then
+	echo "ERROR: md5 checksum mismatch. Exiting."
+	exit 1
 fi
 
 # unpack Fiji, move it to the correct location, and remove the temporary directory
