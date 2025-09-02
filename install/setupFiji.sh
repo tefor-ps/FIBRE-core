@@ -84,9 +84,10 @@ rsync -Sauv Fiji/ "$FIJIDIR"
 
 # update fiji
 cd "$FIJIDIR" || exit
-FIJI=$(find $(pwd) -maxdepth 1 -type f -name "fiji*")
+#FIJI=$(find $(pwd) -maxdepth 1 -type f -name "fiji")
 printf "\n ... updating Fiji\n"
-sudo "$FIJI" --update update
+#sudo bash "$FIJI" --update update
+sudo bash fiji --update update
 
 # clean up
 rm -rfv "$TMPDIR"
