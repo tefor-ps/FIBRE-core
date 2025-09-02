@@ -5,6 +5,8 @@ If it encounters the "Windows subsystem for Linux (WSL)" it installed the Linux 
 
 README
 
+#TODO: the new root-dir of fiji is called 'Fiji', not 'Fiji.app'. Modify fsdb accordingly.
+
 if [[ "$(whoami)" != "root" ]]; then
 	echo "This script needs to be run with sudo. Exiting."
 	exit
@@ -84,10 +86,8 @@ rsync -Sauv Fiji/ "$FIJIDIR"
 
 # update fiji
 cd "$FIJIDIR" || exit
-#FIJI=$(find $(pwd) -maxdepth 1 -type f -name "fiji")
 printf "\n ... updating Fiji\n"
-#sudo bash "$FIJI" --update update
 sudo bash fiji --update update
 
 # clean up
-rm -rfv "$TMPDIR"
+rm -rf "$TMPDIR"
