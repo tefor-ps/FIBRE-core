@@ -72,7 +72,7 @@ fi
 wget https://downloads.imagej.net/fiji/latest/$FIJI
 wget https://downloads.imagej.net/fiji/latest/$MD5
 
-if [[ "$(md5sum fiji-latest-linux-arm64-jdk.zip |awk '{print $1}')" != "$(cat $MD5)" ]]; then
+if [[ "$(md5sum $FIJI |awk '{print $1}')" != "$(cat $MD5)" ]]; then
 	echo "ERROR: md5 checksum mismatch. Exiting."
 	exit 1
 fi
