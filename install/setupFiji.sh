@@ -89,5 +89,12 @@ cd "$FIJIDIR" || exit
 printf "\n ... updating Fiji\n"
 sudo bash fiji --update update
 
+# link fiji into PATH
+sudo sed -i 's@dir=$(dirname "$0")@dir=$(dirname $(realpath "$0"))@' "$FIJIDIR"/fiji
+sudo ln -svf "$FIJIDIR"/fiji /usr/local/bin/fiji 
+
 # clean up
 rm -rf "$TMPDIR"
+
+# user feedback
+echo "Done."
