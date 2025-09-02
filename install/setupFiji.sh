@@ -79,11 +79,14 @@ fi
 
 # unpack Fiji, move it to the correct location, and remove the temporary directory
 mkdir -pv "$FIJIDIR"
-unzip fiji*zip -d "$FIJIDIR/.."
-rm -rf "$TMPDIR"
+unzip fiji*zip
+mv Fiji/* "$FIJIDIR"
 
 # update fiji
 cd "$FIJIDIR" || exit
-FIJI=$(find . -maxdepth 1 -type f |grep mage)
+FIJI=$(find $(pwd) -maxdepth 1 -type f -name "fiji*")
 printf "\n ... updating Fiji\n"
 sudo "$FIJI" --update update
+
+# clean up
+rm -rfv "$TMPDIR"
