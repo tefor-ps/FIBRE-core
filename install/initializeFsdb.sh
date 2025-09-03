@@ -77,7 +77,8 @@ fi
 #remove leftovers from earlier installations
 rm -rf /$INITDIR/$fsdbVersion
 
-printf "As a linux tool the fsdb many other linux tools; some of them are not part of the standard linux installation. 
+printf "As a linux tool the fsdb employes many other linux tools. 
+Some of them are not part of the standard linux installation; other will need to be installed. 
 This step ensures, that all necessary tools are installed on this computer.
 The following linux tools will be installed or updated on your computer:\n"
 for i in nload htop tree vlc samba vim nano gitg meld xvfb libimage-exiftool-perl ffmpeg curl unzip p7zip-full gparted cifs-utils nfs-common rename imagemagick; do 
@@ -87,7 +88,8 @@ read -e -p "Are you OK with installing these tools? [Y/n]: " -i "Y" ans
 if [[ "$ans" == [Yy] ]]; then
 	installLinuxTools
 else
-	printf "You may run into problems running the fsdb, if the necessary tools are not installed or up-to-date. Proceeding.\n"
+	printf "You may run into problems running the fsdb, if the necessary tools are not installed or up-to-date. 
+Skipping installation and proceeding.\n"
 fi
 
 # download of fsdb-scripts from gitlab
