@@ -46,7 +46,7 @@ populates the following variables:
 	STARTDATE is used to keep referencing the $INDEX of the starting day even 
 	if/while the process is running longer than midnight.
 - SCRIPTSDIR : directory, which is containing all (shell) scripts of the fsdb.
-- WORKDIR : the root-directory of the fsdb
+- FSDBDIR : the root-directory of the fsdb
 
 --> machine-specific configurations
 - COMP : name of the computer this script is running on 
@@ -262,11 +262,10 @@ sudoer
 
 getVarDir="$(realpath "$(dirname "$BASH_SOURCE")")"
 
-# define SCRIPTSDIR, WORKDIR, and FSDBDIR, which is the root of the fsdb, 
+# define SCRIPTSDIR and FSDBDIR, which is the root of the fsdb, 
 # dynamically on the basis of the location of this script
 SCRIPTSDIR="$(realpath "$getVarDir/..")"
-WORKDIR="$(realpath "$SCRIPTSDIR/..")"
-FSDBDIR="$(realpath "$WORKDIR/..")"
+FSDBDIR="$(realpath "$SCRIPTSDIR/..")"
 
 config="$(realpath "$SCRIPTSDIR/.scripts.config")"
 #config=$(find $(realpath $SCRIPTSDIR) -name ".scripts.config")
@@ -294,8 +293,6 @@ checkConfig $@
 # export directories defined above
 dbg2 "SCRIPTSDIR = $SCRIPTSDIR"
 export "SCRIPTSDIR=$(eval echo "$SCRIPTSDIR")"
-dbg2 "WORKDIR = $WORKDIR"
-export "WORKDIR=$(eval echo "$WORKDIR")"
 dbg2 "FSDBDIR = $FSDBDIR"
 export "FSDBDIR=$(eval echo "$FSDBDIR")"
 
