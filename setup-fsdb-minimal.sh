@@ -18,36 +18,36 @@ trap 'err_report $LINENO' ERR
 # define the location of your development environment/location
 if [[ -z $1 ]]; then
 	if [[ $(pwd |grep -c fsdb-minimal) -eq 0 ]]; then
-		DEVDIR="$(pwd)/fsdb25"
+		INSTDIR="$(pwd)/fsdb25"
 	else
-		DEVDIR="$(pwd |sed 's@/fsdb-minimal.*@@')"
+		INSTDIR="$(pwd |sed 's@/fsdb-minimal.*@@')"
 	fi
 else
-	DEVDIR="$(realpath "$1")"
+	INSTDIR="$(realpath "$1")"
 fi
 
 # create development location and move into it 
-mkdir -pv "$DEVDIR"
-echo "$DEVDIR" 
+mkdir -pv "$INSTDIR"
+echo "$INSTDIR" 
 
 if [[ $(pwd |grep -c fsdb-minimal) -eq 0 ]]; then
 # clone the minimal version of the fsdb into your development location
-	cd "$DEVDIR" || exit 
+	cd "$INSTDIR" || exit 
 	printf "\n... getting https://gitlab.com/tefor/fsdb-minimal.git\nYou may need to type your credentials for this operation.\n"
 	git clone https://gitlab.com/tefor/fsdb-minimal.git
 else
-	cd "$DEVDIR/fsdb-minimal/" || exit
+	cd "$INSTDIR/fsdb-minimal/" || exit
 	printf "\n... pulling https://gitlab.com/tefor/fsdb-minimal.git\nYou may need to type your credentials for this operation.\n"
 	git pull
 fi
 # activate default configs within fsdb-minimal
-find "$DEVDIR/fsdb-minimal/" -name "*config.default" |while read -r defaultConfig; do
+find "$INSTDIR/fsdb-minimal/" -name "*config.default" |while read -r defaultConfig; do
 	config=${defaultConfig//.default/}
 	cp -v "$defaultConfig" "$config"
 done
 
 # as Fiji is OS-specific it is installed directly from https://imagej.net/
-FIJIINSTALLER=$(find "$DEVDIR" -name setupFiji.sh)
+FIJIINSTALLER=$(find "$INSTDIR" -name setupFiji.sh)
 echo "$FIJIINSTALLER"
-sudo bash "$FIJIINSTALLER" "$DEVDIR"
+sudo bash "$FIJIINSTALLER" "$INSTDIR"
 
