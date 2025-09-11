@@ -11,8 +11,26 @@ README
 
 
 # set all global variables
-thisDir=$(dirname $(realpath $0))
-source $thisDir/../scripts/core/getVar.sh
+thisDir="$(realpath "$(dirname "$0")")"
+# define FSDBDIR, which is the root of the fsdb, 
+# dynamically on the basis of the location of this script
+if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
+	FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
+else
+	FSDBDIR="$(realpath $thisDir/../..)"
+fi
+
+# set all global variables or at least the ones necessary
+GETVAR=$(find $FSDBDIR -type f -name getVar.sh)
+if [[ -f $GETVAR ]]; then
+	source "$GETVAR"
+	intro "$0"
+else
+	ADMINDIR="/tmp/"
+	LOG="$ADMINDIR/$(basename $0 .sh).log"
+	FSDBVERSION=fsdb
+	error "Can't locate getVar.sh."
+fi
 
 debug=2
 
