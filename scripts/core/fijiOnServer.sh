@@ -103,11 +103,11 @@ thisDir="$(realpath "$(dirname "$0")")"
 if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
 	FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
 else
-	FSDBDIR="$(realpath $SCRIPTSDIR/../../..)"
+	FSDBDIR="$(realpath $thisDir/../../..)"
 fi
 
 # set all global variables
-GETVAR=$(find $SCRIPTSDIR -type f -name getVar.sh)
+GETVAR=$(find $FSDBDIR -type f -name getVar.sh)
 if [[ -f $GETVAT ]]; then
 	source "$GETVAR"
 else
