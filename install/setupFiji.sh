@@ -7,12 +7,23 @@ Fiji is installed into that directory; else Fiji is installed into '$thisDir/../
 
 If this script encounters the "Windows subsystem for Linux (WSL)" it installes the Linux version of Fiji.
 
+This script is integrating fiji into PATH by creating a link between the 
+caller of the Fiji installation (Fiji/fiji) and /usr/local/bin/(fiji). 
+If you don't want this, comment out the coresponding two lines a the end of this script.
+The fsdb works without fiji being in PATH.
+
 README
+
+#fsdb-rev-date: 250911; tested, OK
+
+## ======
+## FUNCTION DEFINITIONS
+## ======
 
 function fail(){
 	#intro "$@"
 	date
-	printf "\033[31mError in $(basename $0)::${FUNCNAME[2]}:${FUNCNAME[1]} $@ \033[0m"
+	printf "\033[31mError in $(basename $0):${FUNCNAME[2]}:${FUNCNAME[1]} $@ \033[0m"
 	printf "\033[31m\nExiting.\033[0m\n"
 	exit 128
 }
@@ -54,18 +65,21 @@ else
 fi
 
 # set all global variables or at least FIJIDIR
-GETVAR=$(find $SCRIPTSDIR -type f -name getVar.sh)
-if [[ -f $GETVAT ]]; then
+GETVAR=$(find $FSDBDIR -type f -name getVar.sh)
+if [[ -f $GETVAR ]]; then
 	source "$GETVAR"
 	intro "$0"
 else
-	error "Can't locate getVar.sh."
 	FIJIDIR="$FSDBDIR/Fiji"
+	ADMINDIR="/tmp/"
+	LOG="$ADMINDIR/$(basename $0 .sh).log"
+	error "Can't locate getVar.sh.\nInstalling to $FIJIDIR."
 fi
-	
-	echo "Fiji already exists. Exiting."
-	exit
+
+if [[ -f $FIJIDIR/fiji ]]; then
+	fail "Fiji already exists at $FIJIDIR."
 fi
+
 # create temporary directory for download and unpacking.
 TMPDIR=$ADMINDIR/tmp-$(basename $0 .sh)
 mkdir -pv "$TMPDIR"
