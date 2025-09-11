@@ -268,7 +268,7 @@ SCRIPTSDIR="$(realpath "$getVarDir/..")"
 if [[ "$SCRIPTSDIR" =~ /fsdb[0-9]{2}/ ]]; then
 	FSDBDIR="$(realpath $SCRIPTSDIR |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
 else
-	FSDBDIR="$(realpath $SCRIPTSDIR/../..)"
+	FSDBDIR="$(realpath $SCRIPTSDIR/../../..)"
 fi
 config="$(realpath "$SCRIPTSDIR/.scripts.config")"
 #config=$(find $(realpath $SCRIPTSDIR) -name ".scripts.config")
