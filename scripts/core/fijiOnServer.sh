@@ -19,7 +19,8 @@ xvfb-run-safe.sh must be located in the same folder as this script.
 Other computers run fiji interactively as $ADMIN .
 
 README
-#fsdb-rev-date: 250911
+
+#fsdb-rev-date: 250911, needs testing
 
 ## ======
 ## FUNCTION DEFINITIONS
