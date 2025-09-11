@@ -240,7 +240,7 @@ function makeDirs() {
 	done
 }
 
-sudoer() {
+function sudoer() {
 ## ROOT PRIVILEDGES
 # Because for the installation of software and generation of directories 
 # on shares with limited write permissions root rights are needed, check for 
