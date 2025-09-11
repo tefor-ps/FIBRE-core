@@ -1,35 +1,73 @@
 #!/bin/bash
 <<README
-This script installs the correct (OS-specific) version of Fiji into the fsdb.
-If it encounters the "Windows subsystem for Linux (WSL)" it installed the Linux version.
+This script installs the correct (OS-specific) version of Fiji.
+If the path of this script contains a fsdb-root-directory 
+(e.g. a directory following the regex naming convention '/fsdb[0-9]{2}/')
+Fiji is installed into that directory; else Fiji is installed into '$thisDir/../..'.
+
+If this script encounters the "Windows subsystem for Linux (WSL)" it installes the Linux version of Fiji.
 
 README
 
-#TODO: the new root-dir of fiji is called 'Fiji', not 'Fiji.app'. Modify fsdb accordingly.
+function fail(){
+	#intro "$@"
+	date
+	printf "\033[31mError in $(basename $0)::${FUNCNAME[2]}:${FUNCNAME[1]} $@ \033[0m"
+	printf "\033[31m\nExiting.\033[0m\n"
+	exit 128
+}
 
-if [[ "$(whoami)" != "root" ]]; then
-	echo "This script needs to be run with sudo. Exiting."
-	exit
-fi
-
-# define the location of your Fiji installation
-if [[ -z $1 ]]; then
-	if [[ $(pwd |grep -c fsdb-minimal) -eq 0 ]]; then
-		DEVDIR="$(pwd)/dev-dir"
-	else
-		DEVDIR="$(pwd |sed 's@/fsdb-minimal.*@@')"
+function sudoer() {
+## ROOT PRIVILEDGES
+# Because for the installation of software and generation of directories 
+# on shares with limited write permissions root rights are needed, check for 
+# these at the very beginning. 
+	if [ "$(whoami)" != "root" ]; then 
+		printf $'\r\e[2K\t\e[31;1;40m'"WARNING: This script needs to be run with root-priviledges."$'\e[0m\n' 
+		exit
 	fi
+}
+
+function error() { 
+	if [[ -t 2 ]] ; then 
+		date >> $LOG; 
+		printf $'\e[37;1;41m'"\r\e[2KERROR:\t$0: $@"$'\e[0m\n' |tee -a $LOG
+	else 
+		echo "$@"
+	fi >&2
+}
+
+## ======
+## FUNCTION CALLS
+## ======
+
+# make sure, that the sourcing script is run as superuser/root
+sudoer
+
+# define FSDBDIR, which is the root of the fsdb, 
+# dynamically on the basis of the location of this script
+thisDir="$(realpath "$(dirname "$0")")"
+if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
+	FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
 else
-	DEVDIR="$(realpath "$1")"
+	FSDBDIR="$(realpath $thisDir/../..)"
 fi
 
-FIJIDIR="$DEVDIR/fsdb-minimal/scripts/Fiji.app/"
-if [[ -f $(find . -name "ImageJ-*") ]]; then
+# set all global variables or at least FIJIDIR
+GETVAR=$(find $SCRIPTSDIR -type f -name getVar.sh)
+if [[ -f $GETVAT ]]; then
+	source "$GETVAR"
+	intro "$0"
+else
+	error "Can't locate getVar.sh."
+	FIJIDIR="$FSDBDIR/Fiji"
+fi
+	
 	echo "Fiji already exists. Exiting."
 	exit
 fi
 # create temporary directory for download and unpacking.
-TMPDIR=$DEVDIR/tmp
+TMPDIR=$ADMINDIR/tmp-$(basename $0 .sh)
 mkdir -pv "$TMPDIR"
 cd "$TMPDIR" || exit
 
@@ -79,7 +117,7 @@ if [[ "$(md5sum $FIJI |awk '{print $1}')" != "$(cat $MD5)" ]]; then
 	exit 1
 fi
 
-# unpack Fiji, move it to the correct location, and remove the temporary directory
+## unpack Fiji, move it to the correct location, and remove the temporary directory
 mkdir -pv "$FIJIDIR"
 unzip fiji*zip
 rsync -Sauv Fiji/ "$FIJIDIR"
