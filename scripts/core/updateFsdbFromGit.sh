@@ -7,6 +7,8 @@ no parameter needed
 
 README
 
+#DEPRECATED?
+
 thisDir=$(dirname $(realpath $0))
 source $thisDir/../core/getVar.sh
 
