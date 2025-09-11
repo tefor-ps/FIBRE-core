@@ -64,6 +64,14 @@ README
 ## FUNCTION DEFINITIONS
 ## ======
 
+function fail(){
+	#intro "$@"
+	date
+	printf "\033[31mError in $(basename $0):${FUNCNAME[2]}:${FUNCNAME[1]} $@ \033[0m"
+	printf "\033[31m\nExiting.\033[0m\n"
+	exit 128
+}
+
 function checkConfig(){
 	# detect missing configuration file and create one from template, if needed.
 	if [[ ! -f $config || ! -f $fsdbconfig ]]; then 
@@ -109,8 +117,8 @@ function makeConfig() {
 
 function resetConfig(){
 #	fcd=$getVarDir/../install/templates/fsdb.config.default
-	fcd="$(find "$getVarDir/../../" -name "fsdb.config.default")"
-	cp "$fcd" "$fsdbconfig"
+	fcd="$(find "$FSDBDIR" -name "fsdb.config.default")"
+	cp "$fcd" "$fsdbconfig" || fail
 	ONLINEDOC=$(grep "^ONLINEDOC " $fcd |cut -d " " -f 2)
 }
 
@@ -260,15 +268,19 @@ sudoer
 
 #debug=2
 
-getVarDir="$(realpath "$(dirname "$BASH_SOURCE")")"
+getVarDir=$(realpath $(dirname $BASH_SOURCE))
 
 # define SCRIPTSDIR and FSDBDIR, which is the root of the fsdb, 
 # dynamically on the basis of the location of this script
-SCRIPTSDIR="$(realpath "$getVarDir/..")"
-if [[ "$SCRIPTSDIR" =~ /fsdb[0-9]{2}/ ]]; then
-	FSDBDIR="$(realpath $SCRIPTSDIR |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
+if [[ "$getVarDir" =~ /fsdb[0-9]{2}/ ]]; then
+	SCRIPTSDIR="$(realpath $getVarDir |sed -r 's@(/scripts/).*@\1@')"
 else
-	FSDBDIR="$(realpath $SCRIPTSDIR/../../..)"
+	SCRIPTSDIR="$(realpath "$getVarDir/..")"
+fi
+if [[ "$getVarDir" =~ /fsdb[0-9]{2}/ ]]; then
+	FSDBDIR="$(realpath $getVarDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
+else
+	FSDBDIR="$(realpath $getVarDir/../../..)"
 fi
 config="$(realpath "$SCRIPTSDIR/.scripts.config")"
 #config=$(find $(realpath $SCRIPTSDIR) -name ".scripts.config")
