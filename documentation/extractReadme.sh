@@ -7,8 +7,9 @@ This script is writing this README by extracting:
 and compiles them into a documentation in markdown format.
 README
 
-#TODO: This script does not work (yet),as intended. Needs a general overhaul.
+#fsdb-rev-date: 250911, needs testing
 
+#TODO: This script does not work (yet),as intended. Needs a general overhaul.
 
 # set all global variables
 thisDir="$(realpath "$(dirname "$0")")"
