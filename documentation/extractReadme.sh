@@ -54,7 +54,7 @@ cat $callDir/installation.md >> $READMETMP
 printf "\n## .scripts.config\n\`\`\`bash\n" >> $READMETMP
 cat $TEMPLATESDIR/fsdb.config.default |sed 's@\$@\\$@g' >> $READMETMP
 # add all other sub-configs
-for i in $(find $SCRIPTSDIR -name "*config" |grep -v ./.scripts.config |grep -v ./fsdb.config); do 
+for i in $(find $FSDBDIR -name "*config" |grep -v ./.scripts.config |grep -v ./fsdb.config); do 
 	echo
 	echo "# ==> Modify values below in $i <=="; 
 	cat $i; 
@@ -64,7 +64,7 @@ printf "\n\`\`\`\n------\n" >> $READMETMP
 # integrate 'chapter' scripts and macros of the fsdb
 printf "## file-specific documentation for the fsdb    \n" >> $READMETMP
 printf "(in alphabetical order)\n---\n" >> $READMETMP 
-for CATDIR in $(find $SCRIPTSDIR -maxdepth 1 -type d |grep -v ${SCRIPTSDIR}$ |grep -v bftools|sort -f); do
+for CATDIR in $(find $FSDBDIR -mindepth 1 -maxdepth 3 -type d -name "fsdb-*" |grep -v bftools|sort -f); do
 	CAT=$(basename $CATDIR)
 	dbg $CAT
 	for script in $(find $CATDIR/ -name "*.sh"  |grep -v test |grep -v xvfb| sort -f); do
