@@ -265,8 +265,11 @@ getVarDir="$(realpath "$(dirname "$BASH_SOURCE")")"
 # define SCRIPTSDIR and FSDBDIR, which is the root of the fsdb, 
 # dynamically on the basis of the location of this script
 SCRIPTSDIR="$(realpath "$getVarDir/..")"
-FSDBDIR="$(realpath "$SCRIPTSDIR/..")"
-
+if [[ "$SCRIPTSDIR" =~ /fsdb[0-9]{2}/ ]]; then
+	FSDBDIR="$(realpath $SCRIPTSDIR |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
+else
+	FSDBDIR="$(realpath $SCRIPTSDIR/../..)"
+fi
 config="$(realpath "$SCRIPTSDIR/.scripts.config")"
 #config=$(find $(realpath $SCRIPTSDIR) -name ".scripts.config")
 fsdbconfig="$(realpath "$SCRIPTSDIR/fsdb.config")"
