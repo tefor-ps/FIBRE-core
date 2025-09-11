@@ -19,7 +19,7 @@ xvfb-run-safe.sh must be located in the same folder as this script.
 Other computers run fiji interactively as $ADMIN .
 
 README
-#fsdb-rev-date: 231006; OK
+#fsdb-rev-date: 250911
 
 ## ======
 ## FUNCTION DEFINITIONS
@@ -83,14 +83,37 @@ fijiOnWindows() {
 	"$FIJI" -macro "$MACRO" "$IMG" 2>>"$LOG"
 }
 
+function fail(){
+	#intro "$@"
+	date
+	printf "\033[31mError in $(basename $0)::${FUNCNAME[2]}:${FUNCNAME[1]} $@ \033[0m"
+	printf "\033[31m\nExiting.\033[0m\n"
+	exit 128
+}
+
+
 ## ======
 ## FUNCTION CALLS
 ## ======
 
-# set all global variables
-thisDir="$(realpath "$(dirname "$0")")"
-source "$thisDir/getVar.sh"
 
+# define FSDBDIR, which is the root of the fsdb, 
+# dynamically on the basis of the location of this script
+thisDir="$(realpath "$(dirname "$0")")"
+if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
+	FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
+else
+	FSDBDIR="$(realpath $SCRIPTSDIR/../../..)"
+fi
+
+# set all global variables
+GETVAR=$(find $SCRIPTSDIR -type f -name getVar.sh)
+if [[ -f $GETVAT ]]; then
+	source "$GETVAR"
+else
+	fail "Can't locate getVar.sh."
+fi
+	
 intro "$0"
 
 debug=1
@@ -110,8 +133,6 @@ dbg2 "$0 $@"
 # ensure, that all needed network drives are mounted
 #sudo mount -a #DEPRECATED?
 #bash $MOUNTMICS #TODO: check if this is really needed, here. #DEPRECATED
-
-dbg "$SCRIPTSDIR"
 
 # make sure FIJIDIR and the scripts within are executable
 sudo chmod -R 770 "$FIJIDIR"
