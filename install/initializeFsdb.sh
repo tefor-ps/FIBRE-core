@@ -21,6 +21,9 @@ README
 
 #fsdb-rev-date: 250911
 
+#TODO: rework this script: no tmp INITDIR, no git-clone, assume this script comes with its core repo, but (potentially) in tmp location
+#TODO: revise README
+
 ## ======
 ## FUNCTION DEFINITIONS
 ## ======
@@ -28,7 +31,7 @@ README
 function fail(){
 	#intro "$@"
 	date
-	printf "\033[31mError in $(basename $0)::${FUNCNAME[2]}:${FUNCNAME[1]} $@ \033[0m"
+	printf "\033[31mError in $(basename $0):${FUNCNAME[2]}:${FUNCNAME[1]} $@ \033[0m"
 	printf "\033[31m\nExiting.\033[0m\n"
 	exit 128
 }
@@ -66,6 +69,45 @@ function installLinuxTools(){
 	sudo apt autoremove --purge
 }
 
+function defineScriptsDir() {
+	if [[ -z $1 ]]; then
+		if [[ -z $SCRIPTSDIR ]]; then
+			read -p "User interaction needed: Enter the path to the fsdb scripts directory: " -e SCRIPTSDIR
+		else
+			read -p "User interaction needed: Enter the path to the fsdb scripts directory: " -i $SCRIPTSDIR -e SCRIPTSDIR
+		fi
+		touchDir $SCRIPTSDIR $2
+		SCRIPTSDIR="$(realpath $(echo "${SCRIPTSDIR}" | sed "s@~@$HOME@"))"
+	else
+		touchDir $@
+		SCRIPTSDIR="$(realpath $(echo "${1}" | sed "s@~@$HOME@"))"
+	fi
+	# check if 'SCRIPTSDIR' ends on 'scripts'
+	if [[ $(basename $SCRIPTSDIR) != "scripts" ]]; then
+		error "$SCRIPTSDIR does not end on 'scripts'. Please try again."
+		defineScriptsDir
+	fi
+}
+
+function touchDir() {
+	# check if 'SCRIPTSDIR' exists 
+	if [[ ! -d $1 ]]; then
+		# create 'SCRIPTSDIR' because user set $2 greater than 0
+		if [[ $2 -gt 0 ]]; then
+			mkdir -pv $1
+		else
+			# ask for permission to create 'SCRIPTSDIR'
+			read -p "$1 is not a directory. Do you want to create it? " -i "y" -e ans
+			if [[ "$ans" == "y" ]]; then
+				mkdir -pv $1
+			else
+				error "Please try again."
+				defineScriptsDir
+			fi
+		fi
+	fi	
+}
+
 ## ======
 ## FUNCTION CALLS
 ## ======
@@ -94,23 +136,9 @@ else
 Skipping installation and proceeding.\n"
 fi
 
-printf "\nWelcome to the installer of the file system based database (fsdb).
-\t- Step 1: Cloning the latest version of the fsdb from $repo to temporary directory $INITDIR/ \n" 
-# define initial installation directory 
-INITDIR=$(mktemp -d)
-cd  $INITDIR/ || fail
-# download of fsdb-scripts from gitlab
-#repo=https://gitlab.com/arnimjenett/$FSDBVERSION
-repo=https://gitlab.com/tefor/fsdb-core.git
-git clone --depth 1 -b stable $repo
-if [[ $? -gt 0 ]]; then 
-	fail "Can't clone fsdb from $repo."
-else
-	repoName=$(ls -ltr |tail -1 |awk '{print $NF}')
-fi
-
 # define FSDBDIR, which is the root of the fsdb, 
-# dynamically on the basis of the location of this script
+# dynamically on the basis of the location of this script.
+# This will be immediatly overwritten/corrected when sourcing getVar.sh
 thisDir="$(realpath "$(dirname "$0")")"
 if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
 	FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
@@ -121,7 +149,7 @@ fi
 # set all global variables or at least the ones necessary
 GETVAR=$(find $FSDBDIR -type f -name getVar.sh)
 if [[ -f $GETVAR ]]; then
-	source "$GETVAR" #TODO: make sure, that the configs exist and are inthe right locations, first (or inside of getVar)!!!!
+	source "$GETVAR" #TODO: make sure, that the configs exist and are in the right locations, first (or inside of getVar)!!!!
 	intro "$0"
 else
 	ADMINDIR="/tmp/"
@@ -155,9 +183,11 @@ if [[ "$ans" != [Yy] ]]; then
 	fail "Abort. Please run this script again.\n"
 else
 	printf "Moving the downloaded files from the temporary to the final location.\n\n"
-#TODO: rework the following paragraph!!!	
-	SCRIPTSDIR=$INSTDIR/$repoName/scripts
-	mkdir -p $SCRIPTSDIR
+#TODO: rework the following paragraph!!!
+	# define 'SCRIPTSDIR' and create it if it doesn't exist, yet.
+	defineScriptsDir $INSTDIR/$repoName/scripts 1
+#	SCRIPTSDIR=$INSTDIR/$repoName/scripts
+#	mkdir -p $SCRIPTSDIR
 	FSDBCONFIG=$SCRIPTSDIR/fsdb.config
 	if [[ ! -f $FSDBCONFIG ]]; then
 		cp -u $defaultConfig $FSDBCONFIG
