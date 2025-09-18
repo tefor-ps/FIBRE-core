@@ -9,6 +9,8 @@ README
 
 #debug=2
 
+#DEPRECATED?
+
 thisDir=$(dirname $(realpath $0))
 source $thisDir/../core/getVar.sh
 scriptsDir=$(realpath $thisDir/../)

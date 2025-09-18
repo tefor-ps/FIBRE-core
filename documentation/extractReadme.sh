@@ -7,12 +7,31 @@ This script is writing this README by extracting:
 and compiles them into a documentation in markdown format.
 README
 
+#fsdb-rev-date: 250911, needs testing
+
 #TODO: This script does not work (yet),as intended. Needs a general overhaul.
 
-
 # set all global variables
-thisDir=$(dirname $(realpath $0))
-source $thisDir/../scripts/core/getVar.sh
+thisDir="$(realpath "$(dirname "$0")")"
+# define FSDBDIR, which is the root of the fsdb, 
+# dynamically on the basis of the location of this script
+if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
+	FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
+else
+	FSDBDIR="$(realpath $thisDir/../..)"
+fi
+
+# set all global variables or at least the ones necessary
+GETVAR=$(find $FSDBDIR -type f -name getVar.sh)
+if [[ -f $GETVAR ]]; then
+	source "$GETVAR"
+	intro "$0"
+else
+	ADMINDIR="/tmp/"
+	LOG="$ADMINDIR/$(basename $0 .sh).log"
+	FSDBVERSION=fsdb
+	error "Can't locate getVar.sh."
+fi
 
 debug=2
 
@@ -54,7 +73,7 @@ cat $callDir/installation.md >> $READMETMP
 printf "\n## .scripts.config\n\`\`\`bash\n" >> $READMETMP
 cat $TEMPLATESDIR/fsdb.config.default |sed 's@\$@\\$@g' >> $READMETMP
 # add all other sub-configs
-for i in $(find $SCRIPTSDIR -name "*config" |grep -v ./.scripts.config |grep -v ./fsdb.config); do 
+for i in $(find $FSDBDIR -name "*config" |grep -v ./.scripts.config |grep -v ./fsdb.config); do 
 	echo
 	echo "# ==> Modify values below in $i <=="; 
 	cat $i; 
@@ -64,7 +83,7 @@ printf "\n\`\`\`\n------\n" >> $READMETMP
 # integrate 'chapter' scripts and macros of the fsdb
 printf "## file-specific documentation for the fsdb    \n" >> $READMETMP
 printf "(in alphabetical order)\n---\n" >> $READMETMP 
-for CATDIR in $(find $SCRIPTSDIR -maxdepth 1 -type d |grep -v ${SCRIPTSDIR}$ |grep -v bftools|sort -f); do
+for CATDIR in $(find $FSDBDIR -mindepth 1 -maxdepth 3 -type d -name "fsdb-*" |grep -v bftools|sort -f); do
 	CAT=$(basename $CATDIR)
 	dbg $CAT
 	for script in $(find $CATDIR/ -name "*.sh"  |grep -v test |grep -v xvfb| sort -f); do

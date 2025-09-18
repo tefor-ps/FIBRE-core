@@ -11,8 +11,8 @@ Run after the initialization, this script takes care of
 - connection to data/image acquisition machines
 
 PARAMETERS
-$1 is the path to path to the fsdb-scripts. By default this script can also 
-be run to reconfigure an fsdb-installation.   
+$1 is the path to path to the fsdb-core scripts-directory. 
+By default this script can also be run to reconfigure an fsdb-installation.   
 $2 can take the string 'config' [optional], which trigggers the opening of the 
 pre-existing .scripts.config in an editor for implementing changes.
 
@@ -41,13 +41,6 @@ README
 ## FUNCTION DEFINITIONS
 ## ======
 
-function installLinuxTools(){
-# tools installation 
-## composite command using aptitude
-	apt -qq update
-	apt install -y jedit nload htop tree vlc samba vim nano gitg meld xvfb libimage-exiftool-perl ffmpeg curl unzip p7zip-full gparted cifs-utils nfs-common rename imagemagick 
-	sudo apt autoremove --purge
-}
 
 function installLatestJava(){
 	latestJDK=$( apt-cache search openjdk |grep -e "-jdk" |grep "(JDK)" |grep -v headless |sort |head -1 |cut -d " " -f 1)
@@ -78,16 +71,24 @@ function installBFtools(){
 
 function defineScriptsDir() {
 	if [[ -z $1 ]]; then 
-		read -e -p "SCRIPTSDIR:" scriptsdir
-		scriptsdir=$(realpath $scriptsdir)
+		read -p "User interaction needed: Enter the path to the fsdb scripts directory: " -i $SCRIPTSDIR -e SCRIPTSDIR
+		SCRIPTSDIR=$(realpath $SCRIPTSDIR)
 	else
-		scriptsdir=$(realpath $1)
+		SCRIPTSDIR=$(realpath $1)
 	fi
-	if [[ $(basename $scriptsdir) != "scripts" ]]; then
-		printf "$scriptsdir does not end on 'scripts'. Please try again.\n"
+	if [[ $(basename $SCRIPTSDIR) != "scripts" ]]; then
+		printf "$SCRIPTSDIR does not end on 'scripts'. Please try again.\n"
 		defineScriptsDir
+	else
+		if [[ ! -d $SCRIPTSDIR ]]; then
+			printf "$SCRIPTSDIR does not exist. Please try again.\n"
+			defineScriptsDir
+		fi
 	fi
 }
+
+error() { if [[ -t 2 ]] ; then date >> $LOG; printf $'\e[37;1;41m'"\r\e[2KERROR:\t$0: $@"$'\e[0m\n' |tee -a $LOG; else echo "$@"; fi >&2 ;}
+
 
 ## ======
 ## FUNCTION CALLS
@@ -95,38 +96,44 @@ function defineScriptsDir() {
 
 #debug=2
 
-printf "User interaction needed: Enter the path to the fsdb scripts directory\n"
-defineScriptsDir
+if [[ -d $1 ]]; then
+	defineScriptsDir $1
+else
+	defineScriptsDir
+fi
 
 # update all scripts and macros of the fsdb
 printf "updating fsdb...\n"
-cd $scriptsdir
+cd $SCRIPTSDIR
 git pull 
 printf "fsdb-scripts updated.\n"
 
 # activate (default) configuration files as needed
-for i in $(find $scriptsdir -name "*config.default"); do 
+for i in $(find $SCRIPTSDIR -name "*config.default"); do 
 	conf=$(echo $i |sed 's@.default@@'); 
 	if [[ -f $conf  ]]; then 
 #		dbg2 "$conf already exists"
 		printf "$conf already exists\n" 
 	else
-		cp -uv $i $conf
+		cp -v $i $conf
 	fi
 done
 
 # set all global variables
+GETVAR=$(find $SCRIPTSDIR -name getVar.sh)
 if [[ $2 == "config" ]];then
-	source $scriptsdir/core/getVar.sh config
+	source $GETVAR config
 else
-	source $scriptsdir/core/getVar.sh
+	source $GETVAR
 fi
+
+## from here on this script uses the variables defined in the configuration file (.scripts.config)
 
 # install java
 <<javainstall
  In its latest version bftools depends on java8 or later to function. Otherwise it will throw an error: 
  java.lang.UnsupportedClassVersionError: loci/formats/tools/ImageInfo : Unsupported major.minor version 52.0 
- This can be fixed by installing the latetes java as described here. today (2019) this is java11.
+ This can be fixed by installing the latetes java as described here. Today (2019) this is java11.
 javainstall
 which java
 if [[ $? -eq 0 ]]; then
@@ -146,7 +153,7 @@ fi
 <<fijiinstall
 fiji is just imagej - batteries included. This is an application used extensively within the fsdb. 
 fijiinstall
-if [[ -f $SCRIPTSDIR/Fiji.app/ImageJ-linux64 ]]; then
+if [[ -f $FIJISDIR/fiji ]]; then
 	skipRest "Fiji is already installed. Do you want to reinstall anyhow?" installFiji
 else
 	installFiji

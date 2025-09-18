@@ -15,19 +15,35 @@ Z: for the data directory
 
 README
 
+#fsdb-rev-date: 250911, needs testing
+
+
 # set all global variables
-thisDir=$(dirname $(realpath $BASH_SOURCE))
-if [[ -z $1 ]];  then
-	source $thisDir/../scripts/core/getVar.sh
-else 
-	source $1/core/getVar.sh
+thisDir="$(realpath "$(dirname "$0")")"
+# define FSDBDIR, which is the root of the fsdb, 
+# dynamically on the basis of the location of this script
+if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
+	FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
+else
+	FSDBDIR="$(realpath $thisDir/../..)"
 fi
 
-intro $0
+# set all global variables or at least the ones necessary
+GETVAR=$(find $FSDBDIR -type f -name getVar.sh)
+if [[ -f $GETVAR ]]; then
+	source "$GETVAR"
+	intro "$0"
+else
+	ADMINDIR="/tmp/"
+	LOG="$ADMINDIR/$(basename $0 .sh).log"
+	FSDBVERSION=fsdb
+	error "Can't locate getVar.sh."
+fi
+
 
 thisIP=$(hostname -I |tr " " "\n" |grep -v 192.168 |grep -v 127.0.0.1 |head -1)
 lab=$(echo $LAB |tr '[:lower:]' '[:upper:]')
-bat=$SCRIPTSDIR/mount${lab}.bat
+bat=$ADMINDIR/mount${lab}.bat
 dbg $lab
 dbg $thisIP
 
