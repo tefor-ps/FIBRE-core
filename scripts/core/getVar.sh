@@ -46,7 +46,7 @@ populates the following variables:
 	STARTDATE is used to keep referencing the $INDEX of the starting day even 
 	if/while the process is running longer than midnight.
 - SCRIPTSDIR : directory, which is containing all (shell) scripts of the fsdb.
-- WORKDIR : the root-directory of the fsdb
+- FSDBDIR : the root-directory of the fsdb
 
 --> machine-specific configurations
 - COMP : name of the computer this script is running on 
@@ -58,11 +58,21 @@ populates the following variables:
 	secData-Generator
 
 README
-#fsdb-rev-date: 250205
+#fsdb-rev-date: 250917
+
+# TODO: revise README
 
 ## ======
 ## FUNCTION DEFINITIONS
 ## ======
+
+function fail(){
+	#intro "$@"
+	date
+	printf "\033[31mError in $(basename $0):${FUNCNAME[2]}:${FUNCNAME[1]} $@ \033[0m"
+	printf "\033[31m\nExiting.\033[0m\n"
+	exit 128
+}
 
 function checkConfig(){
 	# detect missing configuration file and create one from template, if needed.
@@ -77,9 +87,9 @@ function checkConfig(){
 		if  [[ "$1" == "config" ]]; then
 			intro "Welcome to the reconfiguration of an existing fsdb-installation
 	In the following you can change the configuration and layout of your fsdb-installation or create a completely new one."
+			backup "$config"
 			cat "$fsdbconfig"
 			warn "$config already exists."
-			backup "$config"
 			skipRest "Above you find the contents of your current fsdb.config.\nDo you want to reset it to default values." resetConfig
 			editConfig
 		fi
@@ -101,16 +111,14 @@ function makeConfig() {
 	fi
 	cat "$fsdbconfig"
 	echo
-	skipPerm "Above you find the content of your $fsdbconfig. Preparing editor.\nThe next step will give you the opportunity to edit a preformatted fsdb.config file in you default text editor.\nFor details on this please refer to the README at this project's gitlab page:\n$ONLINEDOC" editor $fsdbconfig
+	skipPerm "Above you find the content of your $fsdbconfig. Preparing editor.\nThe next step will give you the opportunity to edit a preformatted fsdb.config file in you default text editor.\nFor details on this please consult the README at this project's gitlab page:\n$ONLINEDOC" editor $fsdbconfig
 	updateConfig
-# making backup of modified configuration.	
-	backup "$config" 
 }
 
 function resetConfig(){
 #	fcd=$getVarDir/../install/templates/fsdb.config.default
-	fcd="$(find "$getVarDir/../../" -name "fsdb.config.default")"
-	cp "$fcd" "$fsdbconfig"
+	fcd="$(find "$FSDBDIR" -name "fsdb.config.default")"
+	cp "$fcd" "$fsdbconfig" || fail
 	ONLINEDOC=$(grep "^ONLINEDOC " $fcd |cut -d " " -f 2)
 }
 
@@ -121,19 +129,20 @@ function editConfig(){
 }
 
 function updateConfig(){
-	# List of configs to compare.  
-#	configs=$(find $(realpath $SCRIPTSDIR) -name "*.config" |grep -v $config )
-	localConfigs=$(find "$(realpath "$SCRIPTSDIR")" -name "*.config" |grep -v "$config" )
+	## List of configs to compare. 
+	# config files in 'SCRIPTSDIR' <-- configs of core functions
+	localConfigs=($(find "$(realpath "$SCRIPTSDIR")" -name "*.config" |grep -v "$config" ))
 	dbg2 "localConfigs at $(realpath $SCRIPTSDIR)\n$(ls -l ${localConfigs[@]})"
-
-	moduleConfigs=$(find "$(realpath "$FSDBDIR")" -name "*.config" |grep -v -e "$config" -e "install" )
+	# ALL configs (core and modules) 
+	moduleConfigs=($(find "$(realpath "$FSDBDIR")" -name "*.config" |grep -v -e "$config" -e "install" ))
 	dbg2 "moduleConfigs at ${FSDBDIR}\n$(ls -l ${moduleConfigs[@]})"
-
+	# fuse lists (arrays) of configs and ...
 	configs=("${localConfigs[@]}" "${moduleConfigs[@]}")
+	# ... make the values in the resulting arrayunique.  
 	configs=($(echo "${configs[@]}" |tr " " "\n" |sort -u |tr "\n" " "))
 	dbg2 "all configs\n$(ls -l ${configs[@]})"
 	
-	# Check if $config exists, if not create it
+	# re-check if $config exists, if not create it
 	if [ ! -f "$config" ]; then
 		touch "$config"
 		update=1
@@ -172,7 +181,10 @@ function updateConfig(){
 		for file in $( ls ${configs[@]} |grep -v "${fsdbconfig}"); do
 			dbg2 "updating $config with $file"
 			restructureConfig "${file}" >> "$config"
-		done 
+		done
+		# making backup of modified configuration.	
+		backup "$config"
+		
 	else
 		dbg2 "No configs have been modified since $config was last updated."
 	fi
@@ -205,21 +217,21 @@ function restructureConfig(){
 
 function backup() {
 # This function creates a dated and numbered backup of the input file 
-		if [[ -d "$2" ]]; then 
-			bupdir=$(realpath "$2") #TODO: restructure to get rid of the $2
-		else
-			bupdir="$(dirname "$(realpath "$1")")"
-		fi
-        bup="$(basename "$1")"
-        counter=0
-        bf="${bupdir}/${bup}.bup${D}"
-        while [[ -f "$bf" ]]; do
-                counter=$((counter+1))
-                bf=${bupdir}/${bup}.bup${D}-$counter
-                dbg2 "$bf"
-        done
-        cp "$1" "$bf"
-        dbg "Backup of $1 written to $bf ."
+	if [[ -d "$2" ]]; then 
+		bupdir=$(realpath "$2") #TODO: restructure to get rid of the $2
+	else
+		bupdir="$(dirname "$(realpath "$1")")"
+	fi
+	bup="$(basename "$1")"
+	counter=0
+	bf="${bupdir}/${bup}.bup${D}"
+	while [[ -f "$bf" ]]; do
+			counter=$((counter+1))
+			bf=${bupdir}/${bup}.bup${D}-$counter
+			dbg2 "$bf"
+	done
+	cp "$1" "$bf"
+	dbg "Backup of $1 written to $bf ."
 }
 
 
@@ -240,7 +252,7 @@ function makeDirs() {
 	done
 }
 
-sudoer() {
+function sudoer() {
 ## ROOT PRIVILEDGES
 # Because for the installation of software and generation of directories 
 # on shares with limited write permissions root rights are needed, check for 
@@ -260,28 +272,34 @@ sudoer
 
 #debug=2
 
-getVarDir="$(realpath "$(dirname "$BASH_SOURCE")")"
+getVarDir=$(realpath $(dirname $BASH_SOURCE))
 
-# define SCRIPTSDIR, WORKDIR, and FSDBDIR, which is the root of the fsdb, 
+# the global debug level is set as parameter to fun_colMsg (0-2; default 1)
+source "$getVarDir/fun_colMsg.sh" $DEBUGLEVEL
+
+# define SCRIPTSDIR and FSDBDIR, which is the root of the fsdb, 
 # dynamically on the basis of the location of this script
-SCRIPTSDIR="$(realpath "$getVarDir/..")"
-WORKDIR="$(realpath "$SCRIPTSDIR/..")"
-FSDBDIR="$(realpath "$WORKDIR/..")"
-
+if [[ "$getVarDir" =~ /fsdb[0-9]{2}/ ]]; then
+	SCRIPTSDIR="$(realpath $getVarDir |sed -r 's@(/scripts/).*@\1@')"
+else
+	SCRIPTSDIR="$(realpath "$getVarDir/..")"
+fi
+if [[ "$getVarDir" =~ /fsdb[0-9]{2}/ ]]; then
+	FSDBDIR="$(realpath $getVarDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
+else
+	FSDBDIR="$(realpath $getVarDir/../../..)"
+fi
 config="$(realpath "$SCRIPTSDIR/.scripts.config")"
 #config=$(find $(realpath $SCRIPTSDIR) -name ".scripts.config")
 fsdbconfig="$(realpath "$SCRIPTSDIR/fsdb.config")"
 #fsdbconfig=$(find $(realpath $SCRIPTSDIR) -name "fsdb.config")
 
-# the global debug level is set as parameter to fun_colMsg (0-2; default 1)
-source "$getVarDir/fun_colMsg.sh" $DEBUGLEVEL
-
 # timestamp for index files
 D=$(date +%y%m%d)
 # define 'D' (timestamp) centrally
 export "D=$(echo $D)"
-# for processes, which may run longer than a day 
-# (and by that will change D)
+# for processes, which may run longer than a day, 
+# (and by that will change D),
 # define a fixed STARTDATE. 
 # This will be set at the first run only.
 if [ -z "$STARTDATE" ]; then 
@@ -294,8 +312,6 @@ checkConfig $@
 # export directories defined above
 dbg2 "SCRIPTSDIR = $SCRIPTSDIR"
 export "SCRIPTSDIR=$(eval echo "$SCRIPTSDIR")"
-dbg2 "WORKDIR = $WORKDIR"
-export "WORKDIR=$(eval echo "$WORKDIR")"
 dbg2 "FSDBDIR = $FSDBDIR"
 export "FSDBDIR=$(eval echo "$FSDBDIR")"
 
@@ -312,10 +328,10 @@ for i in $(cut -d " " -f 1 "$config" |grep -v "#"); do
 		warn "keeping $d"
 	fi
 	if [[ $(echo "$d" |grep -c "|" ) -eq 0 ]]; then #check for existence of a category (e.g., |cat|)
-	  # the outer subshell is needed for expanding variables within the read-in values
-	  export "$i=$(eval echo $(echo "$d" |cut -d " " -f 2- |sed -e 's@\t.*@@' -e 's@#.*@@' -e 's@^ @@') |awk '{print $1}')"
+		# the outer subshell is needed for expanding variables within the read-in values
+		export "$i=$(eval echo $(echo "$d" |cut -d " " -f 2- |sed -e 's@\t.*@@' -e 's@#.*@@' -e 's@^ @@') |awk '{print $1}')"
 	else
-	   export "$i=$(eval echo $(echo "$d" |awk -F "|" '{print $NF}'|cut -d " " -f 2- |sed -e 's@\t.*@@' -e 's@#.*@@' -e 's@^ @@' |awk '{print $1}'))"
+		export "$i=$(eval echo $(echo "$d" |awk -F "|" '{print $NF}'|cut -d " " -f 2- |sed -e 's@\t.*@@' -e 's@#.*@@' -e 's@^ @@' |awk '{print $1}'))"
 	fi
 	dbg2 "getVar: $i = ${!i}"
 done

@@ -44,7 +44,7 @@ dbg "restarting samba"
 /etc/init.d/smbd restart
 
 # potentially the local firewall needs to be modified
-# If you have a firewall running on your Ubuntu system you’ll need to allow 
+# If you have a firewall running on your Ubuntu system you'll need to allow 
 # incoming UDP connections on ports 137 and 138 and 
 # TCP connections on ports 139 and 445.
 #sudo ufw allow 'Samba'

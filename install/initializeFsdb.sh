@@ -7,10 +7,8 @@ This script is using the information within the configuration file
 
 PREREQUISITES
 This script expects the following steps have been done beforehand, manually.
-- install operating system (latest Ubuntu (server) LTS) with lvm enabled
+- install operating system (latest Ubuntu (server) LTS, developed and tested on 24.04 LTS) 
 - create RAID [*]
-- set up lvm for the data partition [*]
-- install nagios for system supervision [*]
 - the computers of the acquisition machines need to be prepared for remote access 
 of the storage server (this computer).
 
@@ -21,29 +19,40 @@ This script (optionlally) accepts the installation directory as first and only p
 
 README
 
-error() { 
-	if [[ -t 2 ]] ; then 
-		printf $'\e[37;1;41m'"\r\e[2KERROR:\t$0: $@"$'\e[0m\n' 
-	else 
-		echo "$@"; 
-		fi >&2 
+#fsdb-rev-date: 250911
+
+#TODO: rework this script: no tmp INITDIR, no git-clone, assume this script comes with its core repo, but (potentially) in tmp location
+#TODO: revise README
+
+## ======
+## FUNCTION DEFINITIONS
+## ======
+
+function fail(){
+	#intro "$@"
+	date
+	printf "\033[31mError in $(basename $0):${FUNCNAME[2]}:${FUNCNAME[1]} $@ \033[0m"
+	printf "\033[31m\nExiting.\033[0m\n"
+	exit 128
 }
 
-sudoer() {
+function error() { 
+	if [[ -t 2 ]] ; then 
+		date >> $LOG; 
+		printf $'\e[37;1;41m'"\r\e[2KERROR:\t$0: $@"$'\e[0m\n' |tee -a $LOG
+	else 
+		echo "$@"
+	fi >&2
+}
+
+function sudoer() {
 ## ROOT PRIVILEGES
 # because for the for the installation of software and generation of directories 
 # on shares with limited write permissions root rights are needed, check for 
 # these at the very beginning. 
 if [ $(whoami) != "root" ]; then 
-	error "WARNING: This script needs to be run with root-privileges."
-	exit
+	fail "This script needs to be run with root-privileges."
 fi
-}
-
-makeScriptsDir() {
-# move fsdb from temporary to user-defined location (SCRIPTSDIR)
-	mkdir -p $SCRIPTSDIR
-	rsync -Sau $INITDIR/$fsdbVersion/ $WORKDIR/
 }
 
 function installLinuxTools(){
@@ -51,9 +60,57 @@ function installLinuxTools(){
 ## composite command using aptitude
 	printf "Updating Linux repos. This may take a moment or two.\n"
 	apt -qq update
-	apt install -y nload htop tree vlc samba vim nano gitg meld xvfb libimage-exiftool-perl ffmpeg curl unzip p7zip-full gparted cifs-utils nfs-common rename imagemagick 
+	#apt install -y ${appArr[@]}
+	for app in ${appArr[@]}; do
+		if [[ $(which $app |wc -l) -eq 0 ]]; then
+			apt install -y ${app}
+		fi
+	done
 	sudo apt autoremove --purge
 }
+
+function defineScriptsDir() {
+	if [[ -z $1 ]]; then
+		if [[ -z $SCRIPTSDIR ]]; then
+			read -p "User interaction needed: Enter the path to the fsdb scripts directory: " -e SCRIPTSDIR
+		else
+			read -p "User interaction needed: Enter the path to the fsdb scripts directory: " -i $SCRIPTSDIR -e SCRIPTSDIR
+		fi
+		touchDir $SCRIPTSDIR $2
+		SCRIPTSDIR="$(realpath $(echo "${SCRIPTSDIR}" | sed "s@~@$HOME@"))"
+	else
+		touchDir $@
+		SCRIPTSDIR="$(realpath $(echo "${1}" | sed "s@~@$HOME@"))"
+	fi
+	# check if 'SCRIPTSDIR' ends on 'scripts'
+	if [[ $(basename $SCRIPTSDIR) != "scripts" ]]; then
+		error "$SCRIPTSDIR does not end on 'scripts'. Please try again."
+		defineScriptsDir
+	fi
+}
+
+function touchDir() {
+	# check if 'SCRIPTSDIR' exists 
+	if [[ ! -d $1 ]]; then
+		# create 'SCRIPTSDIR' because user set $2 greater than 0
+		if [[ $2 -gt 0 ]]; then
+			mkdir -pv $1
+		else
+			# ask for permission to create 'SCRIPTSDIR'
+			read -p "$1 is not a directory. Do you want to create it? " -i "y" -e ans
+			if [[ "$ans" == "y" ]]; then
+				mkdir -pv $1
+			else
+				error "Please try again."
+				defineScriptsDir
+			fi
+		fi
+	fi	
+}
+
+## ======
+## FUNCTION CALLS
+## ======
 
 # empty terminal
 clear
@@ -61,29 +118,16 @@ clear
 # confirm root status
 sudoer
 
-# define version of fsdb
-fsdbVersion=fsdb23
-
-# define initial installation directory 
-INITDIR=/tmp
-
-# define final installation directory
-if [[ -z $1 || ! -d $1 ]]; then
-	defaultInstDir=$(realpath ~/)
-else
-	defaultInstDir=$(realpath $1)
-fi
-
-#remove leftovers from earlier installations
-rm -rf /$INITDIR/$fsdbVersion
+# list of linux apps to install
+#appArr=(nload htop tree vlc samba vim nano gitg meld xvfb libimage-exiftool-perl ffmpeg curl unzip p7zip-full gparted cifs-utils nfs-common rename imagemagick)
+#appArr=(tree samba vim nano meld xvfb libimage-exiftool-perl ffmpeg curl unzip cifs-utils nfs-common imagemagick)
+appArr=(wget xvfb curl unzip cifs-utils nfs-common imagemagick)
 
 printf "As a linux tool the fsdb employes many other linux tools. 
-Some of them are not part of the standard linux installation; other will need to be installed. 
+Some of them are part of the standard linux installation; others will need to be installed. 
 This step ensures, that all necessary tools are installed on this computer.
 The following linux tools will be installed or updated on your computer:\n"
-for i in nload htop tree vlc samba vim nano gitg meld xvfb libimage-exiftool-perl ffmpeg curl unzip p7zip-full gparted cifs-utils nfs-common rename imagemagick; do 
-	echo $i
-done
+echo ${appArr[@]}
 read -e -p "Are you OK with installing these tools? [Y/n]: " -i "Y" ans
 if [[ "$ans" == [Yy] ]]; then
 	installLinuxTools
@@ -92,50 +136,77 @@ else
 Skipping installation and proceeding.\n"
 fi
 
-# download of fsdb-scripts from gitlab
-repo=https://gitlab.com/arnimjenett/$fsdbVersion
-printf "\nWelcome to the installer of the file system based database (fsdb).
-\t- Step 1: Cloning the latest version of the fsdb from $repo to temporary directory $INITDIR/$fsdbVersion \n" 
-cd $INITDIR/
-#git clone --depth 1 -b installer $repo
-git clone --depth 1 -b main $repo
-if [[ $? -gt 0 ]]; then 
-	error "Can't clone fsdb from $repo"; 
-	exit 1; 
+# define FSDBDIR, which is the root of the fsdb, 
+# dynamically on the basis of the location of this script.
+# This will be immediatly overwritten/corrected when sourcing getVar.sh
+thisDir="$(realpath "$(dirname "$0")")"
+if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
+	FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
+else
+	FSDBDIR="$(realpath $thisDir)"
+fi
+
+# set all global variables or at least the ones necessary
+GETVAR=$(find "${FSDBDIR}" -type f -name getVar.sh)
+if [[ -f $GETVAR ]]; then
+	source "$GETVAR" #TODO: make sure, that the configs exist and are in the right locations, first (or inside of getVar)!!!!
+	intro "$0"
+else
+	ADMINDIR="/tmp/"
+	LOG="$ADMINDIR/$(basename $0 .sh).log"
+	FSDBVERSION=fsdb
+	error "Can't locate getVar.sh."
+fi
+
+defaultConfig=$(ls -ltr $(find "${FSDBDIR}" -type f -name "fsdb.config.default") |tail -1 |awk '{print $NF}')
+
+# define final installation directory
+if [[ -z $1 || ! -d $1 ]]; then
+	defaultInstDir=$(realpath $HOME/$FSDBVERSION)
+else
+	if [[ $(echo "$1" |sed 's@/$@@') =~ ${FSDBVERSION}$ ]]; then 
+		defaultInstDir=$(realpath $1)
+	else
+		defaultInstDir=$(realpath $1/$FSDBVERSION)
+	fi
 fi
 
 # interactive part
 printf "\t- Step 2: Please define the location to which the fsdb shall be installed.
 \tPlease make sure that the path to this location DOES NOT contain whitespaces.\n"
-read -e -p "Path to installation directory: " -i $defaultInstDir INSTDIR
-INSTDIR=$(realpath $INSTDIR)
+read -e -p "Path to installation directory: " -i $defaultInstDir -e INSTDIR
+if [[ ! $(echo "$INSTDIR" |sed 's@/$@@') =~ ${FSDBVERSION}$ ]]; then
+	INSTDIR=$(realpath $INSTDIR/$FSDBVERSION)
+fi
 # copy fsdb.config.default to locally active location and open for editing --> generate local fsdb.config
 printf "\t- Step 3: Please configure this instance according to your local needs.
 For more informations on this step please refer to the README at gitlab.\n\n"
 read -e -p "The fsdb will be installed to ${INSTDIR}. Is this correct? [Y/n]: " -i "Y" ans
 if [[ "$ans" != [Yy] ]]; then
-	printf "Abort. Please run this script again.\n"
-	exit
+	fail "Abort. Please run this script again.\n"
 else
 	printf "Moving the downloaded files from the temporary to the final location.\n\n"
-	SCRIPTSDIR=$INSTDIR/$fsdbVersion/scripts
-	mkdir -p $SCRIPTSDIR
+	# define 'SCRIPTSDIR' and create it if it doesn't exist, yet.
+	defineScriptsDir $INSTDIR/$repoName/scripts 1
+
 	FSDBCONFIG=$SCRIPTSDIR/fsdb.config
 	if [[ ! -f $FSDBCONFIG ]]; then
-		cp -u $INITDIR/$fsdbVersion/install/templates/fsdb.config.default $FSDBCONFIG
+		cp -u $defaultConfig $FSDBCONFIG
 	fi
-	rsync -Sau $INITDIR/$fsdbVersion/ $INSTDIR/$fsdbVersion/
+	rsync -Sau $INITDIR/ $INSTDIR/
 fi
 
-# set all global variables
-source $INSTDIR/$fsdbVersion/scripts/core/getVar.sh
-## from here on this script uses the variables defined in the configuration file (.scripts.config)
+# remove init-dir
+rm -rf $INITDIR
 
 # set unix permissions 
 me=$(whoami)
-chown -R ${me}:${me} $INSTDIR/$fsdbVersion/
+chown -R ${me}:${me} $INSTDIR
 
 skipPerm "Initialization completed. Starting installation."
 
 # start the actual installation and setup process
-bash $INSTDIR/$fsdbVersion/install/installFsdb.sh $SCRIPTSDIR 
+echo "$INSTDIR/$repoName/install/installFsdb.sh $SCRIPTSDIR"
+ls -la "$INSTDIR/$repoName/install/installFsdb.sh"
+exit
+bash $INSTDIR/$repoName/install/installFsdb.sh $SCRIPTSDIR
