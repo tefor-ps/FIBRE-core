@@ -132,8 +132,7 @@ read -e -p "Are you OK with installing these tools? [Y/n]: " -i "Y" ans
 if [[ "$ans" == [Yy] ]]; then
 	installLinuxTools
 else
-	printf "You may run into problems running the fsdb, if the necessary tools are not installed or up-to-date. 
-Skipping installation and proceeding.\n"
+	warn "You may run into problems running the fsdb, if the necessary tools are not installed or up-to-date. \nSkipping installation and proceeding.\n"
 fi
 
 # define FSDBDIR, which is the root of the fsdb, 
@@ -143,7 +142,7 @@ thisDir="$(realpath "$(dirname "$0")")"
 if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
 	FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
 else
-	FSDBDIR="$(realpath $thisDir)"
+	FSDBDIR="$(realpath $thisDir |sed -r 's@/fsdb-core/.*@@')"
 fi
 
 # set all global variables or at least the ones necessary
