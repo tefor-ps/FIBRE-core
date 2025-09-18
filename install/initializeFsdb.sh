@@ -136,7 +136,9 @@ else
 	FSDBDIR="$(realpath $thisDir |sed -r 's@/fsdb-core/.*@@')"
 fi
 
+INITDIR="$(realpath $thisDir |sed -r 's@/fsdb-core/.*@@')"
 repoName=$(ls -ltr "${FSDBDIR}" |tail -1 |awk '{print $NF}')
+
 # set all global variables or at least the ones necessary
 GETVAR=$(find "${FSDBDIR}" -type f -name getVar.sh)
 if [[ -f $GETVAR ]]; then
