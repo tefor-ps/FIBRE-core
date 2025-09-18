@@ -80,7 +80,8 @@ function checkConfig(){
 		intro "Welcome to the fsdb-setup.
 	It appears, that you didn't set up the configuration of the system, yet.
 	Since this is necessary for the correct installation of the fsdb, 
-	it is strongly recommended to do this right now."
+	it is strongly recommended to do this right now.
+	Below is displayed the content of the default fsdb.config:"
 		makeConfig
 	else
 	# reconfigure pre-existing installation, if demanded by passing parameter 'config' to getVar 
@@ -111,7 +112,7 @@ function makeConfig() {
 	fi
 	cat "$fsdbconfig"
 	echo
-	skipPerm "Above you find the content of your $fsdbconfig. Preparing editor.\nThe next step will give you the opportunity to edit a preformatted fsdb.config file in you default text editor.\nFor details on this please consult the README at this project's gitlab page:\n$ONLINEDOC" editor $fsdbconfig
+	skipPerm "Above you find the content of your $fsdbconfig. \nThe next step will give you the opportunity to edit a preformatted fsdb.config file in you default text editor.\nFor details on this please consult the README at this project's gitlab page:\n$ONLINEDOC \n\t- Preparing editor -" editor $fsdbconfig
 	updateConfig
 }
 
