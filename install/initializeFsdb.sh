@@ -155,7 +155,7 @@ else
 	ADMINDIR="/tmp/"
 	LOG="$ADMINDIR/$(basename $0 .sh).log"
 	FSDBVERSION=fsdb
-	error "Can't locate getVar.sh."
+	error "Can't locate getVar.sh in ${FSDBDIR}."
 fi
 
 defaultConfig=$(ls -ltr $(find "${FSDBDIR}" -type f -name "fsdb.config.default") |tail -1 |awk '{print $NF}')
