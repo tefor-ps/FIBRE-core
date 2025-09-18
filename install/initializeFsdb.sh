@@ -94,12 +94,14 @@ function touchDir() {
 	if [[ ! -d $1 ]]; then
 		# create 'SCRIPTSDIR' because user set $2 greater than 0
 		if [[ $2 -gt 0 ]]; then
-			mkdir -pv $1
+			#mkdir -pv $1
+			mkdir -p $1
 		else
 			# ask for permission to create 'SCRIPTSDIR'
 			read -p "$1 is not a directory. Do you want to create it? " -i "y" -e ans
 			if [[ "$ans" == "y" ]]; then
-				mkdir -pv $1
+				#mkdir -pv $1
+				mkdir -p $1
 			else
 				error "Please try again."
 				defineScriptsDir
@@ -175,8 +177,8 @@ fi
 # interactive part
 printf "\t- Step 2: Please define the location to which the fsdb shall be installed.
 \tPlease make sure that the path to this location DOES NOT contain whitespaces.
-\tAlso please avoid using ~ (for the more directory) as this may result in unindended results, 
-depending under which account you run this script.\n"
+\tAlso please avoid using ~ or $HOME (for the home directory) as this may result in
+\tunindended results, depending under which account you run this script.\n"
 read -e -p "Path to installation directory: " -i $defaultInstDir -e INSTDIR
 if [[ ! $(echo "$INSTDIR" |sed 's@/$@@') =~ ${FSDBVERSION}$ ]]; then
 	INSTDIR=$(realpath $INSTDIR/$FSDBVERSION)
@@ -196,6 +198,7 @@ else
 	if [[ ! -f $FSDBCONFIG ]]; then
 		cp -u $defaultConfig $FSDBCONFIG
 	fi
+	echo "$INITDIR/ --> $INSTDIR/"
 	rsync -Sau $INITDIR/ $INSTDIR/
 fi
 
