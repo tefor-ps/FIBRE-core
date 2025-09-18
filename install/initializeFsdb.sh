@@ -113,7 +113,7 @@ function touchDir() {
 ## ======
 
 # empty terminal
-clear
+#clear
 
 # confirm root status
 sudoer
@@ -123,17 +123,6 @@ sudoer
 #appArr=(tree samba vim nano meld xvfb libimage-exiftool-perl ffmpeg curl unzip cifs-utils nfs-common imagemagick)
 appArr=(wget xvfb curl unzip cifs-utils nfs-common imagemagick)
 
-printf "As a linux tool the fsdb employes many other linux tools. 
-Some of them are part of the standard linux installation; others will need to be installed. 
-This step ensures, that all necessary tools are installed on this computer.
-The following linux tools will be installed or updated on your computer:\n"
-echo ${appArr[@]}
-read -e -p "Are you OK with installing these tools? [Y/n]: " -i "Y" ans
-if [[ "$ans" == [Yy] ]]; then
-	installLinuxTools
-else
-	warn "You may run into problems running the fsdb, if the necessary tools are not installed or up-to-date. \nSkipping installation and proceeding.\n"
-fi
 
 # define FSDBDIR, which is the root of the fsdb, 
 # dynamically on the basis of the location of this script.
@@ -155,6 +144,18 @@ else
 	LOG="$ADMINDIR/$(basename $0 .sh).log"
 	FSDBVERSION=fsdb
 	error "Can't locate getVar.sh in ${FSDBDIR}."
+fi
+
+printf "As a linux tool the fsdb employes many other linux tools. 
+Some of them are part of the standard linux installation; others will need to be installed. 
+This step ensures, that all necessary tools are installed on this computer.
+The following linux tools will be installed or updated on your computer:\n"
+echo ${appArr[@]}
+read -e -p "Are you OK with installing these tools? [Y/n]: " -i "Y" ans
+if [[ "$ans" == [Yy] ]]; then
+	installLinuxTools
+else
+	warn "You may run into problems running the fsdb, if the necessary tools are not installed or up-to-date. \nSkipping installation and proceeding.\n"
 fi
 
 defaultConfig=$(ls -ltr $(find "${FSDBDIR}" -type f -name "fsdb.config.default") |tail -1 |awk '{print $NF}')
