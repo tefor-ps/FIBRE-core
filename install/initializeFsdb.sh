@@ -147,7 +147,7 @@ else
 fi
 
 # set all global variables or at least the ones necessary
-GETVAR=$(find $FSDBDIR -type f -name getVar.sh)
+GETVAR=$(find "${FSDBDIR}" -type f -name getVar.sh)
 if [[ -f $GETVAR ]]; then
 	source "$GETVAR" #TODO: make sure, that the configs exist and are in the right locations, first (or inside of getVar)!!!!
 	intro "$0"
@@ -158,21 +158,24 @@ else
 	error "Can't locate getVar.sh."
 fi
 
-	
-	
+defaultConfig=$(ls -ltr $(find "${FSDBDIR}" -type f -name "fsdb.config.default") |tail -1 |awk '{print $NF}')
 
 # define final installation directory
 if [[ -z $1 || ! -d $1 ]]; then
-	defaultInstDir=$(realpath ~/$FSDBVERSION)
+	defaultInstDir=$(realpath $HOME/$FSDBVERSION)
 else
-	defaultInstDir=$(realpath $1/$FSDBVERSION)
+	if [[ $(echo "$1" |sed 's@/$@@') =~ ${FSDBVERSION}$ ]]; then 
+		defaultInstDir=$(realpath $1)
+	else
+		defaultInstDir=$(realpath $1/$FSDBVERSION)
+	fi
 fi
 
 # interactive part
 printf "\t- Step 2: Please define the location to which the fsdb shall be installed.
 \tPlease make sure that the path to this location DOES NOT contain whitespaces.\n"
 read -e -p "Path to installation directory: " -i $defaultInstDir -e INSTDIR
-if [[ ! "$INSTDIR" =~ "/${FSDBVERSION}/" ]]; then
+if [[ ! $(echo "$INSTDIR" |sed 's@/$@@') =~ ${FSDBVERSION}$ ]]; then
 	INSTDIR=$(realpath $INSTDIR/$FSDBVERSION)
 fi
 # copy fsdb.config.default to locally active location and open for editing --> generate local fsdb.config
@@ -183,11 +186,9 @@ if [[ "$ans" != [Yy] ]]; then
 	fail "Abort. Please run this script again.\n"
 else
 	printf "Moving the downloaded files from the temporary to the final location.\n\n"
-#TODO: rework the following paragraph!!!
 	# define 'SCRIPTSDIR' and create it if it doesn't exist, yet.
 	defineScriptsDir $INSTDIR/$repoName/scripts 1
-#	SCRIPTSDIR=$INSTDIR/$repoName/scripts
-#	mkdir -p $SCRIPTSDIR
+
 	FSDBCONFIG=$SCRIPTSDIR/fsdb.config
 	if [[ ! -f $FSDBCONFIG ]]; then
 		cp -u $defaultConfig $FSDBCONFIG
@@ -205,4 +206,7 @@ chown -R ${me}:${me} $INSTDIR
 skipPerm "Initialization completed. Starting installation."
 
 # start the actual installation and setup process
-bash $INSTDIR/$repoName/install/installFsdb.sh $SCRIPTSDIR 
+echo "$INSTDIR/$repoName/install/installFsdb.sh $SCRIPTSDIR"
+ls -la "$INSTDIR/$repoName/install/installFsdb.sh"
+exit
+bash $INSTDIR/$repoName/install/installFsdb.sh $SCRIPTSDIR
