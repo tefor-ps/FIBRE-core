@@ -5,10 +5,10 @@
 #FSDBDIR : the root-directory of the fsdb ($SCRIPTSDIR/../).
 
 ### ==ACCOUNTS==
-ADMIN yourAdmin			# <-- sudo-enabled UNIX account. no default value.
+ADMIN yourAdmin				# <-- sudo-enabled UNIX account. no default value.
 CONSORTIUM yourAssociation		# <-- normal UNIX account. no default value.
-GROUP yourTeam			# <-- UNIX group, which groups the users of a lab. no default value.
-DEV yourDevTeam			# <-- developer accounts have access to the scripts without being ADMIN. default: fsdbdev
+GROUP yourTeam				# <-- UNIX group, which groups the users of a lab. no default value.
+DEV yourDevTeam				# <-- developer accounts have access to the scripts without being ADMIN. default: fsdbdev
 DEVACCOUNTS devacc1 devacc2 devacc3	# <-- developers of the fsdb. no default values.
 ADMINACCOUNTS adminacc1 adminacc2 adminacc3	# <-- other system administrators, sudo-enabled. no default value.
 USERACCOUNTS useracc1 useracc2 useracc3	# <-- list of linux user accounts. no default value.
@@ -16,52 +16,52 @@ USERACCOUNTS useracc1 useracc2 useracc3	# <-- list of linux user accounts. no de
 LAB yourTeamName			# <-- name of the local lab for the file system structure. no default value.
 USER user1 user2 user3		# <-- names of users, space delimited, defining their storage locations on microscopes. no default value.
 ### == VARIABLES==
-DEBUGLEVEL 1			# <-- default debug verbosity level (0: silent, 1:some output, 2:verbose). default: 1
-HOSTS 127.0.0.1		# <-- allowed hosts for smb.conf, comma-separated. no default value.
+DEBUGLEVEL 1				# <-- default debug verbosity level (0: silent, 1:some output, 2:verbose). default: 1
+HOSTS 127.0.0.1				# <-- allowed hosts for smb.conf, comma-separated. no default value.
 
 ### ==SUFFIX FOR OUTPUT DIRECTORY==
-FSDB_EXT -fsdb             # extension of fsdb-directory of imported files. default: -fsdb             
+FSDB_EXT -fsdb             # extension of fsdb-directory of imported files. default: -fsdb
 
 #### MODIFICATIONS BELOW THIS POINT ARE POSSIBLE BUT NOT RECOMMENDED ####
 ### ==ACCOUNT GROUPS==
-GROUPACCOUNTS $CONSORTIUM $GROUP $DEV $CONSORTIUM $GROUP $DEV 	#default: $GROUP $DEV $CONSORTIUM $GROUP $DEV
+GROUPACCOUNTS $CONSORTIUM $GROUP $DEV $CONSORTIUM $GROUP $DEV	#default: $GROUP $DEV $CONSORTIUM $GROUP $DEV
 ### ==DIRECTORIES==
-FSDBVERSION fsdb25			# <-- version number of the fsdb. default: fsdb25   
-DATAROOT /DATA				# <-- root of the fsdb. default: /DATA    
-BUPROOT $DATAROOT/../BUP		# <-- root of the hot backup archive. default: $DATAROOT/../BUP  
-LABDIR $DATAROOT/${LAB}		# <-- all data of a given lab goes into a structured tree, which is rooted here. default: $DATAROOT/${LAB}  
-EXPORTDIR $DATAROOT/export/${LAB}	# <-- folder accessible to all labs of the same consortium - within the same network. default: $DATAROOT/export/${LAB} 
-STORAGEDIR $LABDIR/storage	# <-- hidden/protected storage location for raw data. default: $LABDIR/storage 
-LABDATADIR $LABDIR/labdata	# <-- lab-accessible location for all data (raw, secondary, tertiary, annotation, ...). default: $LABDIR/labdata 
-ADMINDIR $LABDIR/sysadmin	# <-- hidden storage location for the systems administrator. default: $LABDIR/sysadmin 
-DUMPDIR $LABDIR/dump		# <-- intermediate storage location for the clean-up processes. default: $LABDIR/dump  
-IMPORTS imports				# <-- subfolder in both storage locations; facilitates introduction of other data modalities. default: imports    
-ARCHIVEDIR $LABDATADIR/archive	# <-- output folder for table of content of compressed archives. default: $LABDATADIR/archive 
-EXCHANGEDIR $LABDATADIR/exchange	# <-- central storage location for lab-interal file-exchange, read-writable for lab members. default: $LABDATADIR/exchange 
-PROJECTSDIR $LABDATADIR/projects	# <-- same data as in $LABDATA; but sorted by projectID. default: $LABDATADIR/projects 
-LOGDIR $FSDBDIR/logs		# <-- storage location for the fsdb log files. default: $FSDBDIR/logs  
-INDEXDIR $FSDBDIR/index		# <-- storage location for the fsdb index files. default: $FSDBDIR/index  
-MATDIR $FSDBDIR/install		# <-- location for installation components. default: $FSDBDIR/install  
-TEMPLATESDIR $MATDIR/templates	# <-- location for configuration file templates. default: $MATDIR/templates 
+FSDBVERSION fsdb25			# <-- version number of the fsdb. default: fsdb25
+DATAROOT /DATA				# <-- root of the fsdb. default: /DATA
+BUPROOT $DATAROOT/../BUP	# <-- root of the hot backup archive. default: $DATAROOT/../BUP
+LABDIR $DATAROOT/${LAB}		# <-- all data of a given lab goes into a structured tree, which is rooted here. default: $DATAROOT/${LAB}
+EXPORTDIR $DATAROOT/export/${LAB}	# <-- folder accessible to all labs of the same consortium - within the same network. default: $DATAROOT/export/${LAB}
+STORAGEDIR $LABDIR/storage	# <-- hidden/protected storage location for raw data. default: $LABDIR/storage
+LABDATADIR $LABDIR/labdata	# <-- lab-accessible location for all data (raw, secondary, tertiary, annotation, ...). default: $LABDIR/labdata
+ADMINDIR $LABDIR/sysadmin	# <-- hidden storage location for the systems administrator. default: $LABDIR/sysadmin
+DUMPDIR $LABDIR/dump		# <-- intermediate storage location for the clean-up processes. default: $LABDIR/dump
+IMPORTS imports				# <-- subfolder in both storage locations; facilitates introduction of other data modalities. default: imports
+ARCHIVEDIR $LABDATADIR/archive	# <-- output folder for table of content of compressed archives. default: $LABDATADIR/archive
+EXCHANGEDIR $LABDATADIR/exchange	# <-- central storage location for lab-interal file-exchange, read-writable for lab members. default: $LABDATADIR/exchange
+PROJECTSDIR $LABDATADIR/projects	# <-- same data as in $LABDATA; but sorted by projectID. default: $LABDATADIR/projects
+LOGDIR $FSDBDIR/logs		# <-- storage location for the fsdb log files. default: $FSDBDIR/logs
+INDEXDIR $FSDBDIR/index		# <-- storage location for the fsdb index files. default: $FSDBDIR/index
+MATDIR $FSDBDIR/install		# <-- location for installation components. default: $FSDBDIR/install
+TEMPLATESDIR $MATDIR/templates	# <-- location for configuration file templates. default: $MATDIR/templates
 
 ### == OPERATION SYSTEM SPECIFIC MOUNT POINTS OF DATAROOT==
-MOUNT_BASH /DATA 			#default: /DATA
-MOUNT_WIN $DATAROOT 		#default: $DATAROOT
+MOUNT_BASH /DATA			#default: /DATA
+MOUNT_WIN $DATAROOT			#default: $DATAROOT
 
 ### ==MAIN CONFIGURATION==
 # DO NOT EDIT THE MAIN CONFIGURATION FILE AS IT WILL BE COMPLETELY OVERWRITTEN
 # AS SOON AS A SUB-CONFIGURATION FILE IS MODIFIED
-CONFIG ${SCRIPTSDIR}/.scripts.config 	#default: ${SCRIPTSDIR}/.scripts.config
+CONFIG ${SCRIPTSDIR}/.scripts.config	#default: ${SCRIPTSDIR}/.scripts.config
 
 ## ==extenal softwares==
 #FIJIDIR $FSDBDIR/Fiji.app	# <-- location of the integrated instance of fiji
-FIJIDIR $FSDBDIR/Fiji	# <-- location of the integrated instance of fiji. default: $FSDBDIR/Fiji 
+FIJIDIR $FSDBDIR/Fiji		# <-- location of the integrated instance of fiji. default: $FSDBDIR/Fiji
 ONLINEDOC https://gitlab.com/arnimjenett/fsdb23#installation-of-the-fsdb. default: https://gitlab.com/arnimjenett/fsdb23
 
 ### ==FILES==
-LOGO $SCRIPTSDIR/logo.png	# <-- storage location of the lab's logo for integration into the movies. default:  $SCRIPTSDIR/logo.png 
+LOGO $SCRIPTSDIR/logo.png	# <-- storage location of the lab's logo for integration into the movies. default:  $SCRIPTSDIR/logo.png
 
 ### ==CENTRALLY DEFINED PARAMETERS==
-permissibleAgeOfIndex 360	# <-- used in makeIndex to prevent rewriting a recently written index. default: 360 
-TIMEOUTMINUTES 10		# <-- time in minutes allowed for all secData-generation processes (per raw dataset). default: 10  
-TEST_TOG 0				# <-- toggles test-mode. default: 0    
+permissibleAgeOfIndex 360	# <-- used in makeIndex to prevent rewriting a recently written index. default: 360
+TIMEOUTMINUTES 10			# <-- time in minutes allowed for all secData-generation processes (per raw dataset). default: 10
+TEST_TOG 0					# <-- toggles test-mode. default: 0
