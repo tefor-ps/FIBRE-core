@@ -70,20 +70,22 @@ function installBFtools(){
 }
 
 function defineScriptsDir() {
-	if [[ -z $1 ]]; then 
-		read -p "User interaction needed: Enter the path to the fsdb scripts directory: " -i $SCRIPTSDIR -e SCRIPTSDIR
-		SCRIPTSDIR=$(realpath $SCRIPTSDIR)
-	else
-		SCRIPTSDIR=$(realpath $1)
-	fi
-	if [[ $(basename $SCRIPTSDIR) != "scripts" ]]; then
-		printf "$SCRIPTSDIR does not end on 'scripts'. Please try again.\n"
-		defineScriptsDir
-	else
-		if [[ ! -d $SCRIPTSDIR ]]; then
-			printf "$SCRIPTSDIR does not exist. Please try again.\n"
-			defineScriptsDir
+	if [[ -z $1 ]]; then
+		if [[ -z $SCRIPTSDIR ]]; then
+			read -p "User interaction needed: Enter the path to the fsdb scripts directory: " -e SCRIPTSDIR
+		else
+			read -p "User interaction needed: Enter the path to the fsdb scripts directory: " -i $SCRIPTSDIR -e SCRIPTSDIR
 		fi
+		touchDir $SCRIPTSDIR $2
+		SCRIPTSDIR="$(realpath $(echo "${SCRIPTSDIR}" | sed "s@~@$HOME@"))"
+	else
+		touchDir $@
+		SCRIPTSDIR="$(realpath $(echo "${1}" | sed "s@~@$HOME@"))"
+	fi
+	# check if 'SCRIPTSDIR' ends on 'scripts'
+	if [[ $(basename $SCRIPTSDIR) != "scripts" ]]; then
+		error "$SCRIPTSDIR does not end on 'scripts'. Please try again."
+		defineScriptsDir
 	fi
 }
 
