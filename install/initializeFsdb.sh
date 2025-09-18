@@ -198,7 +198,7 @@ else
 
 	FSDBCONFIG=$SCRIPTSDIR/fsdb.config
 	if [[ ! -f $FSDBCONFIG ]]; then
-		cp -u $defaultConfig $FSDBCONFIG
+		cp -u $FSDBCONFIG $FSDBCONFIG
 	fi
 	echo "$INITDIR/ --> $INSTDIR/"
 	rsync -Sau $INITDIR/ $INSTDIR/
