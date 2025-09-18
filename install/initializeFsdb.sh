@@ -143,7 +143,7 @@ thisDir="$(realpath "$(dirname "$0")")"
 if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
 	FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
 else
-	FSDBDIR="$(realpath $thisDir)"
+	FSDBDIR="$(realpath $thisDir |sed -r 's@/fsdb-core/.*@@')"
 fi
 
 # set all global variables or at least the ones necessary
