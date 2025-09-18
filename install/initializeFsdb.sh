@@ -134,6 +134,7 @@ else
 	FSDBDIR="$(realpath $thisDir |sed -r 's@/fsdb-core/.*@@')"
 fi
 
+repoName=$(ls -ltr "${FSDBDIR}" |tail -1 |awk '{print $NF}')
 # set all global variables or at least the ones necessary
 GETVAR=$(find "${FSDBDIR}" -type f -name getVar.sh)
 if [[ -f $GETVAR ]]; then
@@ -173,7 +174,9 @@ fi
 
 # interactive part
 printf "\t- Step 2: Please define the location to which the fsdb shall be installed.
-\tPlease make sure that the path to this location DOES NOT contain whitespaces.\n"
+\tPlease make sure that the path to this location DOES NOT contain whitespaces.
+\tAlso please avoid using ~ (for the more directory) as this may result in unindended results, 
+depending under which account you run this script.\n"
 read -e -p "Path to installation directory: " -i $defaultInstDir -e INSTDIR
 if [[ ! $(echo "$INSTDIR" |sed 's@/$@@') =~ ${FSDBVERSION}$ ]]; then
 	INSTDIR=$(realpath $INSTDIR/$FSDBVERSION)
