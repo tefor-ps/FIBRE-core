@@ -87,6 +87,7 @@ function defineScriptsDir() {
 		error "$SCRIPTSDIR does not end on 'scripts'. Please try again."
 		defineScriptsDir
 	fi
+	printf "SCRIPTSDIR: $SCRIPTSDIR\n" #for debugging
 }
 
 function touchDir() {
