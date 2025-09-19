@@ -198,10 +198,12 @@ else
 	defineScriptsDir $INSTDIR/$repoName/scripts 1
 
 	FSDBCONFIG=$SCRIPTSDIR/fsdb.config
-	if [[ ! -f $modFSDBCONFIG ]]; then
-		cp $defaultConfig $FSDBCONFIG
-	else
-		cp $modFSDBCONFIG $FSDBCONFIG
+	if [[ ! -f $FSDBCONFIG ]]; then
+		if [[ ! -f $modFSDBCONFIG ]]; then
+			cp $defaultConfig $FSDBCONFIG
+		else
+			cp $modFSDBCONFIG $FSDBCONFIG
+		fi
 	fi
 	echo "$INITDIR/ --> $INSTDIR/"
 	rsync -Sau $INITDIR/ $INSTDIR/
