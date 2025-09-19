@@ -197,6 +197,8 @@ else
 	printf "Moving the downloaded files from the temporary to the final location.\n\n"
 	# define 'SCRIPTSDIR' and create it if it doesn't exist, yet.
 	defineScriptsDir $INSTDIR/$repoName/scripts 1
+	printf "SCRIPTSDIR:: $SCRIPTSDIR\n" #for debugging
+
 
 	FSDBCONFIG=$SCRIPTSDIR/fsdb.config
 	if [[ ! -f $FSDBCONFIG ]]; then
