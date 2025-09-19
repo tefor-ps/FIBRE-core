@@ -143,6 +143,7 @@ repoName=$(ls -ltr "${FSDBDIR}" |tail -1 |awk '{print $NF}')
 GETVAR=$(find "${FSDBDIR}" -type f -name getVar.sh)
 if [[ -f $GETVAR ]]; then
 	source "$GETVAR" #TODO: make sure, that the configs exist and are in the right locations, first (or inside of getVar)!!!!
+	modFSDBCONFIG=$(find $INITDIR -type f -name fsdb.config)
 	intro "$0"
 else
 	ADMINDIR="/tmp/"
@@ -197,8 +198,10 @@ else
 	defineScriptsDir $INSTDIR/$repoName/scripts 1
 
 	FSDBCONFIG=$SCRIPTSDIR/fsdb.config
-	if [[ ! -f $FSDBCONFIG ]]; then
-		cp -u $FSDBCONFIG $FSDBCONFIG
+	if [[ ! -f $modFSDBCONFIG ]]; then
+		cp $defaultConfig $FSDBCONFIG
+	else
+		cp $modFSDBCONFIG $FSDBCONFIG
 	fi
 	echo "$INITDIR/ --> $INSTDIR/"
 	rsync -Sau $INITDIR/ $INSTDIR/
@@ -216,5 +219,7 @@ skipPerm "Initialization completed. Starting installation."
 # start the actual installation and setup process
 echo "$INSTDIR/$repoName/install/installFsdb.sh $SCRIPTSDIR"
 ls -la "$INSTDIR/$repoName/install/installFsdb.sh"
+
+echo "this scripts exits here during begugging. " 
 exit
 bash $INSTDIR/$repoName/install/installFsdb.sh $SCRIPTSDIR
