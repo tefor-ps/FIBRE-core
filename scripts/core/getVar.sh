@@ -112,7 +112,7 @@ function makeConfig() {
 	fi
 	cat "$fsdbconfig"
 	echo
-	skipPerm "Above you find the content of your $fsdbconfig. \nThe next step will give you the opportunity to edit a preformatted fsdb.config file in you default text editor.\nFor details on this please consult the README at this project's gitlab page:\n$ONLINEDOC \n\t- Preparing editor -" editor $fsdbconfig
+	skipPerm "Above you find the content of your $fsdbconfig. \nThe next step will give you the opportunity to edit a preformatted fsdb.config file in you default text editor.\nFor details on this please consult the README at this project's gitlab page:\n$ONLINEDOC \n\t- Preparing editor -" editConfig $fsdbconfig
 	updateConfig
 }
 
@@ -124,9 +124,10 @@ function resetConfig(){
 }
 
 function editConfig(){
-	skipPerm "Do you want to modify your fsdb.config?\n" editor $fsdbconfig
-	intro "Below you find the content of your new $fsdbconfig\n"
-	cat "$fsdbconfig"
+	#skipPerm "Do you want to modify your fsdb.config?\n" editor $fsdbconfig
+	editor $1
+	intro "Below you find the content of your new ${1}\n"
+	cat "$1"
 }
 
 function updateConfig(){
