@@ -207,7 +207,7 @@ else
 			rsync -Sau $modFSDBCONFIG $FSDBCONFIG
 		fi
 	else
-		msg "$FSDBCONFIG already exists."
+		msg "$FSDBCONFIG already exists.\n"
 	fi
 	echo "$INITDIR/ --> $INSTDIR/"
 	rsync -Sau $INITDIR/ $INSTDIR/
