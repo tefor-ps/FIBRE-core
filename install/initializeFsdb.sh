@@ -200,12 +200,14 @@ else
 	FSDBCONFIG=$SCRIPTSDIR/fsdb.config
 	if [[ ! -f $FSDBCONFIG ]]; then
 		if [[ ! -f $modFSDBCONFIG ]]; then
-			printf "$defaultConfig --> $FSDBCONFIG\n"
+			msg "$defaultConfig --> $FSDBCONFIG\n"
 			rsync -Sau $defaultConfig $FSDBCONFIG
 		else
-			printf "$modFSDBCONFIG --> $FSDBCONFIG\n"
+			msg "$modFSDBCONFIG --> $FSDBCONFIG\n"
 			rsync -Sau $modFSDBCONFIG $FSDBCONFIG
 		fi
+	else
+		msg "$FSDBCONFIG already exists."
 	fi
 	echo "$INITDIR/ --> $INSTDIR/"
 	rsync -Sau $INITDIR/ $INSTDIR/
