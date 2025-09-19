@@ -200,10 +200,10 @@ else
 	FSDBCONFIG=$SCRIPTSDIR/fsdb.config
 	if [[ ! -f $FSDBCONFIG ]]; then
 		if [[ ! -f $modFSDBCONFIG ]]; then
-			msg "$defaultConfig --> $FSDBCONFIG\n"
+			printf "$defaultConfig --> $FSDBCONFIG\n"
 			rsync -Sau $defaultConfig $FSDBCONFIG
 		else
-			msg "$modFSDBCONFIG --> $FSDBCONFIG\n"
+			printf "$modFSDBCONFIG --> $FSDBCONFIG\n"
 			rsync -Sau $modFSDBCONFIG $FSDBCONFIG
 		fi
 	fi
