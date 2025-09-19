@@ -87,7 +87,6 @@ function defineScriptsDir() {
 		error "$SCRIPTSDIR does not end on 'scripts'. Please try again."
 		defineScriptsDir
 	fi
-	printf "SCRIPTSDIR: $SCRIPTSDIR\n" #for debugging
 }
 
 function touchDir() {
@@ -197,14 +196,14 @@ else
 	printf "Moving the downloaded files from the temporary to the final location.\n\n"
 	# define 'SCRIPTSDIR' and create it if it doesn't exist, yet.
 	defineScriptsDir $INSTDIR/$repoName/scripts 1
-	printf "SCRIPTSDIR:: $SCRIPTSDIR\n" #for debugging
-
 
 	FSDBCONFIG=$SCRIPTSDIR/fsdb.config
 	if [[ ! -f $FSDBCONFIG ]]; then
 		if [[ ! -f $modFSDBCONFIG ]]; then
+			msg "$defaultConfig --> $FSDBCONFIG\n"
 			rsync -Sau $defaultConfig $FSDBCONFIG
 		else
+			msg "$modFSDBCONFIG --> $FSDBCONFIG\n"
 			rsync -Sau $modFSDBCONFIG $FSDBCONFIG
 		fi
 	fi
