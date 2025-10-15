@@ -206,13 +206,11 @@ else
 			msg "$modFSDBCONFIG --> $FSDBCONFIG\n"
 			cp -f $modFSDBCONFIG $FSDBCONFIG
 		fi
-		echo "$INITDIR/ --> $INSTDIR/"
-		rsync -Sau $INITDIR/ $INSTDIR/
 	else
 		msg "$FSDBCONFIG already exists.\n"
-		echo "$INITDIR/ ---> $INSTDIR/"
-		rsync -Sau --exclude="fsdb.config" $INITDIR/ $INSTDIR/
 	fi
+	echo "$INITDIR/ ---> $INSTDIR/"
+	rsync -Sau --exclude="fsdb.config" $INITDIR/ $INSTDIR/
 fi
 
 # remove init-dir
