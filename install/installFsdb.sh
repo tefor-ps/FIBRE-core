@@ -36,6 +36,7 @@ README
 
 #TODO: integrate into extractReadme
 #TODO: modify function-descriptions to be reflected in extractREADME (--> <<README)
+#TODO: reknit this to use a dynamic list of setup-scritps instead of internal functions.
 
 ## ======
 ## FUNCTION DEFINITIONS
@@ -47,18 +48,19 @@ function installLatestJava(){
 	apt-get install -y $latestJDK
 }
 
-function installFiji() {
-	# installation of fiji and the fsdb macros within
-	dbg " Next step: fiji installation."
-	cd /tmp
-	wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip
-	unzip -d $SCRIPTSDIR -o fiji-linux64.zip && rm fiji-linux64.zip 
-	#rsync -Sauv /tmp/Fiji.app/ $SCRIPTSDIR/Fiji.app/
-	chmod -R a+rx $SCRIPTSDIR/Fiji.app/
-	sudo ln -s $SCRIPTSDIR/Fiji.app/ImageJ-linux64 /usr/local/bin/fiji #TODO: check if this is really necessary!!
-	# update fiji
-	fiji --update update
-}
+# decprecated because out-sourced
+#	function installFiji() {
+#		# installation of fiji and the fsdb macros within
+#		dbg " Next step: fiji installation."
+#		cd /tmp
+#		wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip
+#		unzip -d $SCRIPTSDIR -o fiji-linux64.zip && rm fiji-linux64.zip 
+#		#rsync -Sauv /tmp/Fiji.app/ $SCRIPTSDIR/Fiji.app/
+#		chmod -R a+rx $SCRIPTSDIR/Fiji.app/
+#		sudo ln -s $SCRIPTSDIR/Fiji.app/ImageJ-linux64 /usr/local/bin/fiji #TODO: check if this is really necessary!!
+#		# update fiji
+#		fiji --update update
+#	}
 
 function installBFtools(){
 	# install bftools
@@ -110,7 +112,7 @@ cd $SCRIPTSDIR
 git pull 
 printf "fsdb-scripts updated.\n"
 
-# activate (default) configuration files as needed
+# activate (default) configuration files as needed #TODO: check if deprecated
 for i in $(find $SCRIPTSDIR -name "*config.default"); do 
 	conf=$(echo $i |sed 's@.default@@'); 
 	if [[ -f $conf  ]]; then 
@@ -145,7 +147,8 @@ if [[ $? -eq 0 ]]; then
 	else
 		java --version
 		warn "If you don't see a java version bigger than 8 displayed above, you will need to install java."
-		skipPerm "Next step: java installation." installLatestJava
+		#skipPerm "Next step: java installation." installLatestJava
+		skipPerm "Next step: java installation." bash bash $MATDIR/setupFiji.sh
 	fi
 else
 	warn "There is no java installed on your system." 
@@ -182,7 +185,7 @@ which samba
 if [[ $? -eq 0 ]]; then
 	skipRest "Samba $(samba --version) is installed on this system. Do you want to reinstall anyhow?" bash $MATDIR/smb-install.sh $SCRIPTSDIR   
 else
-	skipPerm "Next step: samba-installation." bash $MATDIR/smb-install.sh $SCRIPTSDIR
+	skipPerm "Next step: samba-installation." bash $MATDIR/setupSmb.sh $SCRIPTSDIR
 fi
 
 # generate user accounts
