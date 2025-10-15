@@ -56,7 +56,7 @@ CONFIG ${SCRIPTSDIR}/.scripts.config	#default: ${SCRIPTSDIR}/.scripts.config
 ## ==extenal softwares==
 #FIJIDIR $FSDBDIR/Fiji.app	# <-- location of the integrated instance of fiji
 FIJIDIR $FSDBDIR/Fiji		# <-- location of the integrated instance of fiji. default: $FSDBDIR/Fiji
-ONLINEDOC https://gitlab.com/arnimjenett/fsdb23#installation-of-the-fsdb. default: https://gitlab.com/arnimjenett/fsdb23
+ONLINEDOC https://gitlab.com/tefor/fsdb-install#installation-of-the-fsdb 
 
 ### ==FILES==
 LOGO $SCRIPTSDIR/logo.png	# <-- storage location of the lab's logo for integration into the movies. default:  $SCRIPTSDIR/logo.png
