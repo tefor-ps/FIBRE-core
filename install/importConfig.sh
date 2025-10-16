@@ -12,6 +12,9 @@ README
 
 # fsdb revision 250825
 
+#repo=git@gitlab.com:arnimjenett/${fsdbroot}-configs.git
+repo=https://gitlab.com/arnimjenett/${fsdbroot}-configs.git
+
 if [[ "$(whoami)" != "root" ]]; then
 	echo "ERROR: this script shall NOT be run as super-user. Exiting."
 	exit 1
@@ -25,14 +28,18 @@ else
 	fsdbDir=$(realpath "$1")
 fi
 
+if [[ "$2" =~ "f" ]]; then
+	force=1
+else
+	force=0
+fi
+
 td=$(realpath "$(dirname $0)")
 
 fsdbroot=$(basename "$fsdbDir")
-if [[ "$fsdbroot" =~ "fsdb" ]]; then
+if [[ "$fsdbroot" =~ "fsdb" || $force -gt 0 ]]; then
 	echo "importing configs into $fsdbDir"	
 	configsdir="${fsdbDir}/../${fsdbroot}-configs/"
-	#repo=git@gitlab.com:arnimjenett/${fsdbroot}-configs.git
-	repo=https://gitlab.com/arnimjenett/${fsdbroot}-configs.git
 else
 	echo "$fsdbDir doesn't appear to be a fsdb-root directory (fsdb*). Try again; Exiting."
 	exit
