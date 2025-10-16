@@ -112,8 +112,41 @@ function makeConfig() {
 	fi
 	cat "$fsdbconfig"
 	echo
-	skipPerm "Above you find the content of your $fsdbconfig. \nThe next step will give you the opportunity to edit a preformatted fsdb.config file in you default text editor.\nFor details on this please consult the README at this project's gitlab page:\n$ONLINEDOC \n\t- Preparing editor -" editConfig $fsdbconfig
+	#skipPerm "Above you find the content of your $fsdbconfig. \nThe next step will give you the opportunity to edit a preformatted fsdb.config file in you default text editor.\nFor details on this please consult the README at this project's gitlab page:\n$ONLINEDOC \n\t- Preparing editor -" editConfig $fsdbconfig
+	printf "Above you find the content of your $fsdbconfig. 
+	The next step will give you the opportunity to edit a preformatted fsdb.config file in you default text editor.
+	For details on this please consult the README at this project's gitlab page:
+	$ONLINEDOC \n"
+	editOrImport
 	updateConfig
+}
+
+function editOrImport(){
+	read -p "Do you want to proceed? [Y/n]: " -i "Y" -e ans
+	case $ans in 
+		[Yy]*)
+			printf "\t- Preparing editor -\n" 
+			editConfig $fsdbconfig
+			;;
+		[Ii]*)
+			printf "\t- Importing config -\n"
+			importConfig
+			;;
+		[Nn]*)
+			echo "ABORT BY USER"
+			exit 1
+			;;
+		*)
+			error "$ans in an invalid input. Try again."
+			editOrImport
+			;;
+	esac	
+}
+
+function importConfig(){
+	ccd="$(find "$FSDBDIR" -name "core.config.default")"
+	IMPORTCONFIG=$(find "$FSDBDIR" -name $(grep "^IMPORTCONFIG" $ccd |cut -d " " -f 2 |awk -F "/" '{print $NF}'))
+	sudo bash $IMPORTCONFIG
 }
 
 function resetConfig(){
@@ -291,10 +324,13 @@ if [[ "$getVarDir" =~ /fsdb[0-9]{2}/ ]]; then
 else
 	FSDBDIR="$(realpath $getVarDir/../../..)"
 fi
+# Define central configuration file.
 config="$(realpath "$SCRIPTSDIR/.scripts.config")"
-#config=$(find $(realpath $SCRIPTSDIR) -name ".scripts.config")
+#config=$(find $(realpath $SCRIPTSDIR) -type f -name ".scripts.config")
+
+# Define configuration file of the fsedb. This defines/dictates the structure of the fsdb. 
 fsdbconfig="$(realpath "$SCRIPTSDIR/fsdb.config")"
-#fsdbconfig=$(find $(realpath $SCRIPTSDIR) -name "fsdb.config")
+#fsdbconfig=$(find $(realpath $SCRIPTSDIR) -type f -name "fsdb.config")
 
 # timestamp for index files
 D=$(date +%y%m%d)
@@ -302,9 +338,9 @@ D=$(date +%y%m%d)
 export "D=$(echo $D)"
 # for processes, which may run longer than a day, 
 # (and by that will change D),
-# define a fixed STARTDATE. 
+# define a fixed STARTDATE.
 # This will be set at the first run only.
-if [ -z "$STARTDATE" ]; then 
+if [ -z "$STARTDATE" ]; then
 	export "STARTDATE=$(echo $D)"
 fi
 
