@@ -1,19 +1,33 @@
 # ==fsdb core functions==
-CORENAME core
-COREDIR $SCRIPTSDIR/core
-COREMACROS $MACROSDIR/fsdb.core
+CORENAME core core
+COREDIR $SCRIPTSDIR/fsdb-core
+CORESCRIPTS $COREDIR/scripts
+COREINSTALL $COREDIR/install
+COREMACROS $CORESCRIPTS/Fiji.app/macros/fsdb.core/
+
+# ==CORE INSTALLATION SCRIPTS ==
+MICS_SETUP $COREINSTALL/defineMics.sh
+EXPORTCONFIG $COREINSTALL/exportConfig.sh
+IMPORTCONFIG $COREINSTALL/importConfig.sh
+FSDB_INIT $COREINSTALL/initializeFsdb.sh
+FSDB_SETUP $COREINSTALL/installFsdb.sh
+ACCOUNTS_SETUP $COREINSTALL/makeAccounts.sh
+BAT_SETUP $COREINSTALL/makeBat.sh
+CRON_SETUP $COREINSTALL/setCron.sh
+FIJI_SETUP $COREINSTALL/setupFiji.sh
+SMB_SETUP $COREINSTALL/setupSmb.sh
 
 # ==CORE SCRIPTS==
-MAKEINDEX $COREDIR/makeIndex.sh
-MAKEFSDBINIT $COREDIR/makeFsdbInit.sh	# <-- translates the label/value-pairs of scripts.config into ij.Prefs for use in fiji
-FIJIONSERVER $COREDIR/fijiOnServer.sh
-COMPLISTS $COREDIR/compareLists.sh		# <-- compares the fist column of two lists (files)
-UPDATEFSDB $COREDIR/updateFsdb.sh		# <-- updates the fsdb from online repo
-UPDATEMACROS $COREDIR/updateMacros.sh		# <-- updates fsdb-macros from import location to active location (FIJIDIR)
-POPVARS_SCR $COREDIR/populateVarsInMacro.sh 	# <-- populates/updates fsdb-variables within macros
-POPVARS_FUN $COREDIR/getFsdbVars_fun.txt      # <-- transplantable function used by POPVARS_SCR
-CHECKPATH $COREDIR/checkFilePath.sh		# <-- eliminates incompatible filenames
-REMOVERAWDATA $COREDIR/removeRawDataFromFsdb.sh
+MAKEINDEX $CORESCRIPTS/makeIndex.sh $COREDIR/makeIndex.sh
+MAKEFSDBINIT $CORESCRIPTS/makeFsdbInit.sh	# <-- translates the label/value-pairs of scripts.config into ij.Prefs for use in fiji $COREDIR/makeFsdbInit.sh 
+FIJIONSERVER $CORESCRIPTS/fijiOnServer.sh $COREDIR/fijiOnServer.sh
+COMPLISTS $CORESCRIPTS/compareLists.sh		# <-- compares the fist column of two lists (files) $COREDIR/compareLists.sh  
+UPDATEFSDB $CORESCRIPTS/updateFsdb.sh		# <-- updates the fsdb from online repo $COREDIR/updateFsdb.sh  
+UPDATEMACROS $CORESCRIPTS/updateMacros.sh	# <-- updates fsdb-macros from import location to active location (FIJIDIR) $COREDIR/updateMacros.sh  
+POPVARS_SCR $CORESCRIPTS/populateVarsInMacro.sh	# <-- populates/updates fsdb-variables within macros $COREDIR/populateVarsInMacro.sh  
+POPVARS_FUN $CORESCRIPTS/getFsdbVars_fun.txt    # <-- transplantable function used by POPVARS_SCR $COREDIR/getFsdbVars_fun.txt      
+CHECKPATH $CORESCRIPTS/checkFilePath.sh		# <-- eliminates incompatible filenames $COREDIR/checkFilePath.sh  
+REMOVERAWDATA $CORESCRIPTS/removeRawDataFromFsdb.sh #TODO: deprecated?
 
 # functional (helper) core macros
 INITLOG_FMAC $COREMACROS/fsdb.core.initLOG.ijm
@@ -29,4 +43,4 @@ INITFSDB_FMAC $COREMACROS/fsdb.core.initFsdb.ijm
 LEICA_FT lif
 ZEISS_FT czi
 NIKON_FT nd2
-STACKEXTENSION nd2 lif		# <-- expandible list of treated file extension (currently possible values: nd2 czi lif)
+STACKEXTENSION nd2 lif	# <-- expandible list of treated file extension (currently possible values: nd2 czi lif) nd2 lif  
