@@ -148,7 +148,7 @@ function editOrImport(){
 function importConfig(){
 	ccd="$(find "$FSDBDIR" -name "core.config.default")"
 	IMPORTCONFIG=$(find "$FSDBDIR" -name $(grep "^IMPORTCONFIG" $ccd |cut -d " " -f 2 |awk -F "/" '{print $NF}'))
-	sudo bash $IMPORTCONFIG
+	sudo bash $IMPORTCONFIG $FSDBDIR
 }
 
 function resetConfig(){
