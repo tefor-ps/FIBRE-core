@@ -113,7 +113,7 @@ function makeConfig() {
 	cat "$fsdbconfig"
 	echo
 	#skipPerm "Above you find the content of your $fsdbconfig. \nThe next step will give you the opportunity to edit a preformatted fsdb.config file in you default text editor.\nFor details on this please consult the README at this project's gitlab page:\n$ONLINEDOC \n\t- Preparing editor -" editConfig $fsdbconfig
-	printf "Above you find the content of your $fsdbconfig. 
+	intro "Above you find the content of your $fsdbconfig. 
 	The next step will give you the opportunity to edit a preformatted fsdb.config file in you default text editor.
 	For details on this please consult the README at this project's gitlab page:
 	$ONLINEDOC \n"
