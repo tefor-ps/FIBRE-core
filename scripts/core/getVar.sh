@@ -92,7 +92,8 @@ function checkConfig(){
 			cat "$fsdbconfig"
 			warn "$config already exists."
 			skipRest "Above you find the contents of your current fsdb.config.\nDo you want to reset it to default values." resetConfig
-			editConfig
+			#editConfig
+			editOrImport
 		fi
 	# update scripts.config, if needed.
 		updateConfig
@@ -105,7 +106,8 @@ function makeConfig() {
 	if [[ ! -f "$fsdbconfig" ]]; then
 		resetConfig
 	else
-		ONLINEDOC="$(grep "^ONLINEDOC " "$fsdbconfig" |cut -d " " -f 2)" #TODO: $ONLINEDOC is the URL of the repo at gitlab. 
+		ONLINEDOC="$(grep "^ONLINEDOC " "$fsdbconfig" |cut -d " " -f 2)" #TODO: $ONLINEDOC is the URL of the repo at gitlab.
+		nohup xdg-open "$ONLINEDOC" &> /dev/null &
 		# This is intended to open/access the online documentation (in the default browser) but is not at all implemented, yet. 
 		# See https://stackoverflow.com/a/38147878/5269099
 		backup "$fsdbconfig"
