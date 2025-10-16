@@ -126,8 +126,8 @@ sudoer
 appArr=(wget xvfb curl unzip cifs-utils nfs-common imagemagick)
 
 
-# define FSDBDIR, which is the root of the fsdb, 
-# dynamically on the basis of the location of this script.
+# define FSDBDIR, which is the root of the fsdb dynamically
+# on the basis of the location of this script.
 # This will be immediatly overwritten/corrected when sourcing getVar.sh
 thisDir="$(realpath "$(dirname "$0")")"
 if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
@@ -136,6 +136,8 @@ else
 	FSDBDIR="$(realpath $thisDir |sed -r 's@/fsdb-core/.*@@')"
 fi
 
+# INITDIR is the root directory of the fsdb-installation
+# During installation this is a temporary 
 INITDIR="$(realpath $thisDir |sed -r 's@/fsdb-core/.*@@')"
 repoName=$(ls -ltr "${FSDBDIR}" |tail -1 |awk '{print $NF}')
 
