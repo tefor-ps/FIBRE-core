@@ -189,8 +189,6 @@ if [[ ! $(echo "$INSTDIR" |sed 's@/$@@') =~ ${FSDBVERSION}$ ]]; then
 	INSTDIR=$(realpath $INSTDIR/$FSDBVERSION)
 fi
 # copy fsdb.config.default to locally active location and open for editing --> generate local fsdb.config
-printf "\t- Step 3: Please configure this instance according to your local needs.
-For more informations on this step please refer to the README at gitlab.\n\n"
 read -e -p "The fsdb will be installed to ${INSTDIR}. Is this correct? [Y/n]: " -i "Y" ans
 if [[ "$ans" != [Yy] ]]; then
 	fail "Abort. Please run this script again.\n"
@@ -202,16 +200,16 @@ else
 	FSDBCONFIG=$SCRIPTSDIR/fsdb.config
 	if [[ ! -f $FSDBCONFIG ]]; then
 		if [[ ! -f $modFSDBCONFIG ]]; then
-			msg "$defaultConfig --> $FSDBCONFIG\n"
-			cp -f $defaultConfig $FSDBCONFIG
+			#msg "$defaultConfig --> $FSDBCONFIG\n"
+			cp -fv $defaultConfig $FSDBCONFIG
 		else
-			msg "$modFSDBCONFIG --> $FSDBCONFIG\n"
-			cp -f $modFSDBCONFIG $FSDBCONFIG
+			#msg "$modFSDBCONFIG --> $FSDBCONFIG\n"
+			cp -fv $modFSDBCONFIG $FSDBCONFIG
 		fi
 	else
 		msg "$FSDBCONFIG already exists.\n"
 	fi
-	echo "$INITDIR/ ---> $INSTDIR/"
+	msg "$INITDIR/ ---> $INSTDIR/\n"
 	rsync -Sau --exclude="fsdb.config" $INITDIR/ $INSTDIR/
 fi
 
