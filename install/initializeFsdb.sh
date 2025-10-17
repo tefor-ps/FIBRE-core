@@ -164,7 +164,6 @@ if [[ "$ans" == [Yy] ]]; then
 	installLinuxTools ||fail
 else
 	warn "You may run into problems running the fsdb, if the necessary tools are not installed or up-to-date. \nSkipping installation and proceeding.\n"
-	fail
 fi
 
 defaultConfig=$(ls -ltr $(find "${FSDBDIR}" -type f -name "fsdb.config.default") |tail -1 |awk '{print $NF}')
