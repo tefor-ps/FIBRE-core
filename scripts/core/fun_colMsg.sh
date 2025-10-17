@@ -54,7 +54,18 @@ getLevel() {
 
 if [[ -z $LOG ]]; then
 	td=$(realpath $(dirname $BASH_SOURCE))
-	LOGDIR=$td/../../logs
+	FSDBDIR=$(echo $td |sed 's@\(fsdb[0-9][0-9]\)/.*@\1@')
+	if [[ "$td" == "$FSDBDIR" ]]; then
+		LOGDIR=$td/logs
+	else
+		FSDBCONFIG=$(find $FSDBDIR -name "fsdb.config" |grep -v templates)
+		if [[ -f $FSDBCONFIG]]; then 
+			LD=$(grep LOGDIR $FSDBCONFIG |awk '{printf $2}')
+			LOGDIR=$(eval echo $LD)
+		else
+			LOGDIR=$td/logs
+		fi
+	fi
 	mkdir -p $LOGDIR
 	LOG="$LOGDIR/$D.$(basename $0 .sh).log"
 fi
