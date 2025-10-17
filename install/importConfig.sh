@@ -20,14 +20,20 @@ function fail(){
 	exit 128
 }
 
+# cyan text on black background to introduce the current script or say something important
+intro() { if [[ -t 2 ]] ; then printf $'\r\e[2K\t\e[36;1m'"$@"$'\e[0m\n'; else echo "$@"; fi >&2 ;}
+
+# error message; white on red background
+error() { if [[ -t 2 ]] ; then date >> $LOG; printf $'\e[37;1;41m'"\r\e[2KERROR:\t$0: $@"$'\e[0m\n' |tee -a $LOG; else echo "$@"; fi >&2 ;}
+
 if [[ "$(whoami)" != "root" ]]; then
-	echo "ERROR: this script shall NOT be run as super-user. Exiting."
-	exit 1
+	fail "This script shall NOT be run as super-user."
+	#exit 1
 fi
 
 if [[ -z $1 ]]; then
-	echo "Please provide target directory as parameter. Exiting."
-	exit
+	fail "Please provide target directory as parameter."
+	#exit
 else
 	mkdir -pv "$1" 
 	fsdbDir=$(realpath "$1")
@@ -36,15 +42,15 @@ fi
 td=$(realpath "$(dirname $0)")
 
 fsdbroot=$(basename "$fsdbDir")
-echo $fsdbroot
+#echo $fsdbroot
 if [[ "$fsdbroot" =~ "fsdb" ]]; then
-	echo "importing configs into $fsdbDir"	
+	intro "importing configs into $fsdbDir"	
 	configsdir="${fsdbDir}/../${fsdbroot}-configs/"
 	#repo=git@gitlab.com:arnimjenett/${fsdbroot}-configs.git
 	repo=https://gitlab.com/arnimjenett/${fsdbroot}-configs.git
 else
-	echo "$fsdbDir doesn't appear to be a fsdb-root directory (fsdb*). Try again; Exiting."
-	exit
+	fail "$fsdbDir doesn't appear to be a fsdb-root directory (fsdb*)."
+	#exit
 fi
 
 # https://stackoverflow.com/a/226724
@@ -53,16 +59,16 @@ while true; do
     case $ans in
         [Yy]* ) getrepo=1; break;;
         [Nn]* ) getrepo=0; break;;
-        * ) echo "Please answer yes or no.";;
+        * ) intro "Please answer yes or no.";;
     esac
 done
 
 # check user input
 if [[ ! -d $fsdbDir ]]; then
-	echo "ERROR: provide the path to the fsdb-instance you want to import the configs to. Exiting."
-	exit
+	fail "Provide the path to the fsdb-instance you want to import the configs to."
+	#exit
 else
-	echo "Importing configs from $configsdir to $fsdbDir"
+	intro "Importing configs from $configsdir to $fsdbDir"
 
 # get latest versions from gitlab repo
 	if [[ $getrepo -eq 1 ]]; then
@@ -88,7 +94,7 @@ else
 			fi
 		done
 	else
-		echo "Can't find "$configsdir". Exiting."
-		exit
+		fail "Can't find ${configsdir}."
+		#exit
 	fi
 fi
