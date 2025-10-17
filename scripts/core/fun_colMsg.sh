@@ -59,7 +59,7 @@ if [[ -z $LOG ]]; then
 		LOGDIR=$td/logs
 	else
 		FSDBCONFIG=$(find $FSDBDIR -name "fsdb.config" |grep -v templates)
-		if [[ -f $FSDBCONFIG]]; then 
+		if [[ -f $FSDBCONFIG ]]; then 
 			LD=$(grep LOGDIR $FSDBCONFIG |awk '{printf $2}')
 			LOGDIR=$(eval echo $LD)
 		else
