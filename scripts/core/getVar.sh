@@ -127,12 +127,12 @@ function editOrImport(){
 	read -p "Do you want to proceed? [Y/n]: " -i "Y" -e ans
 	case $ans in 
 		[Yy]*)
-			printf "\t- Preparing editor -\n" 
+			intro "\t- Preparing editor -\n" 
 			editConfig $fsdbconfig
 			;;
 		[Ii]*)
-			printf "\t- Importing config -\n"
-			importConfig
+			intro "\t- Importing config -\n"
+			importConfig ||fail
 			;;
 		[Nn]*)
 			echo "ABORT BY USER"
