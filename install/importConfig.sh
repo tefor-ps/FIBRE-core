@@ -44,7 +44,6 @@ td=$(realpath "$(dirname $0)")
 fsdbroot=$(basename "$fsdbDir")
 #echo $fsdbroot
 if [[ "$fsdbroot" =~ "fsdb" ]]; then
-	intro "Importing configs into $configsdir"	
 	configsdir=$(realpath "${fsdbDir}/../${fsdbroot}-configs/")
 	intro "Importing configs into $configsdir"	
 	#repo=git@gitlab.com:arnimjenett/${fsdbroot}-configs.git
