@@ -157,8 +157,10 @@ fi
 intro "As a linux tool the fsdb employes many other linux tools. 
 	Some of them are part of the standard linux installation; others will need to be installed. 
 	This step ensures, that all necessary tools are installed on this computer.
-	The following linux tools will be installed or updated on your computer:
-	${appArr[@]} \n"
+	The following linux tools will be installed or updated on your computer:\n"
+	for i in ${appArr[@]}; do
+		intro $i
+	done
 #echo ${appArr[@]}
 read -e -p "Are you OK with installing these tools? [Y/n]: " -i "Y" ans
 if [[ "$ans" == [Yy] ]]; then
