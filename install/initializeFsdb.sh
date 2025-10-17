@@ -36,14 +36,11 @@ function fail(){
 	exit 128
 }
 
-function error() { 
-	if [[ -t 2 ]] ; then 
-		date >> $LOG; 
-		printf $'\e[37;1;41m'"\r\e[2KERROR:\t$0: $@"$'\e[0m\n' |tee -a $LOG
-	else 
-		echo "$@"
-	fi >&2
-}
+# cyan text on black background to introduce the current script or say something important
+intro() { if [[ -t 2 ]] ; then printf $'\r\e[2K\t\e[36;1m'"$@"$'\e[0m\n'; else echo "$@"; fi >&2 ;}
+
+# error message; white on red background
+error() { if [[ -t 2 ]] ; then date >> $LOG; printf $'\e[37;1;41m'"\r\e[2KERROR:\t$0: $@"$'\e[0m\n' |tee -a $LOG; else echo "$@"; fi >&2 ;}
 
 function sudoer() {
 ## ROOT PRIVILEGES
@@ -58,7 +55,7 @@ fi
 function installLinuxTools(){
 # tools installation 
 ## composite command using aptitude
-	printf "Updating Linux repos. This may take a moment or two.\n"
+	intro "Updating Linux repos. This may take a moment or two.\n"
 	apt -qq update
 	#apt install -y ${appArr[@]}
 	for app in ${appArr[@]}; do
@@ -184,10 +181,10 @@ else
 fi
 
 # interactive part
-printf "\t- Step 2: Please define the location to which the fsdb shall be installed.
-\tPlease make sure that the path to this location DOES NOT contain whitespaces.
-\tAlso please avoid using ~ or $HOME (for the home directory) as this may result in
-\tunindended results, depending under which account you run this script.\n"
+intro "\n\t- Step 2: Please define the location to which the fsdb shall be installed.
+\t  Please make sure that the path to this location DOES NOT contain whitespaces.
+\t  Also please avoid using ~ or $HOME (for the home directory) as this may result in
+\t  unintended results, depending under which account you run this script.\n"
 read -e -p "Path to installation directory: " -i $defaultInstDir -e INSTDIR
 if [[ ! $(echo "$INSTDIR" |sed 's@/$@@') =~ ${FSDBVERSION}$ ]]; then
 	INSTDIR=$(realpath $INSTDIR/$FSDBVERSION)
