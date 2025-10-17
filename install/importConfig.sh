@@ -35,6 +35,8 @@ echo $fsdbroot
 if [[ "$fsdbroot" =~ "fsdb" ]]; then
 	echo "importing configs into $fsdbDir"	
 	configsdir="${fsdbDir}/../${fsdbroot}-configs/"
+	#repo=git@gitlab.com:arnimjenett/${fsdbroot}-configs.git
+	repo=https://gitlab.com/arnimjenett/${fsdbroot}-configs.git
 else
 	echo "$fsdbDir doesn't appear to be a fsdb-root directory (fsdb*). Try again; Exiting."
 	exit
