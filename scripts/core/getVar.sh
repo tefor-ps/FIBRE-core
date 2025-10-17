@@ -132,7 +132,7 @@ function editOrImport(){
 			;;
 		[Ii]*)
 			intro "\t- Importing config -\n"
-			importConfig 
+			importConfig || fail
 			;;
 		[Nn]*)
 			echo "ABORT BY USER"
