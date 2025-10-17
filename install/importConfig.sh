@@ -28,16 +28,10 @@ else
 	fsdbDir=$(realpath "$1")
 fi
 
-#	if [[ "$2" =~ "f" ]]; then
-#		force=1
-#	else
-#		force=0
-#	fi
-
 td=$(realpath "$(dirname $0)")
 
 fsdbroot=$(basename "$fsdbDir")
-#if [[ "$fsdbroot" =~ "fsdb" || $force -gt 0 ]]; then
+echo $fsdbroot
 if [[ "$fsdbroot" =~ "fsdb" ]]; then
 	echo "importing configs into $fsdbDir"	
 	configsdir="${fsdbDir}/../${fsdbroot}-configs/"
