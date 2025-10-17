@@ -12,8 +12,13 @@ README
 
 # fsdb revision 250825
 
-#repo=git@gitlab.com:arnimjenett/${fsdbroot}-configs.git
-repo=https://gitlab.com/arnimjenett/${fsdbroot}-configs.git
+function fail(){
+	#intro "$@"
+	date
+	printf "\033[31mError in $(basename $0):${FUNCNAME[2]}:${FUNCNAME[1]} $@ \033[0m"
+	printf "\033[31m\nExiting.\033[0m\n"
+	exit 128
+}
 
 if [[ "$(whoami)" != "root" ]]; then
 	echo "ERROR: this script shall NOT be run as super-user. Exiting."
@@ -62,11 +67,11 @@ else
 # get latest versions from gitlab repo
 	if [[ $getrepo -eq 1 ]]; then
 		if [[ ! -d "$configsdir" ]]; then
-			cd "$fsdbDir/.."
-			git clone $repo
+			cd "$fsdbDir/.." || fail
+			git clone $repo || fail
 		else
-			cd "$configsdir" || exit
-			git pull
+			cd "$configsdir" || fail
+			git pull || fail
 		fi
 	fi
 
