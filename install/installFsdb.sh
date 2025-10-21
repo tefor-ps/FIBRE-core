@@ -74,6 +74,27 @@ function installBFtools(){
 	chmod -R a+rx $SCRIPTSDIR/bftools/*
 }
 
+function touchDir() {
+	# check if 'SCRIPTSDIR' exists 
+	if [[ ! -d $1 ]]; then
+		# create 'SCRIPTSDIR' because user set $2 greater than 0
+		if [[ $2 -gt 0 ]]; then
+			#mkdir -pv $1
+			mkdir -p $1
+		else
+			# ask for permission to create 'SCRIPTSDIR'
+			read -p "$1 is not a directory. Do you want to create it? " -i "y" -e ans
+			if [[ "$ans" == "y" ]]; then
+				mkdir -pfv $1
+				#mkdir -p $1
+			else
+				error "Please try again."
+				defineScriptsDir
+			fi
+		fi
+	fi
+}
+
 function defineScriptsDir() {
 	# Determine the invoking user's home directory, even under sudo
 	if [[ -n "$SUDO_USER" ]]; then
