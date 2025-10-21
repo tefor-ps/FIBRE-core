@@ -66,26 +66,6 @@ function installLinuxTools(){
 	sudo apt autoremove --purge
 }
 
-function defineScriptsDir() {
-	if [[ -z $1 ]]; then
-		if [[ -z $SCRIPTSDIR ]]; then
-			read -p "User interaction needed: Enter the path to the fsdb scripts directory: " -e SCRIPTSDIR
-		else
-			read -p "User interaction needed: Enter the path to the fsdb scripts directory: " -i $SCRIPTSDIR -e SCRIPTSDIR
-		fi
-		touchDir $SCRIPTSDIR $2
-		SCRIPTSDIR="$(realpath $(echo "${SCRIPTSDIR}" | sed "s@~@$HOME@"))"
-	else
-		touchDir $@
-		SCRIPTSDIR="$(realpath $(echo "${1}" | sed "s@~@$HOME@"))"
-	fi
-	# check if 'SCRIPTSDIR' ends on 'scripts'
-	if [[ $(basename $SCRIPTSDIR) != "scripts" ]]; then
-		error "$SCRIPTSDIR does not end on 'scripts'. Please try again."
-		defineScriptsDir
-	fi
-}
-
 function touchDir() {
 	# check if 'SCRIPTSDIR' exists 
 	if [[ ! -d $1 ]]; then
@@ -107,6 +87,26 @@ function touchDir() {
 	fi
 }
 
+function defineScriptsDir() {
+	if [[ -z $1 ]]; then
+		if [[ -z $SCRIPTSDIR ]]; then
+			read -p "User interaction needed: Enter the path to the fsdb scripts directory: " -e SCRIPTSDIR
+		else
+			read -p "User interaction needed: Enter the path to the fsdb scripts directory: " -i $SCRIPTSDIR -e SCRIPTSDIR
+		fi
+		touchDir $SCRIPTSDIR $2
+		SCRIPTSDIR="$(realpath $(echo "${SCRIPTSDIR}" | sed "s@~@$HOME@"))"
+	else
+		touchDir $@
+		SCRIPTSDIR="$(realpath $(echo "${1}" | sed "s@~@$HOME@"))"
+	fi
+	# check if 'SCRIPTSDIR' ends on 'scripts'
+	if [[ $(basename $SCRIPTSDIR) != "scripts" ]]; then
+		error "$SCRIPTSDIR does not end on 'scripts'. Please try again."
+		defineScriptsDir
+	fi
+}
+
 ## ======
 ## FUNCTION CALLS
 ## ======
@@ -120,7 +120,7 @@ sudoer
 # list of linux apps to install
 #appArr=(nload htop tree vlc samba vim nano gitg meld xvfb libimage-exiftool-perl ffmpeg curl unzip p7zip-full gparted cifs-utils nfs-common rename imagemagick)
 #appArr=(tree samba vim nano meld xvfb libimage-exiftool-perl ffmpeg curl unzip cifs-utils nfs-common imagemagick)
-appArr=(wget xvfb curl unzip cifs-utils nfs-common imagemagick)
+appArr=(wget xvfb curl unzip cifs-utils nfs-common imagemagick jq)
 
 
 # define FSDBDIR, which is the root of the fsdb dynamically
