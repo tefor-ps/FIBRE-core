@@ -51,27 +51,16 @@ function installLatestJava(){
 	apt-get install -y $latestJDK
 }
 
-# decprecated because out-sourced
-#	function installFiji() {
-#		# installation of fiji and the fsdb macros within
-#		dbg " Next step: fiji installation."
-#		cd /tmp
-#		wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip
-#		unzip -d $SCRIPTSDIR -o fiji-linux64.zip && rm fiji-linux64.zip 
-#		#rsync -Sauv /tmp/Fiji.app/ $SCRIPTSDIR/Fiji.app/
-#		chmod -R a+rx $SCRIPTSDIR/Fiji.app/
-#		sudo ln -s $SCRIPTSDIR/Fiji.app/ImageJ-linux64 /usr/local/bin/fiji #TODO: check if this is really necessary!!
-#		# update fiji
-#		fiji --update update
-#	}
-
 function installBFtools(){
 	# install bftools
 	dbg "Next step: installation of bioformats tools (bftools)."
-	cd /tmp
+	TMP=$(mktemp -d)
+	cd $TMP
 	wget http://downloads.openmicroscopy.org/bio-formats/latest/artifacts/bftools.zip
-	unzip -d $SCRIPTSDIR -o bftools.zip && rm bftools.zip
+	unzip -d $SCRIPTSDIR -o bftools.zip
 	chmod -R a+rx $SCRIPTSDIR/bftools/*
+	cd -
+	rm -rf $TMP
 }
 
 function touchDir() {
@@ -199,16 +188,15 @@ else
 	skipPerm "Next step: java installation." installLatestJava
 fi
 
-fail "debugging exit. FSDBDIR: $FSDBDIR"
-
 <<fijiinstall
 fiji is just imagej - batteries included. This is an application used extensively within the fsdb. 
 fijiinstall
-if [[ -f $FIJISDIR/fiji ]]; then
-	skipRest "Fiji is already installed. Do you want to reinstall anyhow?" installFiji
+if [[ -f $FIJIDIR/fiji ]]; then
+	skipRest "Fiji is already installed. Do you want to reinstall anyhow?" bash FIJI_SETUP
 else
-	installFiji
+	bash FIJI_SETUP
 fi
+fail "debugging exit. FSDBDIR: $FSDBDIR"
 
 <<bftoolsinstall
 The OME bio-format tools are a central component of the fsdb. They are responsible for seamless reading and writing 
