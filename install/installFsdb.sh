@@ -154,6 +154,7 @@ repoArr=()
 c=0
 for i in $repos; do
 	repoArr[$c]=${lineArr[$i]}
+	c=$((c+1))
 done
 echo "${repoArr[@]}"
 # clone of pull selected repos
