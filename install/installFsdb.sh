@@ -117,10 +117,6 @@ defineScriptsDir $@
 
 # update all scripts and macros of the fsdb
 printf "updating fsdb...\n"
-cd $SCRIPTSDIR
-git pull #TODO: revisit 
-# TODO: integrate list and selection of modules here.
-#	curl -s "https://gitlab.com/api/v4/groups/tefor/projects?per_page=50" | jq -r '.[].path_with_namespace'
 # list all installable repos
 	index=0
 	lineArr=()
