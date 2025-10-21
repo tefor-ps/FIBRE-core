@@ -156,14 +156,15 @@ for i in $repos; do
 done
 # clone of pull selected repos
 for repo in ${repoArr[@]}; do 
+	echo $repo
 	cd $td 
 	echo $repo
-	if [[ -d $(basename $repo) ]]; then
-		cd $(basename $repo)
-		git pull
-	else
-		git clone https://gitlab.com/$repo
-	fi
+#	if [[ -d $(basename $repo) ]]; then
+#		cd $(basename $repo)
+#		git pull
+#	else
+#		git clone https://gitlab.com/$repo
+#	fi
 done
 printf "fsdb-scripts updated.\n"
 
