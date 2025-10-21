@@ -126,7 +126,7 @@ printf "updating fsdb...\n"
 		index=$((index+1)) 
 	done < <(curl -s "https://gitlab.com/api/v4/groups/tefor/projects?per_page=50" | jq -r '.[].path_with_namespace' )
 # guide selelction of repos, which shall be installed
-	read -p "Which repo(s) do you want to install? (type indices, whitespace-separated" -e repos
+	read -p "Which repo(s) do you want to install? (type indices, whitespace-separated) " -e repos
 # generate array of selected repos
 	repoArr=()
 	c=0
