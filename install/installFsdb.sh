@@ -146,7 +146,6 @@ while read line; do
 	lineArr[$index]="$line"
 	index=$((index+1)) 
 done < <(curl -s "https://gitlab.com/api/v4/groups/tefor/projects?per_page=50" | jq -r '.[].path_with_namespace' )
-echo "${lineArr[@]}"
 # guide selelction of repos, which shall be installed
 read -p "Which repo(s) do you want to install? (type indices, whitespace-separated) " -e repos
 # generate array of selected repos
@@ -156,10 +155,8 @@ for i in $repos; do
 	repoArr[$c]=${lineArr[$i]}
 	c=$((c+1))
 done
-echo "${repoArr[@]}"
 # clone of pull selected repos
 for repo in ${repoArr[@]}; do 
-	echo $repo
 	cd $td 
 	echo $repo
 	if [[ -d $(basename $repo) ]]; then
@@ -180,13 +177,12 @@ else
 fi
 
 ## from here on this script uses the variables defined in the configuration file (.scripts.config)
-fail "debugging exit. FSDBDIR: $FSDBDIR"
 
 # install java
 <<javainstall
  In its latest version bftools depends on java8 or later to function. Otherwise it will throw an error: 
  java.lang.UnsupportedClassVersionError: loci/formats/tools/ImageInfo : Unsupported major.minor version 52.0 
- This can be fixed by installing the latetes java as described here. Today (2019) this is java11.
+ This can be fixed by installing the latetes java as described here. Today (2025) this is openjdk 21.0.8.
 javainstall
 which java
 if [[ $? -eq 0 ]]; then
@@ -196,13 +192,14 @@ if [[ $? -eq 0 ]]; then
 	else
 		java --version
 		warn "If you don't see a java version bigger than 8 displayed above, you will need to install java."
-		#skipPerm "Next step: java installation." installLatestJava
-		skipPerm "Next step: java installation." bash bash $MATDIR/setupFiji.sh
+		skipPerm "Next step: java installation." installLatestJava
 	fi
 else
 	warn "There is no java installed on your system." 
 	skipPerm "Next step: java installation." installLatestJava
 fi
+
+fail "debugging exit. FSDBDIR: $FSDBDIR"
 
 <<fijiinstall
 fiji is just imagej - batteries included. This is an application used extensively within the fsdb. 
