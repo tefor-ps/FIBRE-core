@@ -19,7 +19,7 @@ This script (optionlally) accepts the installation directory as first and only p
 
 README
 
-#fsdb-rev-date: 250911
+#fsdb-rev-date: 251021
 
 #TODO: rework this script: no tmp INITDIR, no git-clone, assume this script comes with its core repo, but (potentially) in tmp location
 #TODO: revise README
@@ -47,9 +47,9 @@ function sudoer() {
 # because for the for the installation of software and generation of directories 
 # on shares with limited write permissions root rights are needed, check for 
 # these at the very beginning. 
-if [ $(whoami) != "root" ]; then 
-	fail "This script needs to be run with root-privileges."
-fi
+	if [[ $(whoami) != "root" ]]; then 
+		fail "This script needs to be run with root-privileges."
+	fi
 }
 
 function installLinuxTools(){
@@ -97,14 +97,14 @@ function touchDir() {
 			# ask for permission to create 'SCRIPTSDIR'
 			read -p "$1 is not a directory. Do you want to create it? " -i "y" -e ans
 			if [[ "$ans" == "y" ]]; then
-				#mkdir -pv $1
-				mkdir -p $1
+				mkdir -pfv $1
+				#mkdir -p $1
 			else
 				error "Please try again."
 				defineScriptsDir
 			fi
 		fi
-	fi	
+	fi
 }
 
 ## ======
@@ -215,7 +215,6 @@ fi
 
 # remove init-dir
 rm -rf $INITDIR
-
 # set unix permissions 
 me=$(whoami)
 chown -R ${me}:${me} $INSTDIR
@@ -226,6 +225,6 @@ skipPerm "Initialization completed. Starting installation."
 echo "$INSTDIR/$repoName/install/installFsdb.sh $SCRIPTSDIR"
 ls -la "$INSTDIR/$repoName/install/installFsdb.sh"
 
-echo "this scripts exits here during begugging. " 
-exit
+#	warn "this scripts exits here during begugging. " 
+#	exit
 bash $INSTDIR/$repoName/install/installFsdb.sh $SCRIPTSDIR
