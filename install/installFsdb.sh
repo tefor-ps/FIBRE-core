@@ -153,7 +153,7 @@ read -p "Which repo(s) do you want to install? (type indices, whitespace-separat
 repoArr=()
 c=0
 for i in $repos; do
-	repoArr[$c]=$lineArr[$i]
+	repoArr[$c]=${lineArr[$i]}
 done
 echo "${repoArr[@]}"
 # clone of pull selected repos
