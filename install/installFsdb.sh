@@ -34,9 +34,12 @@ xvfb-run-safe [*]: motivated by https://stackoverflow.com/a/30336424
 
 README
 
+#fsdb-rev-date: 251021
+
 #TODO: integrate into extractReadme
 #TODO: modify function-descriptions to be reflected in extractREADME (--> <<README)
-#TODO: reknit this to use a dynamic list of setup-scritps instead of internal functions.
+#TODO: reknit this to use a dynamic list of setup-scripts instead of internal functions.
+#TODO: list and select modules to install
 
 ## ======
 ## FUNCTION DEFINITIONS
@@ -72,27 +75,36 @@ function installBFtools(){
 }
 
 function defineScriptsDir() {
-	if [[ -z $1 ]]; then
-		if [[ -z $SCRIPTSDIR ]]; then
-			read -p "User interaction needed: Enter the path to the fsdb scripts directory: " -e SCRIPTSDIR
-		else
-			read -p "User interaction needed: Enter the path to the fsdb scripts directory: " -i $SCRIPTSDIR -e SCRIPTSDIR
-		fi
-		touchDir $SCRIPTSDIR $2
-		SCRIPTSDIR="$(realpath $(echo "${SCRIPTSDIR}" | sed "s@~@$HOME@"))"
+	# Determine the invoking user's home directory, even under sudo
+	if [[ -n "$SUDO_USER" ]]; then
+		INVOKING_HOME=$(eval echo "~$SUDO_USER")
 	else
-		touchDir $@
-		SCRIPTSDIR="$(realpath $(echo "${1}" | sed "s@~@$HOME@"))"
+		INVOKING_HOME="$HOME"
+	fi
+	if [[ -z $1 ]]; then
+    	read -p "User interaction needed: Enter the path to the fsdb scripts directory: " -i $SCRIPTSDIR -e SCRIPTSDIR
+		SCRIPTSDIR="$(realpath $(echo "${SCRIPTSDIR}" | sed "s@~@$INVOKING_HOME@"))"
+	else
+		SCRIPTSDIR="$(realpath $(echo "${1}" | sed "s@~@$INVOKING_HOME@"))"
 	fi
 	# check if 'SCRIPTSDIR' ends on 'scripts'
 	if [[ $(basename $SCRIPTSDIR) != "scripts" ]]; then
 		error "$SCRIPTSDIR does not end on 'scripts'. Please try again."
 		defineScriptsDir
+	else
+		touchDir $SCRIPTSDIR 1
 	fi
 }
 
 error() { if [[ -t 2 ]] ; then date >> $LOG; printf $'\e[37;1;41m'"\r\e[2KERROR:\t$0: $@"$'\e[0m\n' |tee -a $LOG; else echo "$@"; fi >&2 ;}
 
+function fail(){
+	#intro "$@"
+	date
+	printf "\033[31mError in $(basename $0):${FUNCNAME[2]}:${FUNCNAME[1]} $@ \033[0m"
+	printf "\033[31m\nExiting.\033[0m\n"
+	exit 128
+}
 
 ## ======
 ## FUNCTION CALLS
@@ -100,17 +112,52 @@ error() { if [[ -t 2 ]] ; then date >> $LOG; printf $'\e[37;1;41m'"\r\e[2KERROR:
 
 #debug=2
 
-if [[ -d $1 ]]; then
-	defineScriptsDir $1
-else
-	defineScriptsDir
-fi
+# initialize 'SCRIPTSDIR'
+defineScriptsDir $@
 
 # update all scripts and macros of the fsdb
 printf "updating fsdb...\n"
 cd $SCRIPTSDIR
-git pull 
+git pull #TODO: revisit 
+# TODO: integrate list and selection of modules here.
+#	curl -s "https://gitlab.com/api/v4/groups/tefor/projects?per_page=50" | jq -r '.[].path_with_namespace'
+# list all installable repos
+	index=0
+	lineArr=()
+	while read line; do 
+		printf "$index\t$line\n"; 
+		lineArr[$index]="$line"
+		index=$((index+1)) 
+	done < <(curl -s "https://gitlab.com/api/v4/groups/tefor/projects?per_page=50" | jq -r '.[].path_with_namespace' )
+# guide selelction of repos, which shall be installed
+	read -p "Which repo(s) do you want to install? (type indices, whitespace-separated" -e repos
+# generate array of selected repos
+	repoArr=()
+	c=0
+	for i in $repos; do
+		repoArr[$c]=$lineArr[$i]
+	done
+# detect 'FSDBDIR'
+	FSDBDIR=$(echo $SCRIPTSDIR |sed 's@\(fsdb[0-9][0-9]\)/.*@\1@')
+	if [[ "$(pwd)" == "$FSDBDIR" ]]; then
+		fail "Something went wrong. $FSDBDIR is not an fsdb directory."
+	else
+		cd $FSDBDIR
+	fi
+# clone of pull selected repos
+	for repo in ${repoArr[@]}; do 
+		cd $td 
+		echo $repo
+		if [[ -d $(basename $repo) ]]; then
+			cd $(basename $repo)
+			git pull
+		else
+			git clone https://gitlab.com/$repo
+		fi
+	done
 printf "fsdb-scripts updated.\n"
+
+fail "debugging exit."
 
 # activate (default) configuration files as needed #TODO: check if deprecated
 for i in $(find $SCRIPTSDIR -name "*config.default"); do 
@@ -125,7 +172,7 @@ done
 
 # set all global variables
 GETVAR=$(find $SCRIPTSDIR -name getVar.sh)
-if [[ $2 == "config" ]];then
+if [[ $2 == "config" ]]; then
 	source $GETVAR config
 else
 	source $GETVAR
