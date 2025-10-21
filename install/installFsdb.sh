@@ -139,63 +139,44 @@ defineScriptsDir $@
 # update all scripts and macros of the fsdb
 printf "updating fsdb...\n"
 # list all installable repos
-	index=0
-	lineArr=()
-	while read line; do 
-		printf "$index\t$line\n"; 
-		lineArr[$index]="$line"
-		index=$((index+1)) 
-	done < <(curl -s "https://gitlab.com/api/v4/groups/tefor/projects?per_page=50" | jq -r '.[].path_with_namespace' )
+index=0
+lineArr=()
+while read line; do 
+	printf "$index\t$line\n"; 
+	lineArr[$index]="$line"
+	index=$((index+1)) 
+done < <(curl -s "https://gitlab.com/api/v4/groups/tefor/projects?per_page=50" | jq -r '.[].path_with_namespace' )
 # guide selelction of repos, which shall be installed
-	read -p "Which repo(s) do you want to install? (type indices, whitespace-separated) " -e repos
+read -p "Which repo(s) do you want to install? (type indices, whitespace-separated) " -e repos
 # generate array of selected repos
-	repoArr=()
-	c=0
-	for i in $repos; do
-		repoArr[$c]=$lineArr[$i]
-	done
-# detect 'FSDBDIR'
-	FSDBDIR=$(echo $SCRIPTSDIR |sed 's@\(fsdb[0-9][0-9]\)/.*@\1@')
-	if [[ "$(pwd)" == "$FSDBDIR" ]]; then
-		fail "Something went wrong. $FSDBDIR is not an fsdb directory."
-	else
-		cd $FSDBDIR
-	fi
+repoArr=()
+c=0
+for i in $repos; do
+	repoArr[$c]=$lineArr[$i]
+done
 # clone of pull selected repos
-	for repo in ${repoArr[@]}; do 
-		cd $td 
-		echo $repo
-		if [[ -d $(basename $repo) ]]; then
-			cd $(basename $repo)
-			git pull
-		else
-			git clone https://gitlab.com/$repo
-		fi
-	done
-printf "fsdb-scripts updated.\n"
-
-fail "debugging exit."
-
-# activate (default) configuration files as needed #TODO: check if deprecated
-for i in $(find $SCRIPTSDIR -name "*config.default"); do 
-	conf=$(echo $i |sed 's@.default@@'); 
-	if [[ -f $conf  ]]; then 
-#		dbg2 "$conf already exists"
-		printf "$conf already exists\n" 
+for repo in ${repoArr[@]}; do 
+	cd $td 
+	echo $repo
+	if [[ -d $(basename $repo) ]]; then
+		cd $(basename $repo)
+		git pull
 	else
-		cp -v $i $conf
+		git clone https://gitlab.com/$repo
 	fi
 done
+printf "fsdb-scripts updated.\n"
 
 # set all global variables
 GETVAR=$(find $SCRIPTSDIR -name getVar.sh)
-if [[ $2 == "config" ]]; then
+if [[ $2 == "config" ]]; then #TODO: check if meaningful at this location
 	source $GETVAR config
 else
 	source $GETVAR
 fi
 
 ## from here on this script uses the variables defined in the configuration file (.scripts.config)
+fail "debugging exit. FSDBDIR: $FSDBDIR"
 
 # install java
 <<javainstall
