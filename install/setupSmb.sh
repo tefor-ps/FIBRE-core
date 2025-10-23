@@ -8,7 +8,6 @@ README
 #fsdb-rev-date: 251023
 
 function fail(){
-	#intro "$@"
 	date
 	printf "\033[31mError in $(basename $0):${FUNCNAME[2]}:${FUNCNAME[1]} $@ \033[0m"
 	printf "\033[31m\nExiting.\033[0m\n"
