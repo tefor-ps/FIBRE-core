@@ -6,13 +6,14 @@ and updating the macros in their active locations
 no parameter needed
 
 README
+# fsdb revision 251023
 
 #DEPRECATED?
 
 thisDir=$(dirname $(realpath $0))
 source $thisDir/../core/getVar.sh
 
-FSDBDIR=$SCRIPTSDIR/..
+FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
 cd $FSDBDIR
 
 # get latest version from online repository
