@@ -10,7 +10,7 @@ This script shall NOT be run as super-user.
 
 README
 
-# fsdb revision 250825
+# fsdb revision 251023
 
 function fail(){
 	#intro "$@"
