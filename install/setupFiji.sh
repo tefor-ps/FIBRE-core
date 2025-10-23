@@ -69,6 +69,8 @@ else
 	gv=$(find "$1" -type f -name getVar.sh)
 fi
 
+echo "gv: $gv"
+
 # set all global variables or at least FIJIDIR
 fi [[ -f "$gv" ]]; then
 	source "$gv"
