@@ -26,7 +26,7 @@ intro() { if [[ -t 2 ]] ; then printf $'\r\e[2K\t\e[36;1m'"$@"$'\e[0m\n'; else e
 # error message; white on red background
 error() { if [[ -t 2 ]] ; then date >> $LOG; printf $'\e[37;1;41m'"\r\e[2KERROR:\t$0: $@"$'\e[0m\n' |tee -a $LOG; else echo "$@"; fi >&2 ;}
 
-if [[ "$(whoami)" != "root" ]]; then
+if [[ "$(whoami)" == "root" ]]; then
 	fail "This script shall NOT be run as super-user."
 	#exit 1
 fi
