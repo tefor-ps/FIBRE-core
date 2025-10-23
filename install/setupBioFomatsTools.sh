@@ -5,6 +5,9 @@ This script installs the latest version of the bftools
 
 README
 
+# cyan text on black background to introduce the current script or say something important
+intro() { if [[ -t 2 ]] ; then printf $'\r\e[2K\t\e[36;1m'"$@"$'\e[0m\n'; else echo "$@"; fi >&2 ;}
+
 # error message; white on red background
 error() { if [[ -t 2 ]] ; then date >> $LOG; printf $'\e[37;1;41m'"\r\e[2KERROR:\t$0: $@"$'\e[0m\n' |tee -a $LOG; else echo "$@"; fi >&2 ;}
 
@@ -46,7 +49,7 @@ wget http://downloads.openmicroscopy.org/bio-formats/latest/artifacts/bftools.zi
 if [[ "$(file -bi bftools.zip)" =~ "text" ]]; then
 	mv bftool.zip vn
 	version=$(grep bio-formats/ vn |sed 's@.*bio-formats/@@' |cut -d "/" -f 1 |sort -u |tail -1)
-	wget http://downloads.openmicroscopy.org/bio-formats/${vn}/artifacts/bftools.zip
+	wget http://downloads.openmicroscopy.org/bio-formats/${version}/artifacts/bftools.zip
 fi
 unzip -d $SCRIPTSDIR -o bftools.zip
 chmod -R a+rx $SCRIPTSDIR/bftools/*
