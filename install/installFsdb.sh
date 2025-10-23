@@ -189,7 +189,7 @@ else
 fi
 
 <<fijiinstall
-fiji is just imagej - batteries included. This is an application used extensively within the fsdb. 
+fiji is just imagej - batteries included. This is an application used extensively used within the fsdb. 
 fijiinstall
 if [[ -f $FIJIDIR/fiji ]]; then
 	skipRest "Fiji is already installed. Do you want to reinstall anyhow?" bash $FIJI_SETUP
