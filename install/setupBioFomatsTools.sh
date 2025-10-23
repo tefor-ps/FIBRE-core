@@ -38,7 +38,9 @@ fi
 if [[ -f "$gv" ]]; then
 	source "$gv"
 else
-	SCRIPTSDIR=$(thisDir)
+	SCRIPTSDIR=$thisDir
+	ADMINDIR="/tmp/"
+	LOG="$ADMINDIR/$(basename $0 .sh).log"
 	error "Can't find getVar.sh."
 fi
 intro "Installing into $SCRIPTSDIR"
