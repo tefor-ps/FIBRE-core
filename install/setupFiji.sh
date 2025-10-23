@@ -72,7 +72,7 @@ fi
 echo "gv: $gv"
 
 # set all global variables or at least FIJIDIR
-fi [[ -f "$gv" ]]; then
+if [[ -f "$gv" ]]; then
 	source "$gv"
 else
 	FIJIDIR="$FSDBDIR/Fiji"
