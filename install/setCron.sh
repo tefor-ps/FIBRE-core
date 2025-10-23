@@ -32,7 +32,7 @@ else
 	#source $1/core/getVar.sh
 fi
 
-fi [[ -f "$gv" ]]; then
+if [[ -f "$gv" ]]; then
 	source "$gv"
 else
 	fail "Can't find getVar.sh"

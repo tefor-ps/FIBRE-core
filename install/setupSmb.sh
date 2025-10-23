@@ -31,7 +31,7 @@ else
 	gv=$(find "$1" -type f -name getVar.sh)
 fi
 
-fi [[ -f "$gv" ]]; then
+if [[ -f "$gv" ]]; then
 	source "$gv"
 else
 	fail "Can't find getVar.sh"
