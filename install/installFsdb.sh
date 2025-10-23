@@ -197,7 +197,7 @@ if [[ -f $FIJIDIR/fiji ]]; then
 else
 	bash $FIJI_SETUP
 fi
-fail "debugging exit. COREINSTALL: $COREINSTALL"
+#fail "debugging exit. COREINSTALL: $COREINSTALL"
 
 <<bftoolsinstall
 The OME bio-format tools are a central component of the fsdb. They are responsible for seamless reading and writing 
