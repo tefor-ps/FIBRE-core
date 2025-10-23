@@ -74,10 +74,15 @@ function fail(){
 ## FUNCTION CALLS
 ## ======
 
-# set all global variables
-thisDir=$(dirname $(realpath $0))
+# find getVar.sh
+thisDir=$(dirname $(realpath "$0"))
 if [[ -z $1 ]]; then
-	gv=$(find "$thisDir" -type f -name getVar.sh)
+	if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
+		FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
+	else
+		FSDBDIR="$(realpath $thisDir/../..)"
+	fi
+	gv=$(find "$FSDBDIR" -type f -name getVar.sh)
 	#source $thisDir/../scripts/core/getVar.sh
 else 
 	gv=$(find "$1" -type f -name getVar.sh)

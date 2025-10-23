@@ -14,14 +14,21 @@ function fail(){
 	exit 128
 }
 
-# set all global variables
-thisDir=$(dirname $(realpath $0))
+## ======
+## FUNCTION CALLS
+## ======
+
+# find getVar.sh
+thisDir=$(dirname $(realpath "$0"))
 if [[ -z $1 ]]; then
-	gv=$(find "$thisDir" -type f -name getVar.sh)
-	#source $thisDir/../scripts/core/getVar.sh
+	if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
+		FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
+	else
+		FSDBDIR="$(realpath $thisDir/../..)"
+	fi
+	gv=$(find "$FSDBDIR" -type f -name getVar.sh)
 else 
 	gv=$(find "$1" -type f -name getVar.sh)
-	#source $1/core/getVar.sh
 fi
 
 fi [[ -f "$gv" ]]; then
@@ -35,7 +42,7 @@ sudo apt install -y samba
 dbg "samba installed"
 
 
-TMPCONF=$MATDIR/smb.conf.fsdb.bup.$D
+TMPCONF=$TEMPLATESDIR/smb.conf.fsdb.bup$D
 # import and adjust smb.conf
 # populate the 'hosts allow' in smb.conf from 'HOSTS' in .SCRIPTS.CONFIG
 # These computers are granted access for remote maintenance.
@@ -64,7 +71,3 @@ dbg "restarting samba"
 # incoming UDP connections on ports 137 and 138 and 
 # TCP connections on ports 139 and 445.
 #sudo ufw allow 'Samba'
-
-
-
-

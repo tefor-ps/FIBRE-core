@@ -57,24 +57,28 @@ sudoer
 
 # define FSDBDIR, which is the root of the fsdb, 
 # dynamically on the basis of the location of this script
-thisDir="$(realpath "$(dirname "$0")")"
-if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
-	FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
-else
-	FSDBDIR="$(realpath $thisDir/../..)"
+thisDir=$(dirname $(realpath $0))
+if [[ -z $1 ]]; then
+	if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
+		FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
+	else
+		FSDBDIR="$(realpath $thisDir/../..)"
+	fi
+	gv=$(find "$FSDBDIR" -type f -name getVar.sh)
+else 
+	gv=$(find "$1" -type f -name getVar.sh)
 fi
 
 # set all global variables or at least FIJIDIR
-GETVAR=$(find $FSDBDIR -type f -name getVar.sh)
-if [[ -f $GETVAR ]]; then
-	source "$GETVAR"
-	intro "$0"
+fi [[ -f "$gv" ]]; then
+	source "$gv"
 else
 	FIJIDIR="$FSDBDIR/Fiji"
 	ADMINDIR="/tmp/"
 	LOG="$ADMINDIR/$(basename $0 .sh).log"
-	error "Can't locate getVar.sh.\nInstalling to $FIJIDIR."
+	error "Can't locate getVar.sh."
 fi
+echo "Installing to $FIJIDIR"
 
 if [[ -f $FIJIDIR/fiji ]]; then
 	fail "Fiji already exists at $FIJIDIR."

@@ -15,11 +15,23 @@ Z: for the data directory
 
 README
 
-#fsdb-rev-date: 250911, needs testing
+#fsdb-rev-date: 251023
 
+#TODO: rewrite bat part, which is currently buggy
+
+## ======
+## FUNCTION DEFINITIONS
+## ======
+
+
+# cyan text on black background to introduce the current script or say something important
+intro() { if [[ -t 2 ]] ; then printf $'\r\e[2K\t\e[36;1m'"$@"$'\e[0m\n'; else echo "$@"; fi >&2 ;}
+
+# error message; white on red background
+error() { if [[ -t 2 ]] ; then date >> $LOG; printf $'\e[37;1;41m'"\r\e[2KERROR:\t$0: $@"$'\e[0m\n' |tee -a $LOG; else echo "$@"; fi >&2 ;}
 
 # set all global variables
-thisDir="$(realpath "$(dirname "$0")")"
+thisDir=$(dirname $(realpath "$0"))
 # define FSDBDIR, which is the root of the fsdb, 
 # dynamically on the basis of the location of this script
 if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
@@ -36,10 +48,9 @@ if [[ -f $GETVAR ]]; then
 else
 	ADMINDIR="/tmp/"
 	LOG="$ADMINDIR/$(basename $0 .sh).log"
-	FSDBVERSION=fsdb
+	TEMPLATESDIR="$thisDir/templates"
 	error "Can't locate getVar.sh."
 fi
-
 
 thisIP=$(hostname -I |tr " " "\n" |grep -v 192.168 |grep -v 127.0.0.1 |head -1)
 lab=$(echo $LAB |tr '[:lower:]' '[:upper:]')
@@ -66,7 +77,7 @@ explorer /root, " > $bat
 
 exe=$(basename $bat .bat).exe
 warn "User interaction needed: convert $bat to exe"
-intro "At $MATDIR you find Bat_To_Exe_Converter.exe."
+intro "At $TEMPLATESDIR you find Bat_To_Exe_Converter.exe."
 intro "Run that application on a Windows computer and convert $bat to an executable ($exe), which can be run by a simple double-click."
 intro "Distribute the resulting $exe on the Desktops of your windows workstations."
 intro "Double-click on the $exe will connect the workstation with the storage server."

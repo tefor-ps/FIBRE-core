@@ -9,21 +9,7 @@ image-generating devices).
 
 README
 
-
-<<STATUS
-tested on
-- windows: does not apply 
-- wsl: 230914; OK
-- linux:
-STATUS
-
-# set all global variables
-thisDir=$(dirname $(realpath $0))
-if [[ -z $1 ]]; then
-	source $thisDir/../scripts/core/getVar.sh
-else 
-	source $1/core/getVar.sh
-fi
+#fsdb-rev-date: 251023
 
 function getIP() {
 	while [[ -z $IPaddress ]] ||  [[ ! $IPaddress =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; do 
@@ -106,6 +92,39 @@ function defineMic(){
 	getCreds
 	skipPerm "Preparing to add another microscope." defineMic
 }
+
+function fail(){
+	date
+	printf "\033[31mError in $(basename $0):${FUNCNAME[2]}:${FUNCNAME[1]} $@ \033[0m"
+	printf "\033[31m\nExiting.\033[0m\n"
+	exit 128
+}
+
+## ======
+## FUNCTION CALLS
+## ======
+
+# find getVar.sh
+thisDir=$(dirname $(realpath $0))
+if [[ -z $1 ]]; then
+	if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
+		FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
+	else
+		FSDBDIR="$(realpath $thisDir/../..)"
+	fi
+	gv=$(find "$FSDBDIR" -type f -name getVar.sh)
+	#source $thisDir/../scripts/core/getVar.sh
+else 
+	gv=$(find "$1" -type f -name getVar.sh)
+	#source $1/core/getVar.sh
+fi
+
+fi [[ -f "$gv" ]]; then
+	source "$gv"
+else
+	fail "Can't find getVar.sh"
+fi
+
 
 header="IP name-of-share mount-point credential-name"
 if [[ -f $MICS && $(grep -c "mountMic" $MICS) -gt 0 ]]; then

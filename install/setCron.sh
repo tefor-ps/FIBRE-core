@@ -4,12 +4,38 @@ This script is setting up the recurrent execution of the fsdb scripts
 
 README
 
-# set all global variables
-thisDir=$(dirname $(realpath $BASH_SOURCE))
+#fsdb-rev-date: 251023
+
+function fail(){
+	date
+	printf "\033[31mError in $(basename $0):${FUNCNAME[2]}:${FUNCNAME[1]} $@ \033[0m"
+	printf "\033[31m\nExiting.\033[0m\n"
+	exit 128
+}
+
+## ======
+## FUNCTION CALLS
+## ======
+
+# find getVar.sh
+thisDir=$(dirname $(realpath "$0"))
 if [[ -z $1 ]]; then
-	source $thisDir/../scripts/core/getVar.sh
+	if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
+		FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
+	else
+		FSDBDIR="$(realpath $thisDir/../..)"
+	fi
+	gv=$(find "$FSDBDIR" -type f -name getVar.sh)
+	#source $thisDir/../scripts/core/getVar.sh
 else 
-	source $1/core/getVar.sh
+	gv=$(find "$1" -type f -name getVar.sh)
+	#source $1/core/getVar.sh
+fi
+
+fi [[ -f "$gv" ]]; then
+	source "$gv"
+else
+	fail "Can't find getVar.sh"
 fi
 
 cron=/etc/cron.d/$FSDBVERSION

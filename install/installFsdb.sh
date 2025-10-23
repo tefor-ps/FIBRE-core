@@ -217,9 +217,9 @@ It DOES NOT deal with samba-accounts/passwords as this task is handled by makeAc
 smb_install
 which samba
 if [[ $? -eq 0 ]]; then
-	skipRest "Samba $(samba --version) is installed on this system. Do you want to reinstall anyhow?" bash $MATDIR/smb-install.sh $SCRIPTSDIR   
+	skipRest "Samba $(samba --version) is installed on this system. Do you want to reinstall anyhow?" bash $SMB_SETUP $SCRIPTSDIR   
 else
-	skipPerm "Next step: samba-installation." bash $MATDIR/setupSmb.sh $SCRIPTSDIR
+	skipPerm "Next step: samba-installation." bash $SMB_SETUP $SCRIPTSDIR
 fi
 
 # generate user accounts
@@ -227,7 +227,7 @@ fi
 the script makeAccounts creates the necessary unix user account and assigns them 
 to the necessary groups and permissions (as defined in fsdb.config).
 makeAccounts
-skipPerm "Next step: generation of user accounts." sudo bash $MATDIR/makeAccounts.sh $SCRIPTSDIR
+skipPerm "Next step: generation of user accounts." sudo bash $ACCOUNTS_SETUP $SCRIPTSDIR
 
 dbg "accounts set up. Next step: generation of folder structure."
 
@@ -264,14 +264,14 @@ dbg "folders set up. "
 The processes of the fsdb are triggered in regular intervals using cron. 
 The script setCron is configuring the local cron-job.
 setCron
-skipPerm "Next step: setup of scheduling for the fsdb-scripts." bash $MATDIR/setCron.sh $SCRIPTSDIR
+skipPerm "Next step: setup of scheduling for the fsdb-scripts." bash $CRON_SETUP $SCRIPTSDIR
 
 
 # define new remote computers (acquisition machines) for data import
 <<defineMics
 
 defineMics
-skipPerm "Next  step: defining new acquisition machines." bash $MATDIR/defineMics.sh $SCRIPTSDIR
+skipPerm "Next  step: defining new acquisition machines." bash $MICS_SETUP $SCRIPTSDIR
 
 
 # mount the image acqisition machines.
@@ -287,7 +287,7 @@ dbg "acquisition machines connected"
 This script is writing a .bat file and provides the tooling (Bat_To_Exe_Converter.exe) to convert it to an executable. 
 The executable is meant to be run on windows computers to connect them easily to the fsdb-server. 
 makeBat
-skipPerm "Next (last) step: Build of connection-tool for windows desktop computers." bash $MATDIR/makeBat.sh $SCRIPTSDIR
+skipPerm "Next (last) step: Build of connection-tool for windows desktop computers." bash $BAT_SETUP $SCRIPTSDIR
 
 intro "Congrats. Your fsdb is ready to use"
 
