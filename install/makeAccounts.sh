@@ -23,7 +23,7 @@ useradd options (from man page)
            default login shell specified by the SHELL variable in /etc/default/useradd, or an empty string by default.
 README
 
-
+#fsdb-rev-date: 251023
 
 ## ======
 ## FUNCTION DEFINITIONS
@@ -63,16 +63,31 @@ function setupSmb(){
 	printf "$thisPass\n$thisPass\n" |smbpasswd -a -s $account
 }
 
+function fail(){
+	date
+	printf "\033[31mError in $(basename $0):${FUNCNAME[2]}:${FUNCNAME[1]} $@ \033[0m"
+	printf "\033[31m\nExiting.\033[0m\n"
+	exit 128
+}
+
 ## ======
 ## FUNCTION CALLS
 ## ======
 
 # set all global variables
-thisDir=$(dirname $(realpath $BASH_SOURCE))
-if [[ -z $1 ]];  then
-	source $thisDir/../scripts/core/getVar.sh
+thisDir=$(dirname $(realpath $0))
+if [[ -z $1 ]]; then
+	gv=$(find "$thisDir" -type f -name getVar.sh)
+	#source $thisDir/../scripts/core/getVar.sh
 else 
-	source $1/core/getVar.sh
+	gv=$(find "$1" -type f -name getVar.sh)
+	#source $1/core/getVar.sh
+fi
+
+fi [[ -f "$gv" ]]; then
+	source "$gv"
+else
+	fail "Can't find getVar.sh"
 fi
 
 # log file for debugging and cleanup
