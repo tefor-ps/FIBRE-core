@@ -51,17 +51,17 @@ function installLatestJava(){
 	apt-get install -y $latestJDK
 }
 
-function installBFtools(){
-	# install bftools
-	dbg "Next step: installation of bioformats tools (bftools)."
-	TMP=$(mktemp -d)
-	cd $TMP
-	wget http://downloads.openmicroscopy.org/bio-formats/latest/artifacts/bftools.zip
-	unzip -d $SCRIPTSDIR -o bftools.zip
-	chmod -R a+rx $SCRIPTSDIR/bftools/*
-	cd -
-	rm -rf $TMP
-}
+#	function installBFtools(){
+#		# install bftools
+#		dbg "Next step: installation of bioformats tools (bftools)."
+#		TMP=$(mktemp -d)
+#		cd $TMP
+#		wget http://downloads.openmicroscopy.org/bio-formats/latest/artifacts/bftools.zip
+#		unzip -d $SCRIPTSDIR -o bftools.zip
+#		chmod -R a+rx $SCRIPTSDIR/bftools/*
+#		cd -
+#		rm -rf $TMP
+#	}
 
 function touchDir() {
 	# check if 'SCRIPTSDIR' exists 
@@ -204,9 +204,9 @@ The OME bio-format tools are a central component of the fsdb. They are responsib
 of image file formats. more info on these tools at https://www.openmicroscopy.org/bio-formats/
 bftoolsinstall
 if [[ -f $SCRIPTSDIR/bftools/showinf ]]; then
-	skipRest "bftools are already installed. Do you want to reinstall anyhow?" installBFtools
+	skipRest "bftools are already installed. Do you want to reinstall anyhow?" bash $BFT_SETUP
 else
-	installBFtools
+	bash $BFT_SETUP
 fi
 	
 # set up samba 

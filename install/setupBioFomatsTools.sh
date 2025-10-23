@@ -47,13 +47,14 @@ intro "Installing into $SCRIPTSDIR"
 
 TMP=$(mktemp -d)
 cd $TMP
+echo $TMP
 wget http://downloads.openmicroscopy.org/bio-formats/latest/artifacts/bftools.zip
 if [[ "$(file -bi bftools.zip)" =~ "text" ]]; then
-	mv bftool.zip vn
+	mv bftools.zip vn
 	version=$(grep bio-formats/ vn |sed 's@.*bio-formats/@@' |cut -d "/" -f 1 |sort -u |tail -1)
 	wget http://downloads.openmicroscopy.org/bio-formats/${version}/artifacts/bftools.zip
 fi
 unzip -d $SCRIPTSDIR -o bftools.zip
 chmod -R a+rx $SCRIPTSDIR/bftools/*
 cd -
-rm -rf $TMP
+#rm -rf $TMP
