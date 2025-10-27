@@ -160,11 +160,11 @@ intro "As a linux tool the fsdb employes many other linux tools.
 #echo ${appArr[@]}
 #read -e -p "Are you OK with installing these tools? [Y/n]: " -i "Y" ans
 intro "Are you OK with installing these tools? [Y/n]: "
-read -i "Y" -e ans
+read -p "\t" -i "Y" -e ans
 if [[ "$ans" == [Yy] ]]; then
 	installLinuxTools ||fail
 else
-	warn "You may run into problems running the fsdb, if the necessary tools are not installed or up-to-date. \nSkipping installation and proceeding.\n"
+	warn "You may run into problems running the fsdb, if the necessary tools are not installed or up-to-date. Skipping installation and proceeding.\n"
 fi
 
 defaultConfig=$(ls -ltr $(find "${FSDBDIR}" -type f -name "fsdb.config.default") |tail -1 |awk '{print $NF}')
@@ -187,14 +187,14 @@ intro "\n\t- Step 2: Please define the location to which the fsdb shall be insta
 \t  unintended results, depending under which account you run this script.\n"
 #read -e -p "Path to installation directory: " -i $defaultInstDir -e INSTDIR
 intro "Path to installation directory: "
-read -i $defaultInstDir -e INSTDIR
+read -p "\t" -i $defaultInstDir -e INSTDIR
 if [[ ! $(echo "$INSTDIR" |sed 's@/$@@') =~ ${FSDBVERSION}$ ]]; then
 	INSTDIR=$(realpath $INSTDIR/$FSDBVERSION)
 fi
 # copy fsdb.config.default to locally active location and open for editing --> generate local fsdb.config
 #read -e -p "The fsdb will be installed to ${INSTDIR}. Is this correct? [Y/n]: " -i "Y" ans
 intro "The fsdb will be installed to ${INSTDIR}. Is this correct? [Y/n]: "
-read -i "Y" -e ans
+read -p "\t" -i "Y" -e ans
 if [[ "$ans" != [Yy] ]]; then
 	fail "Abort. Please run this script again.\n"
 else
@@ -202,7 +202,7 @@ else
 	# define 'SCRIPTSDIR' and create it if it doesn't exist, yet.
 	defineScriptsDir $INSTDIR/$repoName/scripts 1
 
-	echo "$(basename $0):modFSDBCONFIG: $modFSDBCONFIG"
+#	echo "$(basename $0):modFSDBCONFIG: $modFSDBCONFIG"
 	
 	FSDBCONFIG=$SCRIPTSDIR/fsdb.config
 #	if [[ ! -f $FSDBCONFIG ]]; then
