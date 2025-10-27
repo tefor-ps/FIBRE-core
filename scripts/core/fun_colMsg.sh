@@ -119,6 +119,16 @@ questRest(){
 # cyan text on black background to introduce the current script or say something important
 intro() { if [[ -t 2 ]] ; then printf $'\r\e[2K\t\e[36;1m'"$@"$'\e[0m\n'; else echo "$@"; fi >&2 ;}
 
+# graceful failure and exit.
+function fail(){
+	#intro "$@"
+	date
+	printf "\033[31mError in $(basename $0):${FUNCNAME[2]}:${FUNCNAME[1]} $@ \033[0m"
+	printf "\033[31m\nExiting.\033[0m\n"
+	cv=36
+	exit 128
+}
+
 # standardized replies for the skipping-procedures
 #skip() { if [[ -t 2 ]] ; then msg "${ans}: skipping this step.\n" >&2 ; else echo "$@"; fi >&2 ; skipFlag=1;}
 skip() { 
@@ -151,13 +161,16 @@ skipPerm(){
 	if [[ -t 2 ]] ; then
 		task=${@:2}
 		intro "$1"; 
-		read -e -p "Do you want to proceed? [Y/n]: " -i "Y" ans; 
+		read -e -p "Do you want to proceed? [Y/n/e]: " -i "Y" ans; 
 		case $ans in
 			[Yy])
 				proceed ${@:2}
 				;;
 			[Nn])
-				skip 
+				skip $task
+				;;
+			[Ee]
+				fail "Abort by user."
 				;;
 			*)
 				wrong
@@ -175,13 +188,16 @@ skipRest(){
 	if [[ -t 2 ]] ; then 
 		task=${@:2}
 		intro "$1"; 
-		read -e -p "Do you want to proceed? [y/N]: " -i "N" ans; 
+		read -e -p "Do you want to proceed? [y/N/e]: " -i "N" ans; 
 		case $ans in
 			[Yy])
 				proceed ${@:2}
 				;;
 			[Nn])
 				skip $task 
+				;;
+			[Ee]
+				fail "Abort by user."
 				;;
 			*) 
 				wrong
