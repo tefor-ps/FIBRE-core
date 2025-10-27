@@ -219,12 +219,4 @@ rm -rf $INITDIR
 me=$(whoami)
 chown -R ${me}:${me} $INSTDIR
 
-skipPerm "Initialization completed. Starting installation."
-
-# start the actual installation and setup process
-echo "$INSTDIR/$repoName/install/installFsdb.sh $SCRIPTSDIR"
-ls -la "$INSTDIR/$repoName/install/installFsdb.sh"
-
-#	warn "this scripts exits here during begugging. " 
-#	exit
-bash $INSTDIR/$repoName/install/installFsdb.sh $SCRIPTSDIR
+skipPerm "Initialization completed. Starting installation." bash $INSTDIR/$repoName/install/installFsdb.sh $SCRIPTSDIR
