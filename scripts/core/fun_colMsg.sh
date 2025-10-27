@@ -122,9 +122,9 @@ intro() { if [[ -t 2 ]] ; then printf $'\r\e[2K\t\e[36;1m'"$@"$'\e[0m\n'; else e
 # graceful failure and exit.
 function fail(){
 	#intro "$@"
-	date
-	printf "\033[31mError in $(basename $0):${FUNCNAME[2]}:${FUNCNAME[1]} $@ \033[0m"
-	printf "\033[31m\nExiting.\033[0m\n"
+	warn "$(date)"
+	warn "${FUNCNAME[2]}:${FUNCNAME[1]} $@"
+	warn "Exiting."
 	cv=36
 	exit 128
 }
@@ -169,7 +169,7 @@ skipPerm(){
 			[Nn])
 				skip $task
 				;;
-			[Ee]
+			[Ee])
 				fail "Abort by user."
 				;;
 			*)
@@ -196,7 +196,7 @@ skipRest(){
 			[Nn])
 				skip $task 
 				;;
-			[Ee]
+			[Ee])
 				fail "Abort by user."
 				;;
 			*) 
