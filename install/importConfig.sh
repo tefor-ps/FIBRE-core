@@ -45,7 +45,7 @@ fsdbroot=$(basename "$fsdbDir")
 #echo $fsdbroot
 if [[ "$fsdbroot" =~ "fsdb" ]]; then
 	configsdir=$(realpath "${fsdbDir}/../${fsdbroot}-configs/")
-	dbg "Importing configs into $configsdir"	
+	intro "Importing configs into $configsdir"	
 	#repo=git@gitlab.com:arnimjenett/${fsdbroot}-configs.git
 	repo=https://gitlab.com/arnimjenett/${fsdbroot}-configs.git
 else
@@ -68,9 +68,9 @@ if [[ ! -d $fsdbDir ]]; then
 	fail "Provide the path to the fsdb-instance you want to import the configs to."
 	#exit
 else
-	dbg "Importing configs from $configsdir to $fsdbDir"
+	intro "Importing configs from $configsdir to $fsdbDir"
 	modFSDBCONFIG=$(find $fsdbDir -type f -name fsdb.config)
-	dbg "modFSDBCONFIG: $modFSDBCONFIG"
+	intro "modFSDBCONFIG: $modFSDBCONFIG"
 	export modFSDBCONFIG=$modFSDBCONFIG
 
 # get latest versions from gitlab repo
