@@ -142,7 +142,7 @@ repoName=$(ls -ltr "${FSDBDIR}" |tail -1 |awk '{print $NF}')
 GETVAR=$(find "${FSDBDIR}" -type f -name getVar.sh)
 if [[ -f $GETVAR ]]; then
 	source "$GETVAR" #TODO: make sure, that the configs exist and are in the right locations, first (or inside of getVar)!!!!
-	#modFSDBCONFIG=$(find $INITDIR -type f -name fsdb.config)
+	modFSDBCONFIG=$(find $INITDIR -type f -name fsdb.config |grep -v template |tail -1)
 	dbg "$(basename $0):modFSDBCONFIG: $modFSDBCONFIG"
 else
 	ADMINDIR="/tmp/"

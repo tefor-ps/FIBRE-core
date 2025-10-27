@@ -95,9 +95,9 @@ else
 				rsync -Sau "$i" "$od"
 			fi
 		done
-		modFSDBCONFIG=$(find $configsdir -type f -name fsdb.config |grep -v template |tail -1)
-		intro "$(basename $0):modFSDBCONFIG: $modFSDBCONFIG"
-		export modFSDBCONFIG=$modFSDBCONFIG
+	#	modFSDBCONFIG=$(find $configsdir -type f -name fsdb.config |grep -v template |tail -1)
+	#	intro "$(basename $0):modFSDBCONFIG: $modFSDBCONFIG"
+	#	export modFSDBCONFIG=$modFSDBCONFIG
 	else
 		fail "Can't find ${configsdir}."
 	fi
