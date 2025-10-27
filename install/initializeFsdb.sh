@@ -193,17 +193,17 @@ read -e -p "The fsdb will be installed to ${INSTDIR}. Is this correct? [Y/n]: " 
 if [[ "$ans" != [Yy] ]]; then
 	fail "Abort. Please run this script again.\n"
 else
-	printf "Moving the downloaded files from the temporary to the final location.\n\n"
+	intro "Moving the downloaded files from the temporary to the final location.\n\n"
 	# define 'SCRIPTSDIR' and create it if it doesn't exist, yet.
 	defineScriptsDir $INSTDIR/$repoName/scripts 1
 
 	FSDBCONFIG=$SCRIPTSDIR/fsdb.config
 	if [[ ! -f $FSDBCONFIG ]]; then
 		if [[ ! -f $modFSDBCONFIG ]]; then
-			#msg "$defaultConfig --> $FSDBCONFIG\n"
+			msg "$defaultConfig --> $FSDBCONFIG\n"
 			cp -fv $defaultConfig $FSDBCONFIG
 		else
-			#msg "$modFSDBCONFIG --> $FSDBCONFIG\n"
+			msg "$modFSDBCONFIG --> $FSDBCONFIG\n"
 			cp -fv $modFSDBCONFIG $FSDBCONFIG
 		fi
 	else
