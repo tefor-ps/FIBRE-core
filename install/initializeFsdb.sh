@@ -198,7 +198,7 @@ else
 	# define 'SCRIPTSDIR' and create it if it doesn't exist, yet.
 	defineScriptsDir $INSTDIR/$repoName/scripts 1
 
-#	echo "modFSDBCONFIG: $modFSDBCONFIG"
+	echo "modFSDBCONFIG: $modFSDBCONFIG"
 	
 	FSDBCONFIG=$SCRIPTSDIR/fsdb.config
 #	if [[ ! -f $FSDBCONFIG ]]; then
