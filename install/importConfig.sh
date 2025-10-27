@@ -88,14 +88,14 @@ else
 			echo "$(realpath $i) --> $od"
 			mkdir -pv "$od"
 			if [[ "$2" == "force" ]]; then
-				intro "overwrite $od with $i"
+				#intro "overwrite $od with $i"
 				rsync -Sav "$i" "$od"
 			else
-				intro "update $od with $i"
+				#intro "update $od with $i"
 				rsync -Sauv "$i" "$od"
 			fi
 		done
-		modFSDBCONFIG=$(find $fsdbDir -type f -name fsdb.config |grep -v template |tail -1)
+		modFSDBCONFIG=$(find $configsdir -type f -name fsdb.config |grep -v template |tail -1)
 		intro "modFSDBCONFIG: $modFSDBCONFIG"
 		export modFSDBCONFIG=$modFSDBCONFIG
 	else
