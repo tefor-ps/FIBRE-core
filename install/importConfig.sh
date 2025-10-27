@@ -96,7 +96,7 @@ else
 			fi
 		done
 		modFSDBCONFIG=$(find $configsdir -type f -name fsdb.config |grep -v template |tail -1)
-		intro "modFSDBCONFIG: $modFSDBCONFIG"
+		intro "${FUNCNAME[0]}:modFSDBCONFIG: $modFSDBCONFIG"
 		export modFSDBCONFIG=$modFSDBCONFIG
 	else
 		fail "Can't find ${configsdir}."
