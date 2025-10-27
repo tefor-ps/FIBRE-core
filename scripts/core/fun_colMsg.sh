@@ -88,7 +88,8 @@ dbg3() { if [[ -t 2 ]] ; then if [[ $(getLevel) -ge 3 ]]; then printf $'\r\e[2K\
 interPerm(){ if [[ -t 2 ]] ; then printf $'\r\e[2K\t\e[32;1;40m'"$(basename $0): $@"$'\e[0m\n'; questPerm; else echo "$@"; fi >&1 ;}
 # white question and answer used by inter()
 questPerm(){ 
-	printf "\r\e[2K\tDo you want to proceed? [Y/n]\n"; 
+#	printf "\r\e[2K\tDo you want to proceed? [Y/n]\n"; 
+	intro "Do you want to proceed? [Y/n]"; 
 	read -i "Y" -e ans; 
 	if [[ "$ans" =~ [Yy] || -z $ans ]]; then 
 		msg "going ahead\n";
@@ -104,10 +105,11 @@ questPerm(){
 interRest(){ if [[ -t 2 ]] ; then printf $'\r\e[2K\t\e[31;1;40m'"$(basename $0): $@"$'\e[0m\n'; questRest; else echo "$@"; fi >&1 ;}
 # white question and answer used by inter()
 questRest(){
-	printf "\r\e[2K\tDo you want to proceed? [y/N]\n"; 
+#	printf "\r\e[2K\tDo you want to proceed? [y/N]\n"; 
+	intro "Do you want to proceed? [y/N]"; 
 	read -i "N" -e ans; 
 	if [[ "$ans" =~ [Yy] ]]; then 
-		msg "going ahead\ns";
+		msg "going ahead\n";
 	elif [[ "$ans" =~ [Nn] ]]; then
 		error "abort by user.";
 		exit 1;
@@ -161,7 +163,9 @@ skipPerm(){
 	if [[ -t 2 ]] ; then
 		task=${@:2}
 		intro "$1"; 
-		read -e -p "Do you want to proceed? [Y/n/e]: " -i "Y" ans; 
+#		read -e -p "Do you want to proceed? [Y/n/e]: " -i "Y" ans;
+		intro "Do you want to proceed? [Y/n/e]: "
+		read -i "Y" -e ans; 
 		case $ans in
 			[Yy])
 				proceed ${@:2}
@@ -188,7 +192,9 @@ skipRest(){
 	if [[ -t 2 ]] ; then 
 		task=${@:2}
 		intro "$1"; 
-		read -e -p "Do you want to proceed? [y/N/e]: " -i "N" ans; 
+#		read -e -p "Do you want to proceed? [y/N/e]: " -i "N" ans; 
+		intro "Do you want to proceed? [y/N/e]: "
+		read -i "N" -e ans; 
 		case $ans in
 			[Yy])
 				proceed ${@:2}
