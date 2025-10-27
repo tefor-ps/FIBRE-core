@@ -143,7 +143,6 @@ GETVAR=$(find "${FSDBDIR}" -type f -name getVar.sh)
 if [[ -f $GETVAR ]]; then
 	source "$GETVAR" #TODO: make sure, that the configs exist and are in the right locations, first (or inside of getVar)!!!!
 	modFSDBCONFIG=$(find $INITDIR -type f -name fsdb.config |grep -v template |tail -1)
-	dbg "$(basename $0):modFSDBCONFIG: $modFSDBCONFIG"
 else
 	ADMINDIR="/tmp/"
 	LOG="$ADMINDIR/$(basename $0 .sh).log"

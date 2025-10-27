@@ -150,7 +150,6 @@ function importConfig(){
 	IMPORTCONFIG=$(find "$FSDBDIR" -name $(grep "^IMPORTCONFIG" $ccd |cut -d " " -f 2 |awk -F "/" '{print $NF}'))
 	dbg "sudo bash $IMPORTCONFIG $FSDBDIR force"
 	sudo bash $IMPORTCONFIG $FSDBDIR force
-#	dbg "$(basename $0):modFSDBCONFIG: $modFSDBCONFIG"
 }
 
 function resetConfig(){
