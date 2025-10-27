@@ -198,10 +198,10 @@ else
 	# define 'SCRIPTSDIR' and create it if it doesn't exist, yet.
 	defineScriptsDir $INSTDIR/$repoName/scripts 1
 
-	echo "modFSDBCONFIG: $modFSDBCONFIG"
+#	echo "modFSDBCONFIG: $modFSDBCONFIG"
 	
 	FSDBCONFIG=$SCRIPTSDIR/fsdb.config
-	if [[ ! -f $FSDBCONFIG ]]; then
+#	if [[ ! -f $FSDBCONFIG ]]; then
 		if [[ ! -f $modFSDBCONFIG ]]; then
 			msg "$defaultConfig --> $FSDBCONFIG\n"
 			cp -fv $defaultConfig $FSDBCONFIG
@@ -209,9 +209,9 @@ else
 			msg "$modFSDBCONFIG --> $FSDBCONFIG\n"
 			cp -fv $modFSDBCONFIG $FSDBCONFIG
 		fi
-	else
-		msg "$FSDBCONFIG already exists.\n"
-	fi
+#	else
+#		msg "$FSDBCONFIG already exists.\n"
+#	fi
 	msg "$INITDIR/ ---> $INSTDIR/\n"
 	rsync -Sau --exclude="fsdb.config" $INITDIR/ $INSTDIR/
 fi
