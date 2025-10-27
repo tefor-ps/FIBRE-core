@@ -69,9 +69,6 @@ if [[ ! -d $fsdbDir ]]; then
 	#exit
 else
 	intro "Importing configs from $configsdir to $fsdbDir"
-	modFSDBCONFIG=$(find $fsdbDir -type f -name fsdb.config)
-	intro "modFSDBCONFIG: $modFSDBCONFIG"
-	export modFSDBCONFIG=$modFSDBCONFIG
 
 # get latest versions from gitlab repo
 	if [[ $getrepo -eq 1 ]]; then
@@ -90,14 +87,18 @@ else
 			od=$(dirname "$i" |sed "s@${configsdir}@${fsdbDir}/@")
 			echo "$(realpath $i) --> $od"
 			mkdir -pv "$od"
-			if [[ "$2" == "force" ]]; then 
-				rsync -Sa "$i" "$od"
+			if [[ "$2" == "force" ]]; then
+				intro "overwrite $od with $i"
+				rsync -Sav "$i" "$od"
 			else
-				rsync -Sau "$i" "$od"
+				intro "update $od with $i"
+				rsync -Sauv "$i" "$od"
 			fi
 		done
+		modFSDBCONFIG=$(find $fsdbDir -type f -name fsdb.config |grep -v template |tail -1)
+		intro "modFSDBCONFIG: $modFSDBCONFIG"
+		export modFSDBCONFIG=$modFSDBCONFIG
 	else
 		fail "Can't find ${configsdir}."
-		#exit
 	fi
 fi
