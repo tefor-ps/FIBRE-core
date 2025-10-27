@@ -89,10 +89,10 @@ else
 			mkdir -pv "$od"
 			if [[ "$2" == "force" ]]; then
 				#intro "overwrite $od with $i"
-				rsync -Sav "$i" "$od"
+				rsync -Sa "$i" "$od"
 			else
 				#intro "update $od with $i"
-				rsync -Sauv "$i" "$od"
+				rsync -Sau "$i" "$od"
 			fi
 		done
 		modFSDBCONFIG=$(find $configsdir -type f -name fsdb.config |grep -v template |tail -1)
