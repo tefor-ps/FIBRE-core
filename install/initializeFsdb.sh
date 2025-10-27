@@ -151,6 +151,8 @@ else
 	error "Can't locate getVar.sh in ${FSDBDIR}."
 fi
 
+fail "debugging exit."
+
 intro "As a linux tool the fsdb employes many other linux tools. 
 	Some of them are part of the standard linux installation; others will need to be installed. 
 	This step ensures, that all necessary tools are installed on this computer.
