@@ -144,7 +144,7 @@ if [[ -f $GETVAR ]]; then
 	source "$GETVAR" #TODO: make sure, that the configs exist and are in the right locations, first (or inside of getVar)!!!!
 	modFSDBCONFIG=$(find $INITDIR -type f -name fsdb.config)
 	intro "$0"
-	intro "${FUNCNAME[0]}:modFSDBCONFIG: $modFSDBCONFIG"
+	intro "$(basename $0):modFSDBCONFIG: $modFSDBCONFIG"
 else
 	ADMINDIR="/tmp/"
 	LOG="$ADMINDIR/$(basename $0 .sh).log"
@@ -198,7 +198,7 @@ else
 	# define 'SCRIPTSDIR' and create it if it doesn't exist, yet.
 	defineScriptsDir $INSTDIR/$repoName/scripts 1
 
-	echo ":modFSDBCONFIG: $modFSDBCONFIG"
+	echo "$(basename $0):modFSDBCONFIG: $modFSDBCONFIG"
 	
 	FSDBCONFIG=$SCRIPTSDIR/fsdb.config
 #	if [[ ! -f $FSDBCONFIG ]]; then
