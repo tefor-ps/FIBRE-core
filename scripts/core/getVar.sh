@@ -124,7 +124,8 @@ function makeConfig() {
 }
 
 function editOrImport(){
-	read -p "Do you want to proceed? [Y/n]: " -i "Y" -e ans
+	intro "Do you want to proceed? [Y/n]: "
+	read -p $'\t' -i "Y" -e ans
 	case $ans in 
 		[Yy]*)
 			intro "\t- Preparing editor -\n" 

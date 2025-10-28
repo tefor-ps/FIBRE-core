@@ -14,7 +14,7 @@ The fsdb works without fiji being in PATH.
 
 README
 
-#fsdb-rev-date: 250911; tested, OK
+#fsdb-rev-date: 251028; tested, OK
 
 ## ======
 ## FUNCTION DEFINITIONS
