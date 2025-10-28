@@ -75,7 +75,7 @@ function touchDir() {
 			mkdir -p $1
 		else
 			# ask for permission to create 'SCRIPTSDIR'
-			read -p "$1 is not a directory. Do you want to create it? " -i "y" -e ans
+			read -e -p "$1 is not a directory. Do you want to create it? " -i "y" -e ans
 			if [[ "$ans" == "y" ]]; then
 				mkdir -pfv $1
 				#mkdir -p $1
@@ -90,9 +90,9 @@ function touchDir() {
 function defineScriptsDir() {
 	if [[ -z $1 ]]; then
 		if [[ -z $SCRIPTSDIR ]]; then
-			read -p "User interaction needed: Enter the path to the fsdb scripts directory: " -e SCRIPTSDIR
+			read -e -p "User interaction needed: Enter the path to the fsdb scripts directory: " -e SCRIPTSDIR
 		else
-			read -p "User interaction needed: Enter the path to the fsdb scripts directory: " -i $SCRIPTSDIR -e SCRIPTSDIR
+			read -e -p "User interaction needed: Enter the path to the fsdb scripts directory: " -i $SCRIPTSDIR -e SCRIPTSDIR
 		fi
 		touchDir $SCRIPTSDIR $2
 		SCRIPTSDIR="$(realpath $(echo "${SCRIPTSDIR}" | sed "s@~@$HOME@"))"
@@ -160,7 +160,7 @@ intro "As a linux tool the fsdb employes many other linux tools.
 #echo ${appArr[@]}
 #read -e -p "Are you OK with installing these tools? [Y/n]: " -i "Y" ans
 intro "Are you OK with installing these tools? [Y/n]: "
-read -p "\t" -i "Y" -e ans
+read -e -p "\t" -i "Y" -e ans
 if [[ "$ans" == [Yy] ]]; then
 	installLinuxTools ||fail
 else
@@ -187,14 +187,14 @@ intro "\n\t- Step 2: Please define the location to which the fsdb shall be insta
 \t  unintended results, depending under which account you run this script.\n"
 #read -e -p "Path to installation directory: " -i $defaultInstDir -e INSTDIR
 intro "Path to installation directory: "
-read -p "\t" -i $defaultInstDir -e INSTDIR
+read -e -p "\t" -i $defaultInstDir -e INSTDIR
 if [[ ! $(echo "$INSTDIR" |sed 's@/$@@') =~ ${FSDBVERSION}$ ]]; then
 	INSTDIR=$(realpath $INSTDIR/$FSDBVERSION)
 fi
 # copy fsdb.config.default to locally active location and open for editing --> generate local fsdb.config
 #read -e -p "The fsdb will be installed to ${INSTDIR}. Is this correct? [Y/n]: " -i "Y" ans
 intro "The fsdb will be installed to ${INSTDIR}. Is this correct? [Y/n]: "
-read -p "\t" -i "Y" -e ans
+read -e -p "\t" -i "Y" -e ans
 if [[ "$ans" != [Yy] ]]; then
 	fail "Abort. Please run this script again.\n"
 else
