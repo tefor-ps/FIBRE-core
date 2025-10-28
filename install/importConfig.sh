@@ -10,10 +10,9 @@ This script shall NOT be run as super-user.
 
 README
 
-# fsdb revision 251023
+# fsdb revision 251028
 
 function fail(){
-	#intro "$@"
 	date
 	printf "\033[31mError in $(basename $0):${FUNCNAME[2]}:${FUNCNAME[1]} $@ \033[0m"
 	printf "\033[31m\nExiting.\033[0m\n"
@@ -28,12 +27,10 @@ error() { if [[ -t 2 ]] ; then date >> $LOG; printf $'\e[37;1;41m'"\r\e[2KERROR:
 
 if [[ "$(whoami)" != "root" ]]; then
 	fail "This script must be run as super-user."
-	#exit 1
 fi
 
 if [[ -z $1 ]]; then
 	fail "Please provide target directory as parameter."
-	#exit
 else
 	mkdir -pv "$1" 
 	fsdbDir=$(realpath "$1")
@@ -50,7 +47,6 @@ if [[ "$fsdbroot" =~ "fsdb" ]]; then
 	repo=https://gitlab.com/arnimjenett/${fsdbroot}-configs.git
 else
 	fail "$fsdbDir doesn't appear to be a fsdb-root directory (fsdb*)."
-	#exit
 fi
 
 # https://stackoverflow.com/a/226724
@@ -85,19 +81,14 @@ else
 # make directories and transfer config files into correct locations 
 		find "$configsdir" -name "*.config*" |grep -v "~" |sed 's@^./@@'|while read i; do
 			od=$(dirname "$i" |sed "s@${configsdir}@${fsdbDir}/@")
-			echo "$(realpath $i) --> $od"
+			#echo "$(realpath $i) --> $od"
 			mkdir -p "$od"
 			if [[ "$2" == "force" ]]; then
-				#intro "overwrite $od with $i"
 				rsync -Sa "$i" "$od"
 			else
-				#intro "update $od with $i"
 				rsync -Sau "$i" "$od"
 			fi
 		done
-	#	modFSDBCONFIG=$(find $configsdir -type f -name fsdb.config |grep -v template |tail -1)
-	#	intro "$(basename $0):modFSDBCONFIG: $modFSDBCONFIG"
-	#	export modFSDBCONFIG=$modFSDBCONFIG
 	else
 		fail "Can't find ${configsdir}."
 	fi
