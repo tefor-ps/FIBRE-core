@@ -25,7 +25,26 @@ README
 
 # set all global variables
 thisDir=$(dirname $(realpath $0))
-source $thisDir/../core/getVar.sh
+if [[ -z $1 ]]; then
+	if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
+		FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
+	else
+		FSDBDIR="$(realpath $thisDir/../..)"
+	fi
+	gv=$(find "$FSDBDIR" -type f -name getVar.sh)
+else 
+	gv=$(find "$1" -type f -name getVar.sh)
+fi
+
+# set all global variables or at least FIJIDIR
+if [[ -f "$gv" ]]; then
+	source "$gv"
+else
+	FIJIDIR="$FSDBDIR/Fiji"
+	ADMINDIR="/tmp/"
+	LOG="$ADMINDIR/$(basename $0 .sh).log"
+	error "Can't locate getVar.sh."
+fi
 
 #debug=0
 
