@@ -120,6 +120,7 @@ printf "updating fsdb...\n"
 # list all installable repos
 index=0
 lineArr=()
+repoBase=https://gitlab.com/
 while read line; do 
 	printf "$index\t$line\n"; 
 	lineArr[$index]="$line"
@@ -137,7 +138,7 @@ done
 # clone or pull selected repos
 for repo in ${repoArr[@]}; do 
 #	cd $td 
-	echo $repo
+	echo $repoBase/$repo
 	if [[ -d $(basename $repo) ]]; then
 	#	cd $(basename $repo)
 	#	git pull
@@ -146,7 +147,7 @@ for repo in ${repoArr[@]}; do
 		cd "$TMPDIR" || fail "Can't access $TMPDIR"
 # clone repo into temporary directory	
 		intro "Importing configs from $repo to $TMPDIR"
-		git clone $repo || fail
+		git clone $repoBase/$repo || fail "Can't access $repoBase/$repo"
 # rsync (updating) repo into final location 
 		repoDir="$(basename $repo .git)"
 		mkdir -pv "${repoDir}"
@@ -157,7 +158,7 @@ for repo in ${repoArr[@]}; do
 	else
 # clone repo into FSDBDIR
 		cd "${FSDBDIR}"
-		git clone https://gitlab.com/$repo
+		git clone $repoBase/$repo || fail "Can't access $repoBase/$repo"
 	fi
 done
 printf "fsdb-scripts updated.\n"
