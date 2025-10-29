@@ -151,7 +151,7 @@ for repo in ${repoArr[@]}; do
 # rsync (updating) repo into final location 
 		repoDir="$(basename $repo .git)"
 		mkdir -pv "${repoDir}"
-		sudo rsync -Sauv "${TMPDIR}/${repoDir}/" "${FSDBDIR}/${repoDir}/" || fail 
+		sudo rsync -Sau "${TMPDIR}/${repoDir}/" "${FSDBDIR}/${repoDir}/" || fail 
 # remove temporary directory
 		cd -
 		rm -rf $TMPDIR
@@ -161,7 +161,7 @@ for repo in ${repoArr[@]}; do
 		git clone $repoBase/$repo || fail "Can't access $repoBase/$repo"
 	fi
 done
-printf "fsdb-scripts updated.\n"
+printf "fsdb-modules updated.\n"
 
 # set all global variables
 GETVAR=$(find $SCRIPTSDIR -name getVar.sh)
