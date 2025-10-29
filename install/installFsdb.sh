@@ -145,10 +145,10 @@ for repo in ${repoArr[@]}; do
 		TMPDIR=$(mktemp -d)
 		cd "$TMPDIR" || fail "Can't access $TMPDIR"
 # clone repo into temporary directory	
-		intro "Importing configs from $REPO to $TMPDIR"
-		git clone $REPO || fail
+		intro "Importing configs from $repo to $TMPDIR"
+		git clone $repo || fail
 # rsync (updating) repo into final location 
-		repoDir="$(basename $REPO .git)"
+		repoDir="$(basename $repo .git)"
 		mkdir -pv "${repoDir}"
 		sudo rsync -Sauv "${TMPDIR}/${repoDir}/" "${FSDBDIR}/${repoDir}/" || fail 
 # remove temporary directory
