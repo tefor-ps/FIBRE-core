@@ -154,7 +154,7 @@ for repo in ${repoArr[@]}; do
 		sudo rsync -Sauv "${TMPDIR}/${repoDir}/" "${FSDBDIR}/${repoDir}/" || fail 
 # remove temporary directory
 		cd -
-		rm $TMPDIR
+		rm -rf $TMPDIR
 	else
 # clone repo into FSDBDIR
 		cd "${FSDBDIR}"
