@@ -113,7 +113,7 @@ function fail(){
 # initialize 'SCRIPTSDIR'
 defineScriptsDir $@
 
-# update all scripts and macros of the fsdb
+# update all scripts and macros of selected modules of the fsdb
 printf "updating fsdb...\n"
 # list all installable repos
 index=0
@@ -169,6 +169,8 @@ else
 fi
 
 ## from here on this script uses the variables defined in the configuration file (.scripts.config)
+
+skipPerm "Next step: Installation of fsdb infrastructure" 
 
 # install java
 <<javainstall
