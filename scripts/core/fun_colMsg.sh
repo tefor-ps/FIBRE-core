@@ -90,7 +90,7 @@ interPerm(){ if [[ -t 2 ]] ; then printf $'\r\e[2K\t\e[32;1;40m'"$(basename $0):
 questPerm(){ 
 #	printf "\r\e[2K\tDo you want to proceed? [Y/n]\n"; 
 	intro "Do you want to proceed? [Y/n]"; 
-	read -i "Y" -e ans; 
+	read -p $'\t' -i "Y" -e ans; 
 	if [[ "$ans" =~ [Yy] || -z $ans ]]; then 
 		msg "going ahead\n";
 	elif [[ "$ans" =~ [Nn] ]]; then
@@ -107,7 +107,7 @@ interRest(){ if [[ -t 2 ]] ; then printf $'\r\e[2K\t\e[31;1;40m'"$(basename $0):
 questRest(){
 #	printf "\r\e[2K\tDo you want to proceed? [y/N]\n"; 
 	intro "Do you want to proceed? [y/N]"; 
-	read -i "N" -e ans; 
+	read -p $'\t' -i "N" -e ans; 
 	if [[ "$ans" =~ [Yy] ]]; then 
 		msg "going ahead\n";
 	elif [[ "$ans" =~ [Nn] ]]; then
@@ -163,9 +163,8 @@ skipPerm(){
 	if [[ -t 2 ]] ; then
 		task=${@:2}
 		intro "$1"; 
-#		read -e -p "Do you want to proceed? [Y/n/e]: " -i "Y" ans;
 		intro "Do you want to proceed? [Y/n/e]: "
-		read -i "Y" -e ans; 
+		read -p $'\t' -i "Y" -e ans; 
 		case $ans in
 			[Yy])
 				proceed ${@:2}
@@ -192,9 +191,8 @@ skipRest(){
 	if [[ -t 2 ]] ; then 
 		task=${@:2}
 		intro "$1"; 
-#		read -e -p "Do you want to proceed? [y/N/e]: " -i "N" ans; 
 		intro "Do you want to proceed? [y/N/e]: "
-		read -i "N" -e ans; 
+		read -p $'\t' -i "N" -e ans; 
 		case $ans in
 			[Yy])
 				proceed ${@:2}
