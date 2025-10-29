@@ -51,18 +51,6 @@ function installLatestJava(){
 	apt-get install -y $latestJDK
 }
 
-#	function installBFtools(){
-#		# install bftools
-#		dbg "Next step: installation of bioformats tools (bftools)."
-#		TMP=$(mktemp -d)
-#		cd $TMP
-#		wget http://downloads.openmicroscopy.org/bio-formats/latest/artifacts/bftools.zip
-#		unzip -d $SCRIPTSDIR -o bftools.zip
-#		chmod -R a+rx $SCRIPTSDIR/bftools/*
-#		cd -
-#		rm -rf $TMP
-#	}
-
 function touchDir() {
 	# check if 'SCRIPTSDIR' exists 
 	if [[ ! -d $1 ]]; then
@@ -144,14 +132,29 @@ for i in $repos; do
 	repoArr[$c]=${lineArr[$i]}
 	c=$((c+1))
 done
-# clone of pull selected repos
+# clone or pull selected repos
 for repo in ${repoArr[@]}; do 
-	cd $td 
+#	cd $td 
 	echo $repo
 	if [[ -d $(basename $repo) ]]; then
-		cd $(basename $repo)
-		git pull
+	#	cd $(basename $repo)
+	#	git pull
+# create temporary directory for download and unpacking.
+		TMPDIR=$(mktemp -d)
+		cd "$TMPDIR" || fail "Can't access $TMPDIR"
+# clone repo into temporary directory	
+		intro "Importing configs from $REPO to $TMPDIR"
+		git clone $REPO || fail
+# rsync (updating) repo into final location 
+		repoDir="$(basename $REPO .git)"
+		mkdir -pv "${repoDir}"
+		sudo rsync -Sauv "${TMPDIR}/${repoDir}/" "${FSDBDIR}/${repoDir}/" || fail 
+# remove temporary directory
+		cd -
+		rm $TMPDIR
 	else
+# clone repo into FSDBDIR
+		cd "${FSDBDIR}"
 		git clone https://gitlab.com/$repo
 	fi
 done
