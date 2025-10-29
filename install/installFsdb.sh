@@ -139,7 +139,7 @@ done
 # clone or pull selected repos
 for repo in ${repoArr[@]}; do 
 #	cd $td 
-	echo $repoBase/$repo
+	intro "Updating or installing from  $repoBase/$repo"
 	if [[ -d $(basename $repo) ]]; then
 	#	cd $(basename $repo)
 	#	git pull
@@ -147,7 +147,6 @@ for repo in ${repoArr[@]}; do
 		TMPDIR=$(mktemp -d)
 		cd "$TMPDIR" || fail "Can't access $TMPDIR"
 # clone repo into temporary directory	
-		intro "Importing configs from $repo to $TMPDIR"
 		git clone $repoBase/$repo || fail "Can't access $repoBase/$repo"
 # rsync (updating) repo into final location 
 		repoDir="$(basename $repo .git)"
@@ -174,7 +173,7 @@ fi
 
 ## from here on this script uses the variables defined in the configuration file (.scripts.config)
 
-skipPerm "Next step: Installation of fsdb infrastructure" 
+skipPerm "Next step: Installation of fsdb infrastructure." 
 
 # install java
 <<javainstall
