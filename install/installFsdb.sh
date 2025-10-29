@@ -161,7 +161,7 @@ for repo in ${repoArr[@]}; do
 		git clone $repoBase/$repo || fail "Can't access $repoBase/$repo"
 	fi
 done
-printf "fsdb-modules updated.\n"
+intro "fsdb-modules updated."
 
 # set all global variables
 GETVAR=$(find $SCRIPTSDIR -name getVar.sh)
