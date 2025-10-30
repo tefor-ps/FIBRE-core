@@ -1,0 +1,11 @@
+# ==data transfer==
+TRANSFERDIR $SCRIPTSDIR/transfer
+AUTHDIR $SCRIPTSDIR/auth
+
+# ==data transfer==
+MOUNTMICS $TRANSFERDIR/mountMicroscopes.sh
+FETCHDATA $TRANSFERDIR/fetchDataFromMicroscopes.sh
+MICS $AUTHDIR/.microscopes.sh
+
+# ==cron settings==
+TRANSFER_CRON 13 5,19,23 * * * root ${FETCHDATA} save
