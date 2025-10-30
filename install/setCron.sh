@@ -40,26 +40,19 @@ fi
 
 cron=/etc/cron.d/$FSDBVERSION
 
-dbg2 "setting up crontab"
+dbg "setting up crontab $cron"
 
 function editCron() {
-	read -e -p "Do you want to modify the schedule of the fsdb? [y/N]: " -i "N" ans
-	case $ans in
-		[Yy])
-			backup $cron $ATTICDIR
+#	intro "Do you want to modify the schedule of the fsdb? [y/N]: "
+			backup $cron $ADMINDIR
 			editor $cron
-			;;
-		*) 
-			msg "Skipping upgrade.\n"
-			;;
-	esac
 }
 
 # print header text into temporary file
 if [[  -f $cron ]]; then
 	msg "$cron exists already.\n"
 else	
-	# append fsdb-specific line to temporary file 
+# print cron-header into fsdb-specific cron-file (by default within /etc/cron.d/) 
 	printf "\# /etc/crontab: system-wide crontab
 # Unlike any other crontab you don't have to run the 'crontab'
 # command to install the new version when you edit this file
@@ -69,15 +62,29 @@ else
 	SHELL=/bin/bash
 	PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 	
-	# m h dom mon dow user  command
-	30 22 * * * root ${JANITOR}
-	# run with the 'save' option, fetchDataFromMicroscopes does NOT delete files from the microscopes
-	13 7,12,19,23, * * * root ${FETCHDATA} save
-	45 */6 * * * root ${SECDATAGEN}\n" |sudo tee $cron
-	
-	msg "Scheduling finished.\n"
+	# m h dom mon dow user  command\n" |sudo tee $cron
 fi
 
-editCron
+grep _CRON $CONFIG |grep -v "^#" |cut -d "|" -f 3 |sed -e 's@^ @@' -e 's@#.*@@' |while read new; do
+	s=$(echo "$new" |sed -e 's@.*\$@$@' -e 's@ .*@@' -e 's@[${}]@@g')
+	if [[ -f $cron && $(grep -c $s $cron) -gt 0 ]]; then 
+		grep $s $cron |sort -u |sed 's@\*@\\\\*@g' |while read old; do
+			dbg "replace: $old --> $new"
+			dbg2 "sed -i \"s@$old@$new@g\" $cron"
+			sed -i "s@$old@$new@g" $cron
+		done
+	else 
+		dbg "add: $new" 
+		echo "$new" |tee -a $cron 
+	fi
+done
+
+msg "Scheduling finished.\n\n"
+
+dbg "crontab set up at $cron"
+cat cron
+echo
+
+skipPerm "Do you want to modify the schedule of the fsdb?" editCron
 
 dbg "crontab set up at $cron"
