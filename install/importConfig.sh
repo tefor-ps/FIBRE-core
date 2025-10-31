@@ -52,7 +52,7 @@ fi
 # https://stackoverflow.com/a/226724
 while true; do 
     intro "Do you wish to get configs from ${repo}? [Y/n]: "
-    read -i "Y" -e ans
+    read -p $'\t' -i "Y" -e ans
     case $ans in
         [Yy]* ) getrepo=1; break;;
         [Nn]* ) getrepo=0; break;;
