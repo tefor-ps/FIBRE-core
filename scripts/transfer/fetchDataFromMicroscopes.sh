@@ -124,22 +124,17 @@ for share in $(grep -P ^mountMic $MICS |cut -d " " -f 4); do
 					bn=$(basename $i .$suff)
 					dbg2 $bn |tee -a $LOG 2>&1
 # generate '-fsdb' folders on storage server
-			#		mkdir -pv $STORAGEDIR/$IMPORTS/${member}/$outDir  |tee -a $LOG 2>&1 # on the storage server
 					mkdir -pv $STORAGEDIR/$IMPORTS/${member}  |tee -a $LOG 2>&1 # on the storage server
 # transfer data from microscope to storage server
 					if [ $save -eq 0 ]; then
-			#			dbg "move $i to $STORAGEDIR/$IMPORTS/${member}/$outDir/ "
 						dbg "move $i to $STORAGEDIR/$IMPORTS/${member}/ "
-			#			rsync -Sauv --remove-source-files "$i" $STORAGEDIR/$IMPORTS/${member}/$outDir/ |tee -a $LOG 2>&1
 						rsync -Sauv --remove-source-files "$i" $STORAGEDIR/$IMPORTS/${member}/ |tee -a $LOG 2>&1
 					else
-			#			dbg "copy $i to $STORAGEDIR/$IMPORTS/${member}/$outDir/ "
 						dbg "copy $i to $STORAGEDIR/$IMPORTS/${member}/ "
-			#			rsync -Sauv "$i" $STORAGEDIR/$IMPORTS/${member}/$outDir/ |tee -a $LOG 2>&1
 						rsync -Sauv "$i" $STORAGEDIR/$IMPORTS/${member}/ |tee -a $LOG 2>&1
 					fi
-					dbg "$share :: $member :: $i"  |tee -a  $LOGDIR/$D.transferred.txt
-					dbg "$share :: $member :: $i"  |tee -a  $LOG 2>&1
+					dbg "$share :: $member :: $i" >> $LOGDIR/$D.transferred.txt
+					dbg "$share :: $member :: $i" |tee -a  $LOG 2>&1
 				done
 # clean up microscope drives
 				find $share/$member/ -type d -mmin +10 -empty -delete |tee -a $LOG 2>&1 
@@ -147,20 +142,14 @@ for share in $(grep -P ^mountMic $MICS |cut -d " " -f 4); do
 # recreate '-fsdb' folder in LABDATADIR and link content into
 				for i in $(echo $fileList); do	
 # make corrsponding folder in LABDATADIR
-			#		mkdir -pv $LABDATADIR/$IMPORTS/${member}/$outDir  |tee -a $LOG 2>&1
 					mkdir -pv $LABDATADIR/$IMPORTS/${member}  |tee -a $LOG 2>&1
 # create hardlink between files in STORAGEDIR and LABDATADIR
-			#		ln -v $STORAGEDIR/$IMPORTS/${member}/$outDir/$fn $LABDATADIR/$IMPORTS/${member}/$outDir  |tee -a $LOGDIR/$D.transferred.txt  |tee -a $LOG 2>&1
 					ln -v $STORAGEDIR/$IMPORTS/${member}/$fn $LABDATADIR/$IMPORTS/${member}  |tee -a $LOGDIR/$D.transferred.txt  |tee -a $LOG 2>&1
 # adjust ownership and access permissions of files in LABDATADIR
-			#		chown -R $GROUP:$GROUP $LABDATADIR/$IMPORTS/${member}/$outDir
 					chown -R $GROUP:$GROUP $LABDATADIR/$IMPORTS/${member}
-			#		chmod -R 770 $LABDATADIR/$IMPORTS/${member}/$outDir
 					chmod -R 770 $LABDATADIR/$IMPORTS/${member}
 # adjust ownership and access permissions of files in STORAGEDIR
-			#		chown $ADMIN:$GROUP $STORAGEDIR/$IMPORTS/${member}/$outDir/$fn
 					chown $ADMIN:$GROUP $STORAGEDIR/$IMPORTS/${member}/$fn
-			#		chmod 750 $STORAGEDIR/$IMPORTS/${member}/$outDir/$fn
 					chmod 750 $STORAGEDIR/$IMPORTS/${member}/$fn
 				done
 			else 
