@@ -47,6 +47,10 @@ README
 
 # cyan text on black background to introduce the current script or say something important
 intro() { if [[ -t 2 ]] ; then printf $'\r\e[2K\t\e[36;1m'"$@"$'\e[0m\n'; else echo "$@"; fi >&2 ;}
+# red warning message
+warn() { if [[ -t 2 ]] ; then date >> $LOG 2>/dev/null; printf $'\r\e[2K\t\e[31;1;40m'"$(basename $0): $@"$'\e[0m\n' |tee -a $LOG 2>/dev/null; else echo "$@"; fi >&1 ;}
+# error message; white on red background
+error() { if [[ -t 2 ]] ; then date >> $LOG; printf $'\e[37;1;41m'"\r\e[2KERROR:\t$0: $@"$'\e[0m\n' |tee -a $LOG; else echo "$@"; fi >&2 ;}
 
 function installLatestJava(){
 	latestJDK=$( apt-cache search openjdk |grep -e "-jdk" |grep "(JDK)" |grep -v headless |sort |head -1 |cut -d " " -f 1)
@@ -97,14 +101,11 @@ function defineScriptsDir() {
 	FSDBDIR="$(realpath $SCRIPTSDIR |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
 }
 
-error() { if [[ -t 2 ]] ; then date >> $LOG; printf $'\e[37;1;41m'"\r\e[2KERROR:\t$0: $@"$'\e[0m\n' |tee -a $LOG; else echo "$@"; fi >&2 ;}
-
 function fail(){
-	#intro "$@"
 	date
-	printf "\033[31mError in $(basename $0):${FUNCNAME[2]}:${FUNCNAME[1]} $@ \033[0m"
-	printf "\033[31m\nExiting.\033[0m\n"
-	exit 128
+	warn "Error in $(basename $0):${FUNCNAME[2]}:${FUNCNAME[1]} $@ "
+	warn "Exiting."
+	exit 333
 }
 
 ## ======
