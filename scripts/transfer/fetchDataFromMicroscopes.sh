@@ -52,7 +52,7 @@ LOG="$LOGDIR/$D.$(basename $0 .sh).log"
 echo "logs at $LOG"
 date >> $LOG
 
-intro $0
+intro $(basename $0)
 
 debug=2
 
@@ -88,7 +88,8 @@ D=$(date +%y%m%d)
 
 for share in $(grep -P ^mountMic $MICS |cut -d " " -f 4); do 
 	for member in $(echo $USER); do
-		date |tee -a $LOG
+		dbg2 $(date)
+		date >> $LOG
 		dbg "$share :: $member" |tee -a $LOG
 		if [[ ! -d $share/$member/ ]]; then
 			dbg "$share/$member/ does not exist; skipping." |tee -a $LOG
@@ -164,7 +165,8 @@ for share in $(grep -P ^mountMic $MICS |cut -d " " -f 4); do
 		done
 	done
 done
-date  |tee -a $LOG 2>&1
+dbg2 $(date)
+date  >> $LOG 2>&1
  
 
 #bash $JANITOR
