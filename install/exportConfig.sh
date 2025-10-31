@@ -85,15 +85,13 @@ else
 		done
 	fi
 fi
-tree -pugsa $configsdir
-cd $configsdir || exit
+tree -pugsaI .git $configsdir
 
+cd $configsdir || fail "can't access $configsdir"
 if [[ $(ls -la  |grep -c .git) -gt 0 ]]; then
 	git add --all
 	git status
 	echo "ready to push configs from $configsdir"
-		cd $configsdir
-		git add --all
-		git commit -am "$(date)"
-		git push
+	git commit -am "$(date)"
+	git push
 fi
