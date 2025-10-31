@@ -102,7 +102,7 @@ function defineScriptsDir() {
 }
 
 function fail(){
-	date
+	warn "$(date)"
 	warn "Error in $(basename $0):${FUNCNAME[2]}:${FUNCNAME[1]} $@ "
 	warn "Exiting."
 	exit 333
