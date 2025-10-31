@@ -24,6 +24,30 @@ parameters:
 
 README
 
+# get parameters
+usage() { 
+	echo "Usage: $0 [-s ] [-p <string>]" 1>&2
+	echo "  -s --> 'save': prevents deletion of the transferred files from the source."
+	echo "  -p --> 'pattern': restricts the transfer to files containing ,string. in their filename."
+	exit 1; 
+}
+
+save=0
+while getopts ":sp:" o; do
+    case "${o}" in
+        s)
+            save=1
+            ;;
+        p)
+            pattern=${OPTARG}
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
 # find getVar.sh
 thisDir=$(dirname $(realpath "$0"))
 if [[ -z $1 ]]; then
@@ -56,30 +80,6 @@ date >> $LOG
 intro $(basename $0)
 
 debug=2
-
-# get parameters
-usage() { 
-	echo "Usage: $0 [-s ] [-p <string>]" 1>&2
-	echo "  -s --> 'save': prevents deletion of the transferred files from the source."
-	echo "  -p --> 'pattern': restricts the transfer to files containing ,string. in their filename."
-	exit 1; 
-}
-
-save=0
-while getopts ":sp:" o; do
-    case "${o}" in
-        s)
-            save=1
-            ;;
-        p)
-            pattern=${OPTARG}
-            ;;
-        *)
-            usage
-            ;;
-    esac
-done
-shift $((OPTIND-1))
 
 # run external script, which is mounting the shared folders of the microscopes
 dbg "mounting microscopes"
