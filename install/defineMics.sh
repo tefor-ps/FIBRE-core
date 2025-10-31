@@ -41,7 +41,7 @@ function getMountPoint(){
 	read -e -p "mount-point: " mountPoint
 #check if mountpoint exists, dont' allow overwrite
 	if [[ -d $mountPoint ]]; then
-		skipRest "$mountPoint already exists. Preparing to re-define this mount-point." getMountPoint
+		skipRest "$mountPoint already exists. Please re-define this mount-point." getMountPoint
 	fi
 	mkdir -p $mountPoint
 	if [[ $(echo $?) -gt 0 ]];then
