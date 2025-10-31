@@ -29,40 +29,39 @@ function fail(){
 
 function exportFiles(){
 	out=$(dirname $line |sed -e "s@$fsdbDir@$configsdir@")
-	mkdir -p $(dirname $out) || exit
+	mkdir -p $(dirname $out) || fail "Can't create $out"
 	intro "$(basename $line) --> ${out}/"
 	rsync -Sau $line ${out}/
 }
 
-repoBase=git@gitlab.com:arnimjenett
-
 if [[ "$(whoami)" == "root" ]]; then
-	echo "ERROR: this script shall NOT be run as super-user. Exiting."
-	exit 1
+	error "his script shall NOT be run as super-user."
 fi
 
 if [[ -z $1 ]]; then
-	echo "Please provide source directory as parameter. Exiting."
-	exit
+	error "Please provide source directory as parameter."
 else
 	fsdbDir=$(realpath "$1")
 fi
+
+repoBase=git@gitlab.com:arnimjenett
 
 td=$(realpath "$(dirname $0)")
 
 fsdbroot=$(basename "$fsdbDir")
 if [[ "$fsdbroot" =~ "fsdb" ]]; then
 	configsdir="$(realpath ${fsdbDir}/../${fsdbroot}-configs/)"
+	mkdir -p configsdir || fail "Can't create $configsdir"
+	me=$(whoami)
+	sudo chown -R ${me}:${me} $configsdir
 	repo=${repoBase}/${fsdbroot}-configs.git
 	intro "exporting from $fsdbDir to $configsdir"	
 else
-	echo "$fsdbDir doesn't appear to be a fsdb-root directory (fsdb*). Try again; Exiting."
-	exit
+	error "$fsdbDir doesn't appear to be a fsdb-root directory (fsdb*). Try again."
 fi
 
 if [[ ! -d $fsdbDir ]]; then
-		echo "ERROR: $fsdbDir does not exist. Exiting."
-		exit
+		error "$fsdbDir does not exist."
 else
 	if [[ ! -d $configsdir ]]; then 
 		cd $(dirname $configsdir) 
@@ -75,12 +74,8 @@ else
 		git pull origin master
 	fi
 	
-	echo "Exporting configs from $fsdbDir to $configsdir"
+	intro "Exporting configs from $fsdbDir to $configsdir"
 	find $fsdbDir -type f -name "*.config*" |grep -v -e bup -e .scripts.config  -e ~$ -e \#|while read line; do
-	#	out=$(dirname $line |sed -e "s@$fsdbDir@$configsdir@")
-	#	mkdir -p $(dirname $out) || exit
-	#	intro "$(basename $line) --> ${out}/"
-	#	rsync -Sau $line ${out}/
 		exportFiles
 	done
 	if [[ $(find $fsdbDir -type d -name "*auth*" |wc -l) -gt 0 ]]; then
@@ -90,7 +85,7 @@ else
 		done
 	fi
 fi
-tree -pugs $configsdir
+tree -pugsa $configsdir
 cd $configsdir || exit
 
 if [[ $(ls -la  |grep -c .git) -gt 0 ]]; then
