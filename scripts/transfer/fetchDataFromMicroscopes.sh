@@ -46,9 +46,10 @@ else
 fi
 
 # log file for debugging and cleanup 
+#TODO: check if deprecated
 mkdir -p $LOGDIR
-echo "logs at $LOGDIR"
 LOG="$LOGDIR/$D.$(basename $0 .sh).log"
+echo "logs at $LOG"
 date >> $LOG
 
 intro $0
@@ -84,8 +85,6 @@ bash $MOUNTMICS
 
 # timestamp for index files
 D=$(date +%y%m%d)
-
-# LOG-definition in getVar.sh
 
 for share in $(grep -P ^mountMic $MICS |cut -d " " -f 4); do 
 	for member in $(echo $USER); do
@@ -167,7 +166,8 @@ done
 date  |tee -a $LOG 2>&1
  
 
-bash $JANITOR
+#bash $JANITOR
+
 ## start secondary data generation 
 #bash $SECDATAGEN &
 dbg "$0 done"  |tee -a $LOG 2>&1
