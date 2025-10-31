@@ -88,7 +88,7 @@ D=$(date +%y%m%d)
 
 for share in $(grep -P ^mountMic $MICS |cut -d " " -f 4); do 
 	for member in $(echo $USER); do
-		dbg2 $(date)
+		dbg2 "$(date)"
 		date >> $LOG
 		dbg "$share :: $member" |tee -a $LOG
 		if [[ ! -d $share/$member/ ]]; then
@@ -165,7 +165,7 @@ for share in $(grep -P ^mountMic $MICS |cut -d " " -f 4); do
 		done
 	done
 done
-dbg2 $(date)
+dbg2 "$(date)"
 date  >> $LOG 2>&1
  
 
