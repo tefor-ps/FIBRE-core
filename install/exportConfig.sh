@@ -83,7 +83,7 @@ else
 	#	rsync -Sau $line ${out}/
 		exportFiles
 	done
-	if [[ $(find $fsdbDir -type d -name "*auth*" |wc -l)( -gt 0 ]]; then
+	if [[ $(find $fsdbDir -type d -name "*auth*" |wc -l) -gt 0 ]]; then
 		authDir=$(find $fsdbDir -type d -name "*auth*")
 		find $authDir -type f |while read line; do
 			exportFiles
