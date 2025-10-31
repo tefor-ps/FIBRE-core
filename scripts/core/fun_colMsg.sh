@@ -123,7 +123,6 @@ intro() { if [[ -t 2 ]] ; then printf $'\r\e[2K\t\e[36;1m'"$@"$'\e[0m\n'; else e
 
 # graceful failure and exit.
 function fail(){
-	#intro "$@"
 	warn "$(date)"
 	warn "${FUNCNAME[2]}:${FUNCNAME[1]} $@"
 	warn "Exiting."
