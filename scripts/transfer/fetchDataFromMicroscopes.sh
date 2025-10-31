@@ -54,7 +54,7 @@ date >> $LOG
 
 intro $0
 
-#debug=2
+debug=2
 
 # get parameters
 usage() { 
