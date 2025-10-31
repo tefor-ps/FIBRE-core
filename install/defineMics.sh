@@ -1,6 +1,6 @@
 #!/bin/bash
 <<README
-This script is part of the installation routine of the TPS fsdb23.
+This script is part of the installation routine of the TPS fsdb.
 
 This script interactively collects and saves the data needed to set up a connection 
 between the computer the fsdb is installed on and the computers which are providing 
@@ -12,9 +12,12 @@ README
 #fsdb-rev-date: 251023
 
 function getIP() {
-	while [[ -z $IPaddress ]] ||  [[ ! $IPaddress =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; do 
+	#regex='^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'
+	#regex='^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+	regex='^((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])$'
+	while [[ -z $IPaddress ]] ||  [[ ! $IPaddress =~ $regex ]]; do 
 		intro "Enter IP address of remote computer (microscope):"
-		read -p "IP adddress: " IPaddress
+		read -p $'\tIP adddress: ' IPaddress
 	done 
 	msg "Testing accessibility of $IPaddress. This will take a couple of seconds.\n"
 	curl -s --max-time 3 $IPaddress >/dev/null
@@ -113,10 +116,8 @@ if [[ -z $1 ]]; then
 		FSDBDIR="$(realpath $thisDir/../..)"
 	fi
 	gv=$(find "$FSDBDIR" -type f -name getVar.sh)
-	#source $thisDir/../scripts/core/getVar.sh
 else 
 	gv=$(find "$1" -type f -name getVar.sh)
-	#source $1/core/getVar.sh
 fi
 
 if [[ -f "$gv" ]]; then
@@ -124,7 +125,6 @@ if [[ -f "$gv" ]]; then
 else
 	fail "Can't find getVar.sh"
 fi
-
 
 header="IP name-of-share mount-point credential-name"
 if [[ -f $MICS && $(grep -c "mountMic" $MICS) -gt 0 ]]; then
@@ -136,6 +136,4 @@ else
 	warn "User interaction needed: define computers (of microscopes) which shall be accessed by this computer."
 	defineMic
 fi
-
-
 
