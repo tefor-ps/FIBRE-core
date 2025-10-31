@@ -95,13 +95,10 @@ else
 	fail "Can't find getVar.sh"
 fi
 
-# log file for debugging and cleanup
+# log file for debugging and cleanup 
 mkdir -p $LOGDIR
 echo "logs at $LOGDIR"
 LOG="$LOGDIR/$D.$(basename $0 .sh).log"
-#if [ -f $LOG ]; then
-#	sudo rm $LOG
-#fi
 date >> $LOG
 
 intro "generating group accounts" |tee -a $LOG
