@@ -24,9 +24,32 @@ parameters:
 
 README
 
-# set all global variables
-thisDir=$(dirname $(realpath $0))
-source $thisDir/../core/getVar.sh
+# find getVar.sh
+thisDir=$(dirname $(realpath "$0"))
+if [[ -z $1 ]]; then
+	if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
+		FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
+	else
+		FSDBDIR="$(realpath $thisDir/../..)"
+	fi
+	gv=$(find "$FSDBDIR" -type f -name getVar.sh)
+	#source $thisDir/../scripts/core/getVar.sh
+else 
+	gv=$(find "$1" -type f -name getVar.sh)
+	#source $1/core/getVar.sh
+fi
+
+if [[ -f "$gv" ]]; then
+	source "$gv"
+else
+	fail "Can't find getVar.sh"
+fi
+
+# log file for debugging and cleanup 
+mkdir -p $LOGDIR
+echo "logs at $LOGDIR"
+LOG="$LOGDIR/$D.$(basename $0 .sh).log"
+date >> $LOG
 
 intro $0
 
