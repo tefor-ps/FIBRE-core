@@ -36,7 +36,7 @@ save=1
 while getopts ":sp:" o; do
     case "${o}" in
         s)
-            save=0
+            save=1
             ;;
         p)
             pattern=${OPTARG}
