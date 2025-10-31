@@ -138,7 +138,7 @@ fi
 ## unpack Fiji, move it to the correct location, and remove the temporary directory
 mkdir -pv "$FIJIDIR"
 unzip fiji*zip
-rsync -Sauv Fiji/ "$FIJIDIR"
+rsync -Sau Fiji/ "$FIJIDIR"
 
 # update fiji
 cd "$FIJIDIR" || exit
