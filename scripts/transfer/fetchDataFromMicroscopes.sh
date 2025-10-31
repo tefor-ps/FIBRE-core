@@ -42,7 +42,8 @@ fi
 if [[ -f "$gv" ]]; then
 	source "$gv"
 else
-	fail "Can't find getVar.sh"
+	echo "ERROR: Can't find getVar.sh"
+	exit 555
 fi
 
 # log file for debugging and cleanup 
