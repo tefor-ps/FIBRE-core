@@ -112,6 +112,11 @@ function makeConfig() {
 		# See https://stackoverflow.com/a/38147878/5269099
 		backup "$fsdbconfig"
 	fi
+	editOrImport
+	updateConfig
+}
+
+function editOrImport(){
 	cat "$fsdbconfig"
 	echo
 	#skipPerm "Above you find the content of your $fsdbconfig. \nThe next step will give you the opportunity to edit a preformatted fsdb.config file in you default text editor.\nFor details on this please consult the README at this project's gitlab page:\n$ONLINEDOC \n\t- Preparing editor -" editConfig $fsdbconfig
@@ -119,11 +124,6 @@ function makeConfig() {
 	The next step will give you the opportunity to edit a preformatted fsdb.config file in you default text editor.
 	For details on this please consult the README at this project's gitlab page:
 	$ONLINEDOC \n"
-	editOrImport
-	updateConfig
-}
-
-function editOrImport(){
 	intro "Do you want to proceed? [Y/n]: "
 	read -p $'\t' -i "Y" -e ans
 	case $ans in 
