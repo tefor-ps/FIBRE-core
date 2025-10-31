@@ -32,11 +32,11 @@ usage() {
 	exit 1; 
 }
 
-save=0
+save=1
 while getopts ":sp:" o; do
     case "${o}" in
         s)
-            save=1
+            save=0
             ;;
         p)
             pattern=${OPTARG}
@@ -127,7 +127,7 @@ for share in $(grep -P ^mountMic $MICS |cut -d " " -f 4); do
 			#		mkdir -pv $STORAGEDIR/$IMPORTS/${member}/$outDir  |tee -a $LOG 2>&1 # on the storage server
 					mkdir -pv $STORAGEDIR/$IMPORTS/${member}  |tee -a $LOG 2>&1 # on the storage server
 # transfer data from microscope to storage server
-					if [ $save -eq 1 ]; then
+					if [ $save -eq 0 ]; then
 			#			dbg "move $i to $STORAGEDIR/$IMPORTS/${member}/$outDir/ "
 						dbg "move $i to $STORAGEDIR/$IMPORTS/${member}/ "
 			#			rsync -Sauv --remove-source-files "$i" $STORAGEDIR/$IMPORTS/${member}/$outDir/ |tee -a $LOG 2>&1
