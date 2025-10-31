@@ -144,6 +144,8 @@ function editOrImport(){
 			editOrImport
 			;;
 	esac	
+	cat "$fsdbconfig"
+	skipRest  "Above you find the content of your new/modified $fsdbconfig. Do you still want to modify it?" editOrImport
 }
 
 function importConfig(){
