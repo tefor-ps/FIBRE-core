@@ -59,7 +59,7 @@ fi
 #	if [[ $? -gt 0 ]]; then
 #		apt 
 
-intro $0
+intro $(basename $0)
 
 function getDriveLetter() {
 	read -e -p "Drive letter:" dl
@@ -85,7 +85,8 @@ function mountMic(){
 			sudo mount -t drvfs ${dl}: $3 |tee -a $LOG
 		else
 			dbg2 "sudo mount -t cifs -o vers=2.0,credentials=$AUTHDIR/.cred-$4,rw,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777 //$1/$2 $3"
-			sudo mount -v -t cifs -o vers=2.0,credentials=$AUTHDIR/.cred-$4,rw,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777 //$1/$2 $3 |tee -a $LOG
+			#sudo mount -v -t cifs -o vers=2.0,credentials=$AUTHDIR/.cred-$4,rw,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777 //$1/$2 $3 |tee -a $LOG
+			sudo mount -t cifs -o vers=2.0,credentials=$AUTHDIR/.cred-$4,rw,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777 //$1/$2 $3 |tee -a $LOG
 		fi
 	else
 		error "$2 is offline"
