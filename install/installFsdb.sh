@@ -157,7 +157,7 @@ for repo in ${repoArr[@]}; do
 		rm -rf $TMPDIR
 	else
 # clone repo into FSDBDIR
-		cd "${FSDBDIR}"
+		cd "${FSDBDIR}" || fail "Can't access ${FSDBDIR}" 
 		git clone $repoBase/$repo || fail "Can't access $repoBase/$repo"
 	fi
 done
