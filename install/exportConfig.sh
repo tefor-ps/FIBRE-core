@@ -21,7 +21,7 @@ warn() { if [[ -t 2 ]] ; then date >> $LOG 2>/dev/null; printf $'\r\e[2K\t\e[31;
 error() { if [[ -t 2 ]] ; then date >> $LOG; printf $'\e[37;1;41m'"\r\e[2KERROR:\t$0: $@"$'\e[0m\n' |tee -a $LOG; else echo "$@"; fi >&2 ;}
 
 function fail(){
-	date
+	warn "$(date)"
 	warn "Error in $(basename $0):${FUNCNAME[2]}:${FUNCNAME[1]} $@ "
 	warn "Exiting."
 	exit 333
