@@ -100,6 +100,7 @@ for share in $(grep -P ^mountMic $MICS |cut -d " " -f 4); do
 		find $share/$member/ -mmin +10 -name "* *" |rename 's/ /_/g' |tee -a $LOG 2>&1
 # get list of files on microscopes
 		for ext in $(echo $STACKEXTENSION); do
+			dbg2 "ext: $ext"
 			if [[ ! -z $pattern ]]; then
 				fileList=$(find $share/$member/ -type f -name "*.$ext" -mmin +10 |grep -v RECYCLE |grep $pattern)
 			else
