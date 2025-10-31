@@ -94,6 +94,7 @@ function defineScriptsDir() {
 	else
 		touchDir $SCRIPTSDIR 1
 	fi
+	FSDBDIR="$(realpath $SCRIPTSDIR |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
 }
 
 error() { if [[ -t 2 ]] ; then date >> $LOG; printf $'\e[37;1;41m'"\r\e[2KERROR:\t$0: $@"$'\e[0m\n' |tee -a $LOG; else echo "$@"; fi >&2 ;}
@@ -157,6 +158,7 @@ for repo in ${repoArr[@]}; do
 		rm -rf $TMPDIR
 	else
 # clone repo into FSDBDIR
+		#mkdir -p ${FSDBDIR} || fail "Can't create ${FSDBDIR}"
 		cd "${FSDBDIR}" || fail "Can't access ${FSDBDIR}" 
 		git clone $repoBase/$repo || fail "Can't access $repoBase/$repo"
 	fi
