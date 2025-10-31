@@ -64,6 +64,7 @@ usage() {
 	exit 1; 
 }
 
+save=0
 while getopts ":sp:" o; do
     case "${o}" in
         s)
