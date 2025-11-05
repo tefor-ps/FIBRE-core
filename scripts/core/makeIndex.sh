@@ -39,6 +39,8 @@ and are treated like merged images.
 
 README
 
+#fsdb-rev-date: 251105
+
 #TODO: implement search on $PROJECTSDIR ?
 
 #============================
@@ -81,6 +83,7 @@ functionExplanation
 
 
 getTOG() {
+# DEPRECATED?
 <<functionExplanation
 This function reads the toggles from $CONFIG and returns the corresponding (concatenated) suffix for the secondary data.
 Possible inputs are
@@ -89,7 +92,7 @@ IP for _IPTOG for the actual image processing steps
 IA for _IATOG for the image annotation steps (scalebars, contrast settings)
 
 These GLOBAL toogles overrule the others, meaning if they are set 0, none of the 
-subordiante steps are performed, not matter of their toggles.
+subordiante steps are performed, no matter of their toggles.
 
 !!! This function is returning the string $suffixString via echo. 
 Therefore it needs to stay silent (no other output) with the exception of the
@@ -164,25 +167,45 @@ exportIndex() {
 # function calls
 #============================
 
-# set all global variables
-thisDir=$(dirname $(realpath $0))
-source $thisDir/../core/getVar.sh
+# find and source getVar.sh to set all global variables
+thisDir=$(dirname $(realpath "$0"))
+if [[ -z $1 ]]; then
+	if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
+		FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
+	else
+		FSDBDIR="$(realpath $thisDir/../..)"
+	fi
+	gv=$(find "$FSDBDIR" -type f -name getVar.sh)
+	#source $thisDir/../scripts/core/getVar.sh
+else 
+	gv=$(find "$1" -type f -name getVar.sh)
+	#source $1/core/getVar.sh
+fi
+
+if [[ -f "$gv" ]]; then
+	source "$gv"
+else
+	echo "ERROR: Can't find getVar.sh"
+	exit 555
+fi
+
+intro $(basename $0)
 
 debug=3
-
-intro $0
 
 dbg "starting ..."
 dbg2 $permissibleAgeOfIndex
 
 # set default values 
-INDIR=$LABDATADIR
+DEFAULTINDIR=$LABDATADIR/$IMPORTS/
+INDIR=$DEFAULTINDIR
 SEARCHSTRING="."
 FORCEINDEX=0
 HN=$(hostname)
 stop=0
 
 # get parameters/options passed at call of this script
+# TODO: add -t to also look for 'tiles' ???
 while getopts ":p:d:fh" opt; do
 	case $opt in
 		p)
@@ -225,8 +248,8 @@ dbg "$PSTRING $DSTRING $FSTRING"
 
 dbg "search string: $SEARCHSTRING"
 
-date
-D=$(date +%y%m%d)
+dbg2 $(date)
+#D=$(date +%y%m%d)
 
 # ensure INDEXDIR exists
 dbg "INDEXDIR: $INDEXDIR"
@@ -251,7 +274,8 @@ dbg2 "INDIR: $INDIR"
 
 # decide which directory to index
 if [[ -z $INDIR ]]; then
-	INDIR=$LABDATADIR/$IMPORTS/
+	warn "$INDIR does not exist. Falling back to $DEFAULTINDIR."
+	INDIR=$DEFAULTINDIR
 fi
 
 # Write list of raw data or reuse existing one, if it is not too old.
@@ -269,9 +293,11 @@ functionExplanation
 else
 	if [[ "$SEARCHSTRING" == "." ]]; then
 		dbg " Writing ${INDEX}. \n\tDepending on the number of files this may take some time. \n\tPlease be patient."
+# TODO: catch option -t here
 		find $INDIR/ -type f |grep -E /[0-9]{6} |grep -v lock |grep -v _QC |grep -v tiles  > $INDEX
 	else
 		dbg " Writing ${INDEX} for ${SEARCHSTRING}. \n\tThis should be rather quick. \n\tAnyhow, please be patient."
+# TODO: catch option -t here
 		find $INDIR/ -type f -name "*${SEARCHSTRING}*" |grep -E /[0-9]{6} |grep -v lock |grep -v _QC |grep -v tiles  > $INDEX
 	fi		
 #	time find $INDIR/ -type f |grep -E /[0-9]{6} |grep -v lock |grep -v _QC |grep -v tiles|grep $SEARCHSTRING  > $INDEX
@@ -287,7 +313,7 @@ find $INDIR/ -type f          --> find exclusively files (no directories)
 functionExplanation
 	date
 	
-#	# filter index against unvalid characters
+#	# filter index against invalid characters
 #	# motivated by https://www.baeldung.com/linux/find-non-ascii-chars#:~:text=Non%2DASCII%20characters%20are%20those,ASCII%20characters%20within%20text%20files.
 #	# and https://donsnotes.com/tech/charsets/ascii.html
 #		if [[ $(grep -c -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $INDEX) -gt 0 ]]; then
