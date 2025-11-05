@@ -115,7 +115,7 @@ if [[ $(grep -c -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $IN
 	fi
 	warn "The follwing file names are problematic!" 
 	grep --color='auto' -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $INFILE |sort -u |tee -a $TMP
-	cat $TMP $TMP2 |sort -u | tee $PROBLEMATIC # fuse 'old' and 'new' problematic filenames (uniquely)
+	cat $TMP $TMP2 |sort -u > $PROBLEMATIC # fuse 'old' and 'new' problematic filenames (uniquely)
 	rm $TMP $TMP2
 # remove problematic filenames from index
 	FILTERED=$(echo $INFILE |sed 's@.index$@.filtered@')
