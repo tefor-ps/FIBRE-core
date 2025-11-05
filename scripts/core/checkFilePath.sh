@@ -107,9 +107,9 @@ if [[ $(grep -c -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $IN
 			mv -v "$line" $out
 			if [[ $? -eq 0 ]]; then
 # remove line from PROBLEMATIC
-				sed -i "s@$line@@" $PROBLEMATIC
+		#		sed -i "s@$line@@" $PROBLEMATIC
 # add corrected filename back to index
-				echo $out >> $INFILE
+		#		echo $out >> $INFILE
 			fi
 		fi
 	done
@@ -167,9 +167,13 @@ OE Œ
 		if [[ $? -eq 0 ]]; then
 			sed -i "s@$line@@" $PROBLEMATIC
 			echo $out >> $INFILE
+		else
+			warn "Can't move $line to $out" 
 		fi
 	done <$PROBLEMATIC
 	rm $DICT
 else
+	sed -i "s@$line@@" $PROBLEMATIC
+	echo $line >> $INFILE
 	dbg "nothing to translate"
 fi
