@@ -41,45 +41,61 @@ intro $(basename $0)
 
 debug=2
 
+# set default values 
+INFILE=$INDEX
 
-checkPath(){
+# get parameters/options passed at call of this script
+while getopts ":i:h" opt; do
+	case $opt in
+		i)
+			dbg2 "Option -i was triggered, argument: $OPTARG"
+			INFILE=$(realpath $1)
+			;;
+		h)
+			usage
+			;;
+		\?)
+			error "Invalid option: -$OPTARG" 
+			exit 1
+			;;
+		:)
+			error "Option -$OPTARG requires an argument." 
+			exit 1
+			;;
+	esac
+done
+shift $((OPTIND-1))
+
+dbg $INFILE
+
 # filter index against unvalid characters
 # motivated by https://www.baeldung.com/linux/find-non-ascii-chars#:~:text=Non%2DASCII%20characters%20are%20those,ASCII%20characters%20within%20text%20files.
 # and https://donsnotes.com/tech/charsets/ascii.html
-	if [[ $(grep -c -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $INFILE) -gt 0 ]]; then
-		PROBLEMATIC=$(echo $INFILE |sed 's@.index$@.problematic@')
-		TMP=$(echo $INFILE |sed 's@.index$@.tmp@')
-		TMP2=$(echo $INFILE |sed 's@.index$@.tmp2@')
-		cat $PROBLEMATIC > $TMP2 # transfer content of pre-existing list of problematic filenames to temp file
-		warn "The follwing file names are problematic!" 
-		grep --color='auto' -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $INFILE |tee -a $TMP
-		cat $TMP $TMP2 |sort -u | tee $PROBLEMATIC # fuse 'old' and 'new' problematic filenames (uniquely)
+if [[ $(grep -c -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $INFILE) -gt 0 ]]; then
+	PROBLEMATIC=$(echo $INFILE |sed 's@.index$@.problematic@')
+	TMP=$(echo $INFILE |sed 's@.index$@.tmp@')
+	TMP2=$(echo $INFILE |sed 's@.index$@.tmp2@')
+	cat $PROBLEMATIC > $TMP2 # transfer content of pre-existing list of problematic filenames to temp file
+	warn "The follwing file names are problematic!" 
+	grep --color='auto' -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $INFILE |tee -a $TMP
+	cat $TMP $TMP2 |sort -u | tee $PROBLEMATIC # fuse 'old' and 'new' problematic filenames (uniquely)
 # remove problematic filenames from index
-		FILTERED=$(echo $INFILE |sed 's@.index$@.filtered@')
-		grep -v -f $PROBLEMATIC $INFILE > $FILTERED
-		mv $FILTERED $INFILE
+	FILTERED=$(echo $INFILE |sed 's@.index$@.filtered@')
+	grep -v -f $PROBLEMATIC $INFILE > $FILTERED
+	mv $FILTERED $INFILE
 # fix filenames with white-spaces by replacing them with underscores
-		grep -P "[\x20]" $PROBLEMATIC |while read line; do
-			if [[ ! -d "$line" ]]; then
-				out=$(echo "$line" |sed 's@ @_@g') 
-				warn "renaming $line to $out"
-				mkdir -pv $(dirname $out)
-				mv -v "$line" $out
-				if [[ $? -eq 0 ]]; then
+	grep -P "[\x20]" $PROBLEMATIC |while read line; do
+		if [[ ! -d "$line" ]]; then
+			out=$(echo "$line" |sed 's@ @_@g') 
+			warn "renaming $line to $out"
+			mkdir -pv $(dirname $out)
+			mv -v "$line" $out
+			if [[ $? -eq 0 ]]; then
 # remove line from PROBLEMATIC
-					sed -i "@$line@d" $PROBLEMATIC
+				sed -i "@$line@d" $PROBLEMATIC
 # add corrected filename back to index
-					echo $out >> $INFILE
-				fi
+				echo $out >> $INFILE
 			fi
-		done
-	fi	
-}
-
-if [[ ! -z $1 ]]; then
-	INFILE=$(realpath $1)
-else
-	INFILE=$INDEX
-fi
-dbg $INFILE
-checkPath 
+		fi
+	done
+fi	
