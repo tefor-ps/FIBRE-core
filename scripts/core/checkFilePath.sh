@@ -54,30 +54,6 @@ debug=2
 # set default values 
 INFILE=$INDEX
 
-#DICT=./dict.f.txt
-DICT=$(mktemp)
-
-printf "
-a à â ä
-A À Â Ä
-e é è ê ë
-E É È Ê Ë
-i î ï
-I Î Ï
-o ô ö
-O Ô Ö
-u ù û ü
-U Ù Û Ü
-y ÿ
-Y Ÿ
-c ç
-C Ç
-ae æ
-AE Æ
-oe œ
-OE Œ
-" > $DICT
-
 # get parameters/options passed at call of this script
 while getopts ":i:h" opt; do
 	case $opt in
@@ -146,6 +122,29 @@ fi
 if [[ $(grep -c -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $PROBLEMATIC) -gt 0 ]]; then
 	warn "The follwing file names are still problematic!" 
 	warn "$(cat $PROBLEMATIC |sort -u)"
+# create lookup tabel (DICT)	
+	#DICT=./dict.f.txt
+	DICT=$(mktemp)
+	printf "
+a à â ä
+A À Â Ä
+e é è ê ë
+E É È Ê Ë
+i î ï
+I Î Ï
+o ô ö
+O Ô Ö
+u ù û ü
+U Ù Û Ü
+y ÿ
+Y Ÿ
+c ç
+C Ç
+ae æ
+AE Æ
+oe œ
+OE Œ
+" > $DICT
 # populate array of non-ascii characters from dictionary
 	cArr=($(cut -d " " -f 2- $DICT |sed -e 's@ @\n@g' -e '/^[[:space:]]*$/d'))
 # find and replace all non-ascii characters, one file name after the other.
@@ -170,6 +169,7 @@ if [[ $(grep -c -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $PR
 			echo $out >> $INFILE
 		fi
 	done <$PROBLEMATIC
+	rm $DICT
 else
 	dbg "nothing to translate"
 fi
