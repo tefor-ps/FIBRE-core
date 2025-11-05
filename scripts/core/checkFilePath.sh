@@ -8,9 +8,21 @@ I replaces whitespaces with unserscores.
 README
 #fsdb-rev-date: 251105
 
-#TODO: implement automatic replacement of non-ASCII characters 
-# e.g. dynamically create and grep from look-up-table 
-# e.g. "e éè..." <-- grep $i |cut -d " " -f 1)
+#============================
+# function definitions
+#============================
+usage() {
+	printf "Usage: $(basename $0) [-i [index] [-h] 
+			
+	-i	index
+			This is the absolute path to the index, which needs to be revised
+				
+	-h	help
+			Displays this help.
+
+" 1>&2;
+	exit 1;
+}
 
 # debugging variables
 interactive=0
@@ -24,10 +36,8 @@ if [[ -z $1 || "$1" =~ "-" ]]; then
 		FSDBDIR="$(realpath $thisDir/../..)"
 	fi
 	gv=$(find "$FSDBDIR" -type f -name getVar.sh)
-	#source $thisDir/../scripts/core/getVar.sh
 else 
 	gv=$(find "$1" -type f -name getVar.sh)
-	#source $1/core/getVar.sh
 fi
 
 if [[ -f "$gv" ]]; then
@@ -43,6 +53,29 @@ debug=2
 
 # set default values 
 INFILE=$INDEX
+#DICT=./dict.f.txt
+DICT=$(mktemp)
+
+printf "
+a à â ä
+A À Â Ä
+e é è ê ë
+E É È Ê Ë
+i î ï
+I Î Ï
+o ô ö
+O Ô Ö
+u ù û ü
+U Ù Û Ü
+y ÿ
+Y Ÿ
+c ç
+C Ç
+ae æ
+AE Æ
+oe œ
+OE Œ
+" > $DICT
 
 # get parameters/options passed at call of this script
 while getopts ":i:h" opt; do
@@ -75,12 +108,15 @@ if [[ $(grep -c -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $IN
 	PROBLEMATIC=$(echo $INFILE |sed 's@.index$@.problematic@')
 	TMP=$(echo $INFILE |sed 's@.index$@.tmp@')
 	TMP2=$(echo $INFILE |sed 's@.index$@.tmp2@')
+	TMP=$(mktemp)
+	TMP2=$(mktemp)
 	if [[ -f $PROBLEMATIC ]]; then
 		cat $PROBLEMATIC > $TMP2 # transfer content of pre-existing list of problematic filenames to temp file
 	fi
 	warn "The follwing file names are problematic!" 
-	grep --color='auto' -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $INFILE |tee -a $TMP
+	grep --color='auto' -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $INFILE |sort -u |tee -a $TMP
 	cat $TMP $TMP2 |sort -u | tee $PROBLEMATIC # fuse 'old' and 'new' problematic filenames (uniquely)
+	rm $TMP $TMP2
 # remove problematic filenames from index
 	FILTERED=$(echo $INFILE |sed 's@.index$@.filtered@')
 	grep -v -f $PROBLEMATIC $INFILE > $FILTERED
@@ -100,4 +136,32 @@ if [[ $(grep -c -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $IN
 			fi
 		fi
 	done
-fi	
+fi
+
+# fix file names with (french) non-ascii characters
+if [[ $(grep -c -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $PROBLEMATIC) -gt 0 ]]; then
+	warn "The follwing file names are still problematic!" 
+	warn "$(cat $PROBLEMATIC |sort -u)"
+# populate array of non-ascii characters from dictionary
+	cArr=($(cut -d " " -f 2- $DICT |sed -e 's@ @\n@g' -e '/^[[:space:]]*$/d'))
+# find and replace all non-ascii characters, one file name after the other.
+	while read line; do
+		out="$line"
+		for c in ${cArr[@]}; do
+			if [[ $(echo "$line" |grep -c $c) -gt 0 ]]; then
+				C=$(grep $c $DICT |cut -d " " -f 1)
+				dbg2 "$c -> $C"
+				out=$(echo "$out" |sed "s@$c@$C@g")
+			fi
+		done
+		dbg "$line --> $out"
+# apply new file name
+		mkdir -p "$out"
+		mv -v "$line" "$out"
+# update INDEX
+		if [[ $? -eq 0 ]]; then
+			sed -i "s@$line@@" $PROBLEMATIC
+			echo $out >> $INFILE
+		fi
+	done <$PROBLEMATIC
+fi
