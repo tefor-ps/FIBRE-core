@@ -49,7 +49,7 @@ while getopts ":i:h" opt; do
 	case $opt in
 		i)
 			dbg2 "Option -i was triggered, argument: $OPTARG"
-			INFILE=$(realpath $1)
+			INFILE=$(realpath $OPTARG)
 			;;
 		h)
 			usage
@@ -66,7 +66,7 @@ while getopts ":i:h" opt; do
 done
 shift $((OPTIND-1))
 
-dbg $INFILE
+dbg "INFILE: $INFILE"
 
 # filter index against unvalid characters
 # motivated by https://www.baeldung.com/linux/find-non-ascii-chars#:~:text=Non%2DASCII%20characters%20are%20those,ASCII%20characters%20within%20text%20files.
