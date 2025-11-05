@@ -48,7 +48,7 @@ while getopts ":sp:" o; do
 done
 shift $((OPTIND-1))
 
-# find getVar.sh
+# find and source getVar.sh
 thisDir=$(dirname $(realpath "$0"))
 if [[ -z $1 ]]; then
 	if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
