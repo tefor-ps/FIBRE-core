@@ -167,6 +167,35 @@ exportIndex() {
 # function calls
 #============================
 
+# find and source getVar.sh to set all global variables
+thisDir=$(dirname $(realpath "$0"))
+if [[ -z $1 || "$1"=~ "^-" ]]; then
+	if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
+		FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
+	else
+		FSDBDIR="$(realpath $thisDir/../..)"
+	fi
+	gv=$(find "$FSDBDIR" -type f -name getVar.sh)
+	#source $thisDir/../scripts/core/getVar.sh
+else 
+	gv=$(find "$1" -type f -name getVar.sh)
+	#source $1/core/getVar.sh
+fi
+
+if [[ -f "$gv" ]]; then
+	source "$gv"
+else
+	echo "ERROR: Can't find getVar.sh"
+	exit 555
+fi
+
+intro $(basename $0)
+
+debug=3
+
+dbg "starting ..."
+dbg2 $permissibleAgeOfIndex
+
 # set default values 
 DEFAULTINDIR=$LABDATADIR/$IMPORTS/
 INDIR=$DEFAULTINDIR
@@ -215,36 +244,6 @@ while getopts ":p:d:fh" opt; do
 	esac
 done
 shift $((OPTIND-1))
-
-# find and source getVar.sh to set all global variables
-thisDir=$(dirname $(realpath "$0"))
-if [[ -z $1 ]]; then
-	if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
-		FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
-	else
-		FSDBDIR="$(realpath $thisDir/../..)"
-	fi
-	gv=$(find "$FSDBDIR" -type f -name getVar.sh)
-	#source $thisDir/../scripts/core/getVar.sh
-else 
-	gv=$(find "$1" -type f -name getVar.sh)
-	#source $1/core/getVar.sh
-fi
-
-if [[ -f "$gv" ]]; then
-	source "$gv"
-else
-	echo "ERROR: Can't find getVar.sh"
-	exit 555
-fi
-
-intro $(basename $0)
-
-debug=3
-
-dbg "starting ..."
-dbg2 $permissibleAgeOfIndex
-
 dbg "$PSTRING $DSTRING $FSTRING"
 
 dbg "search string: $SEARCHSTRING"
