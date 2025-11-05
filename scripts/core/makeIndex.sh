@@ -311,7 +311,8 @@ find $INDIR/                   --> search in $INDIR
 	> $INDEX                   --> (over-)write $INDEX with new list 
 functionExplanation
 	date
-# clean paths and filenames from non-ASCII characters (
+# clean paths and filenames from non-ASCII characters
+	dbg2 "$CHECKPATH -i $INDEX"
 	bash $CHECKPATH -i $INDEX
 fi
 
