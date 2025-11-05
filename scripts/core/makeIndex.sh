@@ -300,44 +300,18 @@ else
 # TODO: catch option -t here
 		find $INDIR/ -type f -name "*${SEARCHSTRING}*" |grep -E /[0-9]{6} |grep -v lock |grep -v _QC |grep -v tiles  > $INDEX
 	fi		
-#	time find $INDIR/ -type f |grep -E /[0-9]{6} |grep -v lock |grep -v _QC |grep -v tiles|grep $SEARCHSTRING  > $INDEX
-#	find $INDIR/ -type f |grep -E /[0-9]{6} |grep -v lock |grep -v _QC |grep -v tiles|grep $SEARCHSTRING  > $INDEX
 <<functionExplanation
-find $INDIR/ -type f          --> find exclusively files (no directories)
-   -name "*${SEARCHSTRING}*"  --> include only files which names contain $SEARCHSTRING
-   |grep -E /[0-9]{6}         --> which file names start with a six-digit timestamp
-   |grep -v lock              --> exculde lock-files
-   |grep -v _QC               --> exculde _QC-files (quality check files)
-   |grep -v tiles             --> exculde tiles 
-    > $INDEX                  --> (over-)writes $INDEX with new list 
+find $INDIR/                   --> search in $INDIR
+	-type f                    --> find exclusively files (no directories)
+	-name "*${SEARCHSTRING}*"  --> include only files which names contain $SEARCHSTRING
+	|grep -E /[0-9]{6}         --> which file names start with a six-digit timestamp
+	|grep -v lock              --> exculde lock-files
+	|grep -v _QC               --> exculde _QC-files (quality check files)
+	|grep -v tiles             --> exculde tiles 
+	> $INDEX                   --> (over-)write $INDEX with new list 
 functionExplanation
 	date
-	
-#	# filter index against invalid characters
-#	# motivated by https://www.baeldung.com/linux/find-non-ascii-chars#:~:text=Non%2DASCII%20characters%20are%20those,ASCII%20characters%20within%20text%20files.
-#	# and https://donsnotes.com/tech/charsets/ascii.html
-#		if [[ $(grep -c -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $INDEX) -gt 0 ]]; then
-#			PROBLEMATIC=$(echo $INDEX |sed 's@.index$@.problematic@')
-#			warn "The follwing file names are problematic!" 
-#			grep --color='auto' -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $INDEX |tee $PROBLEMATIC
-#	# remove problematic filenames from index
-#			FILTERED=$(echo $INDEX |sed 's@.index$@.filtered@')
-#			grep -v -f $PROBLEMATIC $INDEX > $FILTERED
-#			mv $FILTERED $INDEX
-#	# fix filenames with white-spaces by replacing them with underscores
-#			grep -P "[\x20]" $PROBLEMATIC |while read line; do 
-#				out=$(echo "$line" |sed 's@ @_@g') 
-#				warn "renaming $line to $out"
-#				mkdir -pv $(dirname $out)
-#				mv -v "$line" $out
-#				if [[ $? -eq 0 ]]; then
-#	# remove line from PROBLEMATIC
-#					sed -i "@$line@d" $PROBLEMATIC
-#	# add corrected filename back to index
-#					echo $out >> $INDEX
-#				fi
-#			done
-#		fi
+# clean paths and filenames from non-ASCII characters (
 	bash $CHECKPATH $INDEX
 fi
 
