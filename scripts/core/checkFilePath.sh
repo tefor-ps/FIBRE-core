@@ -136,6 +136,8 @@ if [[ $(grep -c -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $IN
 			fi
 		fi
 	done
+else
+	dbg "all good"
 fi
 
 # fix file names with (french) non-ascii characters
