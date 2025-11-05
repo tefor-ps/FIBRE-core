@@ -75,7 +75,9 @@ if [[ $(grep -c -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $IN
 	PROBLEMATIC=$(echo $INFILE |sed 's@.index$@.problematic@')
 	TMP=$(echo $INFILE |sed 's@.index$@.tmp@')
 	TMP2=$(echo $INFILE |sed 's@.index$@.tmp2@')
-	cat $PROBLEMATIC > $TMP2 # transfer content of pre-existing list of problematic filenames to temp file
+	if [[ -f $PROBLEMATIC ]]; then
+		cat $PROBLEMATIC > $TMP2 # transfer content of pre-existing list of problematic filenames to temp file
+	fi
 	warn "The follwing file names are problematic!" 
 	grep --color='auto' -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $INFILE |tee -a $TMP
 	cat $TMP $TMP2 |sort -u | tee $PROBLEMATIC # fuse 'old' and 'new' problematic filenames (uniquely)
@@ -92,7 +94,7 @@ if [[ $(grep -c -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $IN
 			mv -v "$line" $out
 			if [[ $? -eq 0 ]]; then
 # remove line from PROBLEMATIC
-				sed -i "@$line@d" $PROBLEMATIC
+				sed -i "s@$line@@" $PROBLEMATIC
 # add corrected filename back to index
 				echo $out >> $INFILE
 			fi
