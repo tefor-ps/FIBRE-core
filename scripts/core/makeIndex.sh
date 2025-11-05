@@ -169,7 +169,7 @@ exportIndex() {
 
 # find and source getVar.sh to set all global variables
 thisDir=$(dirname $(realpath "$0"))
-if [[ -z $1 || "$1"=~ "^-" ]]; then
+if [[ -z $1 || "$1" =~ "-" ]]; then
 	if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
 		FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
 	else
