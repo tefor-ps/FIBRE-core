@@ -138,6 +138,7 @@ if [[ $(grep -c -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $IN
 	done
 else
 	dbg "all good"
+	touch $PROBLEMATIC
 fi
 
 # fix file names with (french) non-ascii characters
@@ -168,4 +169,6 @@ if [[ $(grep -c -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $PR
 			echo $out >> $INFILE
 		fi
 	done <$PROBLEMATIC
+else
+	dbg "nothing to translate"
 fi
