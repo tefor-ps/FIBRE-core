@@ -6,6 +6,11 @@ I replaces whitespaces with unserscores.
 
 
 README
+#fsdb-rev-date: 251105
+
+#TODO: implement automatic replacement of non-ASCII characters 
+# e.g. dynamically create and grep from look-up-table 
+# e.g. "e éè..." <-- grep $i |cut -d " " -f 1)
 
 # debugging variables
 interactive=0
@@ -27,10 +32,10 @@ checkPath(){
 		PROBLEMATIC=$(echo $INFILE |sed 's@.index$@.problematic@')
 		TMP=$(echo $INFILE |sed 's@.index$@.tmp@')
 		TMP2=$(echo $INFILE |sed 's@.index$@.tmp2@')
-		cat $PROBLEMATIC > $TMP2
+		cat $PROBLEMATIC > $TMP2 # transfer content of pre-existing list of problematic filenames to temp file
 		warn "The follwing file names are problematic!" 
 		grep --color='auto' -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $INFILE |tee -a $TMP
-		cat $TMP $TMP2 |sort -u | tee $PROBLEMATIC 
+		cat $TMP $TMP2 |sort -u | tee $PROBLEMATIC # fuse 'old' and 'new' problematic filenames (uniquely)
 # remove problematic filenames from index
 		FILTERED=$(echo $INFILE |sed 's@.index$@.filtered@')
 		grep -v -f $PROBLEMATIC $INFILE > $FILTERED
