@@ -312,7 +312,7 @@ find $INDIR/                   --> search in $INDIR
 functionExplanation
 	date
 # clean paths and filenames from non-ASCII characters (
-	bash $CHECKPATH $INDEX
+	bash $CHECKPATH -i $INDEX
 fi
 
 # remove leftover lock-files 
