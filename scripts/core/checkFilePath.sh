@@ -14,7 +14,6 @@ README
 
 # debugging variables
 interactive=0
-debug=2
 
 # find and source getVar.sh to set all global variables
 thisDir=$(dirname $(realpath "$0"))
@@ -39,6 +38,9 @@ else
 fi
 
 intro $(basename $0)
+
+debug=2
+
 
 checkPath(){
 # filter index against unvalid characters
