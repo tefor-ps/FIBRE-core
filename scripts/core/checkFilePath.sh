@@ -105,12 +105,11 @@ if [[ $(grep -c -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $IN
 			warn "renaming $line to $out"
 			mkdir -pv $(dirname $out)
 			mv -v "$line" $out
-		#	if [[ $? -eq 0 ]]; then
-# remove line from PROBLEMATIC
-		#		sed -i "s@$line@@" $PROBLEMATIC
-# add corrected filename back to index
-		#		echo $out >> $INFILE
-		#	fi
+			if [[ $? -eq 0 ]]; then
+# remove update line in PROBLEMATIC
+				sed -i "s@$line@$out@" $PROBLEMATIC
+				#echo $out >> $PROBLEMATIC
+			fi
 		fi
 	done
 else
