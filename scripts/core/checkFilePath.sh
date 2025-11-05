@@ -53,6 +53,7 @@ debug=2
 
 # set default values 
 INFILE=$INDEX
+
 #DICT=./dict.f.txt
 DICT=$(mktemp)
 
@@ -100,12 +101,12 @@ done
 shift $((OPTIND-1))
 
 dbg "INFILE: $INFILE"
+PROBLEMATIC=$(echo $INFILE |sed 's@.index$@.problematic@')
 
 # filter index against unvalid characters
 # motivated by https://www.baeldung.com/linux/find-non-ascii-chars#:~:text=Non%2DASCII%20characters%20are%20those,ASCII%20characters%20within%20text%20files.
 # and https://donsnotes.com/tech/charsets/ascii.html
 if [[ $(grep -c -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $INFILE) -gt 0 ]]; then
-	PROBLEMATIC=$(echo $INFILE |sed 's@.index$@.problematic@')
 	TMP=$(echo $INFILE |sed 's@.index$@.tmp@')
 	TMP2=$(echo $INFILE |sed 's@.index$@.tmp2@')
 	TMP=$(mktemp)
