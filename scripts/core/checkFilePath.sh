@@ -146,6 +146,8 @@ if [[ $(grep -c -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $PR
 	cArr=($(cut -d " " -f 2- $DICT |sed -e 's@ @\n@g' -e '/^[[:space:]]*$/d'))
 # find and replace all non-ascii characters, one file name after the other.
 	while read line; do
+# skip empty lines
+		[[ "$line" =~ ^[[:space:]]*$ ]] && continue
 		out="$line"
 		for c in ${cArr[@]}; do
 			if [[ $(echo "$line" |grep -c $c) -gt 0 ]]; then
@@ -156,7 +158,7 @@ if [[ $(grep -c -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $PR
 		done
 		dbg "$line --> $out"
 # apply new file name
-		mkdir -p "$out"
+		mkdir -p "$(dirname $out)"
 		mv -v "$line" "$out"
 # update INDEX
 		if [[ $? -eq 0 ]]; then
