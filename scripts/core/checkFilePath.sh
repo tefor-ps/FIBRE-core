@@ -1,8 +1,10 @@
 #!/bin/bash
 <<README
-This script removes files with special characters in their filenames from the provided index. 
+This script corrects filenames with special characters in their filenames in the
+provided index and on the filesystem. 
 
-I replaces whitespaces with unserscores.
+I replaces whitespaces with unserscores and (french) non-ascii characters with 
+corresponding ascii characters. See below for details.
 
 
 README
