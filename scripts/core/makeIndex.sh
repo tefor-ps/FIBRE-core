@@ -312,6 +312,7 @@ find $INDIR/                   --> search in $INDIR
 functionExplanation
 	date
 # clean paths and filenames from non-ASCII characters
+	dbg2 "$CORESCRIPTS"
 	dbg2 "$CHECKPATH -i $INDEX"
 	bash $CHECKPATH -i $INDEX
 fi
