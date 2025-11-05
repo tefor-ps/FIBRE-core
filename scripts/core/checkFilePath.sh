@@ -81,4 +81,5 @@ if [[ ! -z $1 ]]; then
 else
 	INFILE=$INDEX
 fi
+dbg $INFILE
 checkPath 
