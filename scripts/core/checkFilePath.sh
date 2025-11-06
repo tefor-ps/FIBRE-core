@@ -51,7 +51,7 @@ fi
 
 intro $(basename $0)
 
-debug=2
+#debug=2
 
 # set default values 
 INFILE=$INDEX
