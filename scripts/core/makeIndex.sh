@@ -81,48 +81,6 @@ functionExplanation
 	fi
 }
 
-
-getTOG() {
-# DEPRECATED?
-<<functionExplanation
-This function reads the toggles from $CONFIG and returns the corresponding (concatenated) suffix for the secondary data.
-Possible inputs are
-PP for _PPTOG for the pre-processing steps (color map correction, automatic cropping) 
-IP for _IPTOG for the actual image processing steps
-IA for _IATOG for the image annotation steps (scalebars, contrast settings)
-
-These GLOBAL toogles overrule the others, meaning if they are set 0, none of the 
-subordiante steps are performed, no matter of their toggles.
-
-!!! This function is returning the string $suffixString via echo. 
-Therefore it needs to stay silent (no other output) with the exception of the
-final 'echo $suffixString'
-functionExplanation
-	
-	proctog=_${1}TOG #process-toggle
-	suff=${1}SUFF
-	suffixString=""
-	global=GLOBAL${proctog}
-# respect global toggle	
-	if [[ ${!global} -eq 1 ]]; then
-		#grep $global $CONFIG # for debugging only, make sure to comment-out before using
-		for i in $(grep $proctog $CONFIG |cut -f 1 |grep -v ^# |grep -v 0 |grep -v GLOBAL|cut -d "_" -f 1); do 
-			if [[ $(grep ${i}$proctog $CONFIG |awk -F "|" '{print $NF}' |cut -d " " -f 2) -eq 1 ]]; then
-				#grep ${i}$proctog $CONFIG # for debugging only, make sure to comment-out before using
-				if [[ "$proctog" == "_IPTOG" ]]; then
-					suffixString="${suffixString} $(grep ${i}.*$suff $CONFIG |awk -F "|" '{print $NF}' |cut -d " " -f 2)"
-				else
-					suffixString=${suffixString}$(grep ${i}.*$suff $CONFIG |awk -F "|" '{print $NF}' |cut -d " " -f 2)
-				fi
-			fi
-		done
-	else
-		#dbg "preprocessing toggled off globally"
-		suffixString=""
-	fi
-	echo $suffixString
-}
-
 writeSubIndices() {
 <<functionExplanation
 This function searches for each raw data set in $INDEX and separates them into 
@@ -286,7 +244,6 @@ if [[ $(find $INDEX -ignore_readdir_race -mmin -$permissibleAgeOfIndex 2>/dev/nu
 	$FORCEINDEX is TRUE when '-f' is set in the call of this script.
 functionExplanation
 #TODO: backup $INDEX #???
-
 	ls -l $INDEX  2>&1 |tee -a $LOG
 	stop=1
 	warn "$INDEX is younger than $permissibleAgeOfIndex minutes. Skipping all index generation." |tee -a $LOG
