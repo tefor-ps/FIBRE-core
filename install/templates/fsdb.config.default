@@ -5,10 +5,10 @@
 #FSDBDIR : the root-directory of the fsdb (default name format: fsdb[0-9]{2}).
 
 ### ==ACCOUNTS==
-ADMIN yourAdmin				# <-- sudo-enabled UNIX account. no default value.
+ADMIN yourAdmin			# <-- sudo-enabled UNIX account. no default value.
 CONSORTIUM yourAssociation		# <-- normal UNIX account. no default value.
-GROUP yourTeam				# <-- UNIX group, which groups the users of a lab. no default value.
-DEV yourDevTeam				# <-- developer accounts have access to the scripts without being ADMIN. default: fsdbdev
+GROUP yourTeam			# <-- UNIX group, which groups the users of a lab. no default value.
+DEV yourDevTeam			# <-- developer accounts have access to the scripts without being ADMIN. default: fsdbdev
 DEVACCOUNTS devacc1 devacc2 devacc3	# <-- developers of the fsdb. no default values.
 ADMINACCOUNTS adminacc1 adminacc2 adminacc3	# <-- other system administrators, sudo-enabled. no default value.
 USERACCOUNTS useracc1 useracc2 useracc3	# <-- list of linux user accounts. no default value.
@@ -16,8 +16,8 @@ USERACCOUNTS useracc1 useracc2 useracc3	# <-- list of linux user accounts. no de
 LAB yourTeamName			# <-- name of the local lab for the file system structure. no default value.
 USER user1 user2 user3		# <-- names of users, space delimited, defining their storage locations on microscopes. no default value.
 ### == VARIABLES==
-DEBUGLEVEL 1				# <-- default debug verbosity level (0: silent, 1:some output, 2:verbose). default: 1
-HOSTS 127.0.0.1				# <-- allowed hosts for smb.conf, comma-separated. no default value.
+DEBUGLEVEL 1			# <-- default debug verbosity level (0: silent, 1:some output, 2:verbose). default: 1
+HOSTS 127.0.0.1		# <-- allowed hosts for smb.conf, comma-separated. no default value.
 
 ### ==SUFFIX FOR OUTPUT DIRECTORY==
 FSDB_EXT -fsdb             # extension of fsdb-directory of imported files. default: -fsdb
