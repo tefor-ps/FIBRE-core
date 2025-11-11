@@ -1,10 +1,10 @@
 # ==fsdb core functions==
 CORENAME core
 COREDIR $FSDBDIR/fsdb-core
-CORESCRIPTS $COREDIR/scripts/core
+CORESCRIPTS $COREDIR/scripts
 COREINSTALL $COREDIR/install
 TEMPLATESDIR $COREINSTALL/templates
-COREMACROS $CORESCRIPTS/Fiji.app/macros/fsdb.core/
+COREMACROS $COREDIR/macros/fsdb.core/
 
 # ==CORE INSTALLATION SCRIPTS ==
 MICS_SETUP $COREINSTALL/defineMics.sh
