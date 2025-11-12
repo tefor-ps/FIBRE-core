@@ -10,23 +10,35 @@ Prerequisites:
 - dos2unix
 
 README
+#fsdb-rev-date: 251112
 
-# set variables
-thisDir=$(dirname $(realpath $BASH_SOURCE))
-# if part of the fsdb, set global variables accordingly
-if [[ -f $thisDir/../core/getVar.sh ]]; then
-	source $thisDir/../core/getVar.sh
-	LOG=$LOGDIR/${D}.TPS-HCS-renamer-log.txt
-	#INDEX=$EXCHANGEDIR/${D}.tps-hcs-tmog.index
-	INDEX=$INDEXDIR/${D}.tps-hcs-tmog.index
-	outDir=$STORAGEDIR/$IMPORTS/HCS_rename
+# find and source getVar.sh to set all global variables
+thisDir=$(dirname $(realpath "$0"))
+if [[ -z $1 || "$1" =~ "-" ]]; then
+	if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
+		FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
+	else
+		FSDBDIR="$(realpath $thisDir/../..)"
+	fi
+	gv=$(find "$FSDBDIR" -type f -name getVar.sh)
 else
-	LOG=$thisDir/../../logs/${D}.TPS-HCS-renamer-log.txt
-	INDEX=/DATA/tps/labdata/exchange/index/${D}.tps-hcs-tmog.index
-	mkdir -p $(dirname $INDEX)
-	outDir=/DATA/tps/storage/imports/HCS_rename
-	mkdir -p $outDir
+	if [[ -d $1 ]]; then
+		gv=$(find "$1" -type f -name getVar.sh)
+	else
+		gv=$(find $(dirname "$1") -type f -name getVar.sh)
+	fi
 fi
+
+if [[ -f "$gv" ]]; then
+	source "$gv"
+else
+	echo "ERROR: Can't find getVar.sh"
+	exit 555
+fi
+
+intro $(basename $0)
+
+#debug=2
 
 # define export table at google-drive 
 docID=1nDwads-9MuEuNuqQijhXGgpqe22Ha93F-i4A9_b4l2c

@@ -50,17 +50,19 @@ shift $((OPTIND-1))
 
 # find and source getVar.sh to set all global variables
 thisDir=$(dirname $(realpath "$0"))
-if [[ -z $1 ]]; then
+if [[ -z $1 || "$1" =~ "-" ]]; then
 	if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
 		FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
 	else
 		FSDBDIR="$(realpath $thisDir/../..)"
 	fi
 	gv=$(find "$FSDBDIR" -type f -name getVar.sh)
-	#source $thisDir/../scripts/core/getVar.sh
-else 
-	gv=$(find "$1" -type f -name getVar.sh)
-	#source $1/core/getVar.sh
+else
+	if [[ -d $1 ]]; then
+		gv=$(find "$1" -type f -name getVar.sh)
+	else
+		gv=$(find $(dirname "$1") -type f -name getVar.sh)
+	fi
 fi
 
 if [[ -f "$gv" ]]; then
@@ -69,6 +71,10 @@ else
 	echo "ERROR: Can't find getVar.sh"
 	exit 555
 fi
+
+intro $(basename $0)
+
+#debug=2
 
 # log file for debugging and cleanup 
 #TODO: check if deprecated

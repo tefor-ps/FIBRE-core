@@ -21,34 +21,35 @@ mode of function:
 - set permissions for $INDEXDIR/ to 770
 - set permissions for $STORAGEDIR/$IMPORTS/ to 750
 README
-#fsdb-rev-date: 230331
+#fsdb-rev-date: 251112
 
-# set all global variables
-thisDir=$(dirname $(realpath $0))
-if [[ -z $1 ]]; then
+# find and source getVar.sh to set all global variables
+thisDir=$(dirname $(realpath "$0"))
+if [[ -z $1 || "$1" =~ "-" ]]; then
 	if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
 		FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
 	else
 		FSDBDIR="$(realpath $thisDir/../..)"
 	fi
 	gv=$(find "$FSDBDIR" -type f -name getVar.sh)
-else 
-	gv=$(find "$1" -type f -name getVar.sh)
+else
+	if [[ -d $1 ]]; then
+		gv=$(find "$1" -type f -name getVar.sh)
+	else
+		gv=$(find $(dirname "$1") -type f -name getVar.sh)
+	fi
 fi
 
-# set all global variables or at least FIJIDIR
 if [[ -f "$gv" ]]; then
 	source "$gv"
 else
-	FIJIDIR="$FSDBDIR/Fiji"
-	ADMINDIR="/tmp/"
-	LOG="$ADMINDIR/$(basename $0 .sh).log"
-	error "Can't locate getVar.sh."
+	echo "ERROR: Can't find getVar.sh"
+	exit 555
 fi
 
-#debug=0
+intro $(basename $0)
 
-intro $0
+#debug=2
 
 # satisfy prerequisits
 which setfacl >/dev/null

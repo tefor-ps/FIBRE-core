@@ -55,29 +55,34 @@ function error() {
 # make sure, that the sourcing script is run as superuser/root
 sudoer
 
-# define FSDBDIR, which is the root of the fsdb, 
-# dynamically on the basis of the location of this script
-thisDir=$(dirname $(realpath $0))
-if [[ -z $1 ]]; then
+# find and source getVar.sh to set all global variables
+thisDir=$(dirname $(realpath "$0"))
+if [[ -z $1 || "$1" =~ "-" ]]; then
 	if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
 		FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
 	else
 		FSDBDIR="$(realpath $thisDir/../..)"
 	fi
 	gv=$(find "$FSDBDIR" -type f -name getVar.sh)
-else 
-	gv=$(find "$1" -type f -name getVar.sh)
+else
+	if [[ -d $1 ]]; then
+		gv=$(find "$1" -type f -name getVar.sh)
+	else
+		gv=$(find $(dirname "$1") -type f -name getVar.sh)
+	fi
 fi
 
-# set all global variables or at least FIJIDIR
 if [[ -f "$gv" ]]; then
 	source "$gv"
 else
-	FIJIDIR="$FSDBDIR/Fiji"
-	ADMINDIR="/tmp/"
-	LOG="$ADMINDIR/$(basename $0 .sh).log"
-	error "Can't locate getVar.sh."
+	echo "ERROR: Can't find getVar.sh"
+	exit 555
 fi
+
+intro $(basename $0)
+
+#debug=2
+
 echo "Installing to $FIJIDIR"
 
 if [[ -f $FIJIDIR/fiji ]]; then

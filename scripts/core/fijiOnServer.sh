@@ -19,8 +19,37 @@ xvfb-run-safe.sh must be located in the same folder as this script.
 Other computers run fiji interactively as $ADMIN .
 
 README
+#fsdb-rev-date: 251112
 
-#fsdb-rev-date: 250911, needs testing
+maxAge=60
+
+# find and source getVar.sh to set all global variables
+thisDir=$(dirname $(realpath "$0"))
+if [[ -z $1 || "$1" =~ "-" ]]; then
+	if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
+		FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
+	else
+		FSDBDIR="$(realpath $thisDir/../..)"
+	fi
+	gv=$(find "$FSDBDIR" -type f -name getVar.sh)
+else
+	if [[ -d $1 ]]; then
+		gv=$(find "$1" -type f -name getVar.sh)
+	else
+		gv=$(find $(dirname "$1") -type f -name getVar.sh)
+	fi
+fi
+
+if [[ -f "$gv" ]]; then
+	source "$gv"
+else
+	echo "ERROR: Can't find getVar.sh"
+	exit 555
+fi
+
+intro $(basename $0)
+
+#debug=2
 
 ## ======
 ## FUNCTION DEFINITIONS
@@ -98,26 +127,6 @@ function fail(){
 ## ======
 
 
-# define FSDBDIR, which is the root of the fsdb, 
-# dynamically on the basis of the location of this script
-thisDir="$(realpath "$(dirname "$0")")"
-if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
-	FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
-else
-	FSDBDIR="$(realpath $thisDir/../../..)"
-fi
-
-# set all global variables
-GETVAR=$(find $FSDBDIR -type f -name getVar.sh)
-if [[ -f $GETVAT ]]; then
-	source "$GETVAR"
-else
-	fail "Can't locate getVar.sh."
-fi
-	
-intro "$0"
-
-debug=1
 
 # if no java is installed on the current machine, install the defaulr java runtime envorinment
 which java
