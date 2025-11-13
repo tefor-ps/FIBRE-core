@@ -140,11 +140,8 @@ for i in $repos; do
 done
 # clone or pull selected repos
 for repo in ${repoArr[@]}; do 
-#	cd $td 
 	intro "Updating or installing from  $repoBase/$repo"
 	if [[ -d $(basename $repo) ]]; then
-	#	cd $(basename $repo)
-	#	git pull
 # create temporary directory for download and unpacking.
 		TMPDIR=$(mktemp -d)
 		cd "$TMPDIR" || fail "Can't access $TMPDIR"
@@ -159,7 +156,6 @@ for repo in ${repoArr[@]}; do
 		rm -rf $TMPDIR
 	else
 # clone repo into FSDBDIR
-		#mkdir -p ${FSDBDIR} || fail "Can't create ${FSDBDIR}"
 		cd "${FSDBDIR}" || fail "Can't access ${FSDBDIR}" 
 		git clone $repoBase/$repo || fail "Can't access $repoBase/$repo"
 	fi
