@@ -10,3 +10,4 @@ MICS $AUTHDIR/.microscopes.sh
 # ==cron settings==
 # VARNAME_CRON m h dom mon dow user command
 TRANSFER_CRON 13 5,19,23 * * * root ${FETCHDATA} save
+

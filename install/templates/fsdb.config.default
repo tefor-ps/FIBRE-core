@@ -63,3 +63,4 @@ LOGO $SCRIPTSDIR/logo.png	# <-- storage location of the lab's logo for integrati
 permissibleAgeOfIndex 360	# <-- used in makeIndex to prevent rewriting a recently written index. default: 360 
 TIMEOUTMINUTES 10		# <-- time in minutes allowed for all secData-generation processes (per raw dataset). default: 10  
 TEST_TOG 0			# <-- toggles test-mode. default: 0
+

@@ -47,3 +47,4 @@ LEICA_FT lif
 ZEISS_FT czi
 NIKON_FT nd2
 STACKEXTENSION nd2 lif	# <-- expandible list of treated file extension (currently possible values: nd2 czi lif) nd2 lif  
+
