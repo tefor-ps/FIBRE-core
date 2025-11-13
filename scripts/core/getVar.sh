@@ -313,7 +313,7 @@ sudoer
 
 #debug=2
 
-getVarDir=$(realpath $(dirname $BASH_SOURCE))
+getVarDir=$(dirname $(realpath $BASH_SOURCE))
 
 # the global debug level is set as parameter to fun_colMsg (0-2; default 1)
 source "$getVarDir/fun_colMsg.sh" $DEBUGLEVEL
