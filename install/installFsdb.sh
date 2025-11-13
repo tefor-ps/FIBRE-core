@@ -168,6 +168,7 @@ intro "fsdb-modules updated."
 
 # set all global variables
 GETVAR=$(find $SCRIPTSDIR -name getVar.sh)
+ln -svf $GETVAR /usr/local/bin/getVar
 if [[ $2 == "config" ]]; then #TODO: check if meaningful at this location
 	source $GETVAR config
 else
