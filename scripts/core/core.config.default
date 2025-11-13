@@ -22,7 +22,8 @@ BFT_SETUP $COREINSTALL/setupBioFormatsTools.sh
 # ==CORE SCRIPTS==
 MAKEINDEX $CORESCRIPTS/makeIndex.sh 
 MAKEFSDBINIT $CORESCRIPTS/makeFsdbInit.sh	# <-- translates the label/value-pairs of scripts.config into ij.Prefs for use in fiji $COREDIR/makeFsdbInit.sh 
-FIJIONSERVER $CORESCRIPTS/fijiOnServer.sh 
+#FIJIONSERVER $CORESCRIPTS/fijiOnServer.sh
+FIJIONSERVER $CORESCRIPTS/fijiXvfb.sh 
 COMPLISTS $CORESCRIPTS/compareLists.sh		# <-- compares the fist column of two lists (files) $COREDIR/compareLists.sh  
 UPDATEFSDB $CORESCRIPTS/updateFsdb.sh		# <-- updates the fsdb from online repo $COREDIR/updateFsdb.sh  
 UPDATEMACROS $CORESCRIPTS/updateMacros.sh	# <-- updates fsdb-macros from import location to active location (FIJIDIR) $COREDIR/updateMacros.sh  
