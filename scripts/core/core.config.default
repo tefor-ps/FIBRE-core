@@ -1,7 +1,7 @@
 # ==fsdb core functions==
 CORENAME core
 COREDIR $FSDBDIR/fsdb-core
-CORESCRIPTS $COREDIR/scripts
+CORESCRIPTS $COREDIR/scripts/core
 COREINSTALL $COREDIR/install
 TEMPLATESDIR $COREINSTALL/templates
 COREMACROS $COREDIR/macros/fsdb.core/
