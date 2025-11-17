@@ -108,6 +108,50 @@ function fail(){
 	exit 333
 }
 
+function selectModules(){
+	# update all scripts and macros of selected modules of the fsdb
+	printf "updating fsdb...\n"
+	# list all installable repos
+	index=0
+	lineArr=("all")
+	repoBase=https://gitlab.com/
+	intro "$index\t${lineArr[$index]}";
+	index=$((index+1)) 
+	while read line; do 
+		#intro "$index\t$line"; 
+		lineArr[$index]="$line"
+		intro "$index\t${lineArr[$index]}"; 
+		index=$((index+1)) 
+	done < <(curl -s "https://gitlab.com/api/v4/groups/tefor/projects?per_page=50" | jq -r '.[].path_with_namespace' )
+	# guide selelction of repos, which shall be installed
+	intro "Which repo(s) do you want to install? (type indices, whitespace-separated) "
+	read -p $'\t' -e repos
+	
+	repoArr=()
+	c=0
+	# check if the user selected "all" (index 0)
+	if [[ $(echo $repos |grep -w -c 0) -gt 0 ]]; then
+		maxInd=$((${#lineArr[@]}-1))
+	# generate array of all repos
+		for i in $(seq 1 $maxInd); do
+			repoArr[$c]=${lineArr[$i]}
+			c=$((c+1))
+		done
+	else
+	# generate array of selected repos
+		for i in $repos; do
+	# ensure valid input
+			if [[ $i -le $((${#lineArr[@]}-1)) ]]; then
+				repoArr[$c]=${lineArr[$i]}
+				c=$((c+1))
+			else
+				echo "ERROR: invalid entry $i. Retry."
+				selectModules				
+			fi
+		done
+	fi
+}
+
 ## ======
 ## FUNCTION CALLS
 ## ======
@@ -118,30 +162,14 @@ function fail(){
 defineScriptsDir $@
 
 # update all scripts and macros of selected modules of the fsdb
-printf "updating fsdb...\n"
-# list all installable repos
-index=0
-lineArr=()
-repoBase=https://gitlab.com/
-while read line; do 
-	intro "$index\t$line"; 
-	lineArr[$index]="$line"
-	index=$((index+1)) 
-done < <(curl -s "https://gitlab.com/api/v4/groups/tefor/projects?per_page=50" | jq -r '.[].path_with_namespace' )
-# guide selelction of repos, which shall be installed
-intro "Which repo(s) do you want to install? (type indices, whitespace-separated) "
-read -p $'\t' -e repos
-# generate array of selected repos
-repoArr=()
-c=0
-for i in $repos; do
-	repoArr[$c]=${lineArr[$i]}
-	c=$((c+1))
-done
+selectModules
+echo ${repoArr[@]}
+
 # clone or pull selected repos
 for repo in ${repoArr[@]}; do 
 	intro "Updating or installing from  $repoBase/$repo"
-	if [[ -d $(basename $repo) ]]; then
+	repoBn=$(basename $repo)
+	if [[ -d ${FSDBDIR}/$repoBn ]]; then
 # create temporary directory for download and unpacking.
 		TMPDIR=$(mktemp -d)
 		cd "$TMPDIR" || fail "Can't access $TMPDIR"
