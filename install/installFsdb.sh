@@ -181,7 +181,7 @@ skipPerm "Next step: Installation of fsdb infrastructure."
  java.lang.UnsupportedClassVersionError: loci/formats/tools/ImageInfo : Unsupported major.minor version 52.0 
  This can be fixed by installing the latetes java as described here. Today (2025) this is openjdk 21.0.8.
 javainstall
-which java $1 >/dev/null
+which java
 if [[ $? -eq 0 ]]; then
 	jv=$(java --version |head -1 |cut -d " " -f 2 |cut -d "." -f 1)
 	if [[ $jv -gt 8 ]]; then
