@@ -85,7 +85,7 @@ else
 		#find "$configsdir" -name "*.config*" |grep -v "~" |sed 's@^./@@'|while read i; do
 		find "$configsdir" -type f |grep -v -e "~" -e ".git" |sed 's@^./@@'|while read i; do
 			od=$(dirname "$i" |sed "s@${configsdir}@${fsdbDir}/@")
-			echo "$(realpath $i) --> $od"
+			#echo "$(realpath $i) --> $od"
 			mkdir -p "$od"
 			if [[ "$2" == "force" ]]; then
 				rsync -Sa "$i" "$od"
