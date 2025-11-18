@@ -11,30 +11,11 @@ README
 
 #TODO: This script does not work (yet),as intended. Needs a general overhaul.
 
-# find and source getVar.sh to set all global variables
+# get location of this script
 thisDir=$(dirname $(realpath "$0"))
-if [[ -z $1 || "$1" =~ "-" ]]; then
-	if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
-		FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
-	else
-		FSDBDIR="$(realpath $thisDir/../..)"
-	fi
-	gv=$(find "$FSDBDIR" -type f -name getVar.sh)
-else
-	if [[ -d $1 ]]; then
-		gv=$(find "$1" -type f -name getVar.sh)
-	else
-		gv=$(find $(dirname "$1") -type f -name getVar.sh)
-	fi
-fi
 
-if [[ -f "$gv" ]]; then
-	source "$gv"
-else
-	echo "ERROR: Can't find getVar.sh"
-	exit 555
-fi
-
+# find and source getVar.sh to set all global variables
+source getVar
 intro $(basename $0)
 
 #debug=2
@@ -99,7 +80,7 @@ for CATDIR in $(find $FSDBDIR -mindepth 1 -maxdepth 3 -type d -name "fsdb-*" |gr
 done
 
 
-# if run for an external moduel, add 'chapters' for its scripts and macros 
+# if run for an external modul, add 'chapters' for its scripts and macros 
 if [[ "$callDir" != "$thisDir" ]]; then
 	printf "## file-specific documentation for the $mod    \n" >> $READMETMP
 	printf "(in alphabetical order)\n---\n" >> $READMETMP 
