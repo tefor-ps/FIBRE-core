@@ -82,7 +82,8 @@ else
 
 	if [[ -d "$configsdir" ]]; then
 # make directories and transfer config files into correct locations 
-		find "$configsdir" -name "*.config*" |grep -v "~" |sed 's@^./@@'|while read i; do
+		#find "$configsdir" -name "*.config*" |grep -v "~" |sed 's@^./@@'|while read i; do
+		find "$configsdir" |grep -v "~" |sed 's@^./@@'|while read i; do
 			od=$(dirname "$i" |sed "s@${configsdir}@${fsdbDir}/@")
 			echo "$(realpath $i) --> $od"
 			mkdir -p "$od"
