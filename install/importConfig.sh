@@ -84,12 +84,12 @@ else
 # make directories and transfer config files into correct locations 
 		find "$configsdir" -name "*.config*" |grep -v "~" |sed 's@^./@@'|while read i; do
 			od=$(dirname "$i" |sed "s@${configsdir}@${fsdbDir}/@")
-			#echo "$(realpath $i) --> $od"
+			echo "$(realpath $i) --> $od"
 			mkdir -p "$od"
 			if [[ "$2" == "force" ]]; then
-				rsync -Sav "$i" "$od"
+				rsync -Sa "$i" "$od"
 			else
-				rsync -Sauv "$i" "$od"
+				rsync -Sau "$i" "$od"
 			fi
 		done
 	else
