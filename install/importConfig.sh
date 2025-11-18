@@ -70,9 +70,11 @@ else
 # get latest versions from gitlab repo
 	if [[ $getrepo -eq 1 ]]; then
 		if [[ ! -d "$configsdir" ]]; then
+			intro "updating $repo"
 			cd "$fsdbDir/.." || fail
 			git clone $repo || fail
 		else
+			intro "creating $repo"
 			cd "$configsdir" || fail
 			git pull || fail
 		fi
