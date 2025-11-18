@@ -87,9 +87,9 @@ else
 			#echo "$(realpath $i) --> $od"
 			mkdir -p "$od"
 			if [[ "$2" == "force" ]]; then
-				rsync -Sa "$i" "$od"
+				rsync -Sav "$i" "$od"
 			else
-				rsync -Sau "$i" "$od"
+				rsync -Sauv "$i" "$od"
 			fi
 		done
 	else
