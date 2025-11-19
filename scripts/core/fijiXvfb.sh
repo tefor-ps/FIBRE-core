@@ -13,9 +13,10 @@ xvfb-run-safe.sh must be located in the same folder as this script.
 Other computers run fiji interactively as $ADMIN .
 
 README
-#fsdb-rev-date: 251112
+#fsdb-rev-date: 251118
 
 forceXvfb=1 # if this is greater than zero, it forces the execution in xvfb (on real Linux only) 
+force=1
 
 source getVar
 intro $(basename $0)
@@ -50,26 +51,28 @@ fijiOnX11(){
 # TODO: needs testing and potentially setup/modification of XAuth	
 	dbg "X11"
 	cd "$FIJIDIR" || exit
-	FIJI="$FIJIDIR/fiji"
+	#FIJI="$FIJIDIR/fiji"
 	#timeout ${TIMEOUTMINUTES}m "$FIJI" "-macro $MACRO $PARAM $IMG" 2>>"$LOG"
-	timeout ${TIMEOUTMINUTES}m "$FIJI" "$IMG -macro $MACRO $PARAM" 2>>"$LOG"
+	#timeout ${TIMEOUTMINUTES}m "$FIJI" "$IMG -macro $MACRO $PARAM" 2>>"$LOG"
+	echo "timeout ${TIMEOUTMINUTES}m fiji $IMG -macro $MACRO $PARAM 2>>\"$LOG\""
+	timeout ${TIMEOUTMINUTES}m fiji $IMG -macro $MACRO $PARAM 2>>"$LOG"
 }
 
 fijiOnLinux(){
 	dbg "Linux - xvbf"
-	FIJI="$FIJIDIR/fiji"
+	#FIJI="$FIJIDIR/fiji"
 #check if helper script exists
 	#ls -l "$COREDIR/xvfb-run-safe.sh"
 	#if [[ $? -gt 0 ]]; then		
-	if [[ ! -f "$COREDIR/xvfb-run-safe.sh" ]]; then
-		echo "fatal error: $COREDIR/xvfb-run-safe.sh appears to be missing. Exiting."
-		exit
+	if [[ ! -f "$CORESCRIPTS/xvfb-run-safe.sh" ]]; then
+		error " Can't find $CORESCRIPTS/xvfb-run-safe.sh"
 	fi
 	echo "timeout time: ${TIMEOUTMINUTES}m" >>$LOG
 # run macro in virtual environment (not headlessly) for as long as $TIMEOUTMINUTES minutes.
 # after $TIMEOUTMINUTES minutes, kill process because we have to assume, that it is stuck.
 	#timeout ${TIMEOUTMINUTES}m "$COREDIR/xvfb-run-safe.sh" "$FIJI -macro $MACRO $PARAM $IMG" 2>>"$LOG"
-	timeout ${TIMEOUTMINUTES}m "$COREDIR/xvfb-run-safe.sh" "$FIJI $IMG -macro $MACRO $PARAM" 2>>"$LOG"
+	#timeout ${TIMEOUTMINUTES}m "$COREDIR/xvfb-run-safe.sh" "$FIJI $IMG -macro $MACRO $PARAM" 2>>"$LOG"
+	timeout ${TIMEOUTMINUTES}m "$CORESCRIPTS/xvfb-run-safe.sh" "fiji $IMG -macro $MACRO $PARAM" 2>>"$LOG"
 }
 
 fijiOnWindows() {
@@ -115,14 +118,14 @@ dbg2 "$0 $@"
 # make sure FIJIDIR and the scripts within are executable
 sudo chmod -R 770 "$FIJIDIR"
 
-# define fiji to work with 
-if [ $(uname) == "Linux" ]; then
-	#FIJI="$FIJIDIR/ImageJ-linux64"
-	FIJI="$FIJIDIR/fiji"
-else
-	FIJI="$FIJIDIR/ImageJ-win64.exe"
-fi
-echo "fiji: $FIJI" |tee -a "$LOG"
+#	# define fiji to work with 
+#	if [ $(uname) == "Linux" ]; then
+#		#FIJI="$FIJIDIR/ImageJ-linux64"
+#		FIJI="$FIJIDIR/fiji"
+#	else
+#		FIJI="$FIJIDIR/ImageJ-win64.exe"
+#	fi
+#	echo "fiji: $FIJI" |tee -a "$LOG"
 
 # populate variables
 inArr=(${@})
@@ -131,45 +134,54 @@ mArr=()
 pArr=()
 j=0
 
-for i in $(seq 0 ${#inArr[@]}); do
-	if [[ -f "${inArr[$i]}" ]]; then
-		if [[ "${inArr[$i]}" =~ ".ijm" ]]; then
-			mArr[$j]="${inArr[$i]}"
-			#echo "$j: ${mArr[$j]}"
-			unset 'inArr[$i]'
-			ni=$((i+1))
-			if [[ ${inArr[$ni]} =~ ".ijm" ]]; then
-				echo "next macro"
-			else
-				tArr=()
-				while [[ ! -f ${inArr[$ni]} ]]; do
-					tArr+=("${inArr[$ni]}")
-					#echo "$ni: ${tArr[@]}" 
-					unset 'inArr[$ni]'
-					ni=$((ni+1))
-				done
-				pArr[$j]="${tArr[@]}"
+maxInd=$((${#inArr[@]}-1))
+dbg "maxInd: $maxInd"
+
+for i in $(seq 0 $((${#inArr[@]}-1))); do		# analyze all provided parameters
+	dbg "$i ${inArr[$i]}"				# for debugging
+	if [[ -f "${inArr[$i]}" ]]; then	# work on parameters, which are files
+		if [[ "${inArr[$i]}" =~ ".ijm" ]]; then # work on files, which are macros
+			mArr[$j]="${inArr[$i]}"		# assign to macro-array (mArr)
+			dbg2 "$j: ${mArr[$j]}"
+			unset 'inArr[$i]'			# remove from input array (inArr)
+			dbg2 ":: $((${#inArr[@]}-1))"
+			if [[ $i -le $maxInd ]]; then
+				ni=$((i+1))					# increase index (next index, ni) to search for the parameters of the current macro
+				dbg2 "ni: $ni"
+				#read ans
+				if [[ -f ${inArr[$ni]}  ]]; then # if the next parameter is a file, there are no parameters to the current macro 
+					echo "next file"
+				else
+					tArr=()					# initialise temporary array (tArr) empty
+					while [[ ! -f ${inArr[$ni]} && $ni -le $maxInd ]]; do # assign all non-file parameters to tArr
+						tArr+=("${inArr[$ni]}")
+						dbg2 "$ni: ${tArr[@]}" 
+						unset 'inArr[$ni]'	# ... and remove them from inArr
+						ni=$((ni+1))
+					done
+					pArr[$j]="${tArr[@]}"	# assign macro parameters to parameter array (pArr) at the current index (j)
+				fi
 			fi
 			j=$((j+1))
 		else
-			iArr+=("${inArr[$i]}")
-			unset 'inArr[$i]'
+			iArr+=("${inArr[$i]}")		# if a detected file is not a macro, it must be an image; assign ti image array (iArr)
+			unset 'inArr[$i]'			# ... and remove from inArr.
 		fi
 	fi
 done
 
-#echo "IN: ${inArr[@]}"
-#echo "I: ${iArr[@]}"
-#echo "M: ${mArr[@]}"
-#echo "P: ${pArr[@]}"
+dbg3 "IN: ${inArr[@]}"
+dbg3 "I: ${iArr[@]}"
+dbg3 "M: ${mArr[@]}"
+dbg3 "P: ${pArr[@]}"
 
-if [[ ${#inArr[@]} -eq 0 ]]; then
-	for IMG in ${iArr[@]}; do
-		for i in ${!mArr[@]}; do
+if [[ ${#inArr[@]} -eq 0 ]]; then	# If all elements of the list of inputs were recognized,...
+	for IMG in ${iArr[@]}; do		# ... process each provided image ...
+		for i in ${!mArr[@]}; do	# ... with each provided macro (respecing their parameters)
 			echo
 			#echo $i
 			MACRO=${mArr[$i]}
-			PARAM=${pArr[$i]}
+			PARAM=$(echo ${pArr[$i]} |sed 's@ @,@g')
 			echo "macro: $MACRO" |tee -a "$LOG"
 			echo "param: $PARAM" |tee -a "$LOG"
 			echo "image: $IMG" |tee -a "$LOG"
@@ -182,13 +194,16 @@ if [[ ${#inArr[@]} -eq 0 ]]; then
 			else
 				fileSize="$minsize"
 			fi 
-			
 			echo "filesize: $fileSize" |tee -a "$LOG"
 			
-			if [[ "$fileSize" -gt "$maxsize"  ||  "$fileSize" -lt "$minsize" ]]; then
-				complain
+			if [[ "$fileSize" -gt "$maxsize"  ]]; then
+				complain	# exit, if file size is too big
 			fi
-			
+			if [[ $force -eq 0 ]]; then
+				if [[  "$fileSize" -lt "$minsize" ]]; then
+					complain	# exit, if file size is too small
+				fi
+			fi
 			# define fiji to work with 
 			if [[ "$(uname)" == "Linux" ]]; then
 				if [[ $(grep -ic microsoft /proc/version) -gt 0 ]]; then
@@ -196,7 +211,7 @@ if [[ ${#inArr[@]} -eq 0 ]]; then
 					fijiOnX11
 				else
 					echo "Linux" |tee -a "$LOG"
-					if [[ $( echo $DISPLAY |wc -c ) -gt 1 || $forceXvfb -gt 0 ]]; then
+					if [[ $( echo $DISPLAY |wc -c ) -gt 1 && $forceXvfb -eq 0 ]]; then
 						fijiOnX11
 					else
 						fijiOnLinux
