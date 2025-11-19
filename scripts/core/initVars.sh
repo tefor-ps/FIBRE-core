@@ -19,5 +19,5 @@ intro $(basename $0)
 #debug=2
 
 if [[ ! -z $1 ]]; then
-	echo "${1}: ${!1}"
+	intro "${1}: ${!1}"
 fi
