@@ -15,13 +15,13 @@ Other computers run fiji interactively as $ADMIN .
 README
 #fsdb-rev-date: 251118
 
-forceXvfb=1 # if this is greater than zero, it forces the execution in xvfb (on real Linux only) 
+forceXvfb=0 # if this is greater than zero, it forces the execution in xvfb (on real Linux only) 
 force=1
 
 source getVar
 intro $(basename $0)
 
-#debug=2
+debug=2
 
 ## ======
 ## FUNCTION DEFINITIONS
@@ -137,13 +137,13 @@ j=0
 maxInd=$((${#inArr[@]}-1))
 dbg "maxInd: $maxInd"
 
-for i in $(seq 0 $((${#inArr[@]}-1))); do		# analyze all provided parameters
-	dbg "$i ${inArr[$i]}"				# for debugging
-	if [[ -f "${inArr[$i]}" ]]; then	# work on parameters, which are files
+for i in $(seq 0 $((${#inArr[@]}-1))); do	# analyze all provided parameters
+	dbg "$i ${inArr[$i]}"					# for debugging
+	if [[ -f "${inArr[$i]}" ]]; then		# work on parameters, which are files
 		if [[ "${inArr[$i]}" =~ ".ijm" ]]; then # work on files, which are macros
-			mArr[$j]="${inArr[$i]}"		# assign to macro-array (mArr)
+			mArr[$j]="${inArr[$i]}"			# assign to macro-array (mArr)
 			dbg2 "$j: ${mArr[$j]}"
-			unset 'inArr[$i]'			# remove from input array (inArr)
+			unset 'inArr[$i]'				# remove from input array (inArr)
 			dbg2 ":: $((${#inArr[@]}-1))"
 			if [[ $i -le $maxInd ]]; then
 				ni=$((i+1))					# increase index (next index, ni) to search for the parameters of the current macro
