@@ -1,4 +1,4 @@
-//fsdb-rev-date: 251211
+//fsdb-rev-date: 260122
 /*
  this macro initializes the log file of the calling macro. 
  it expects the basename of the log file as a parameter.
@@ -57,15 +57,14 @@ function debugger(str, LOG){ // DO NOT USE IN THIS MACRO
 //==== fsdb-end ====
 
 function initLOG(){
-	if (dbg > 0)
-		if (dbg > 0) { print("initLOG", D); }
+	if (dbg > 0) { print("initLOG", D); }
 	
 	if(File.isDirectory(LOGdir) == 0) {
 // recursivly generate directory for LOG-file
 		if (dbg > 0) {
 			print("making",LOGdir);
-			makeDirRecursively(LOGdir);
 		}	
+		makeDirRecursively(LOGdir);
 	}
 // thanks to windows backslashes have to removed from the path
 	LOG=replace(LOGdir+"/"+D+"."+LOGbn+".log", "\\", "/");
