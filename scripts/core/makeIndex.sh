@@ -47,7 +47,7 @@ README
 # function definitions
 #============================
 usage() {
-	printf "Usage: $(basename $0) [-p project] [-o order] [-h] absolute-paths
+	printf "Usage: $(basename $0) [-p project] [-d dir] [-o order] [-h] absolute-paths
 
 	-p	project/pattern
 			This is a limiting string, which is included in the 'find' command.
@@ -145,7 +145,6 @@ HN=$(hostname)
 stop=0
 
 # get parameters/options passed at call of this script
-# TODO: add -t to also look for 'tiles' ???
 while getopts ":p:d:fh" opt; do
 	case $opt in
 		p)
