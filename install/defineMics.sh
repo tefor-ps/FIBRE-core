@@ -18,7 +18,10 @@ function getIP() {
 	while [[ -z $IPaddress ]] ||  [[ ! $IPaddress =~ $regex ]]; do 
 		intro "Enter IP address of remote computer (microscope):"
 		read -p $'\tIP adddress: ' IPaddress
-	done 
+	else
+		intro "Reuse or modify recently used IP address of remote computer (microscope):"
+		read -e -i $IPaddress -p $'\tIP adddress: ' IPaddress		
+	done
 	msg "Testing accessibility of $IPaddress. This will take a couple of seconds.\n"
 	curl -s --max-time 3 $IPaddress >/dev/null
 	res=$?
