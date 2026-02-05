@@ -34,12 +34,10 @@ xvfb-run-safe [*]: motivated by https://stackoverflow.com/a/30336424
 
 README
 
-#fsdb-rev-date: 251021
+#fsdb-rev-date: 260205
 
 #TODO: integrate into extractReadme
 #TODO: modify function-descriptions to be reflected in extractREADME (--> <<README)
-#TODO: reknit this to use a dynamic list of setup-scripts instead of internal functions.
-#TODO: list and select modules to install
 
 ## ======
 ## FUNCTION DEFINITIONS
@@ -178,7 +176,7 @@ for repo in ${repoArr[@]}; do
 # rsync (updating) repo into final location 
 		repoDir="$(basename $repo .git)"
 		mkdir -pv "${repoDir}"
-		sudo rsync -Sau "${TMPDIR}/${repoDir}/" "${FSDBDIR}/${repoDir}/" || fail 
+		sudo rsync -Sau "${TMPDIR}/${repoDir}/" "${FSDBDIR}/${repoDir}/" || fail "Can't transfer files from ${TMPDIR}/${repoDir}/ to ${FSDBDIR}/${repoDir}/"
 # remove temporary directory
 		cd -
 		rm -rf $TMPDIR
@@ -187,6 +185,12 @@ for repo in ${repoArr[@]}; do
 		cd "${FSDBDIR}" || fail "Can't access ${FSDBDIR}" 
 		git clone $repoBase/$repo || fail "Can't access $repoBase/$repo"
 	fi
+# generate time-stamped commit
+	cd ${FSDBDIR}/${repoDir}/
+	git add --all
+	git commit -am "$(date)"
+# set pull-mode to 'merge'
+	git config pull.rebase false
 done
 intro "fsdb-modules updated."
 
