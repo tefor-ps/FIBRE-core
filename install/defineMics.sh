@@ -16,11 +16,13 @@ function getIP() {
 	#regex='^([0-9]{1,3}\.){3}[0-9]{1,3}$'
 	regex='^((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])$'
 	while [[ -z $IPaddress ]] ||  [[ ! $IPaddress =~ $regex ]]; do 
-		intro "Enter IP address of remote computer (microscope):"
-		read -p $'\tIP adddress: ' IPaddress
-	else
-		intro "Reuse or modify recently used IP address of remote computer (microscope):"
-		read -e -i $IPaddress -p $'\tIP adddress: ' IPaddress		
+		if [[ -z $IPaddress ]]; then
+			intro "Enter IP address of remote computer (microscope):"
+			read -p $'\tIP adddress: ' IPaddress
+		else
+			intro "Reuse or modify recently used IP address of remote computer (microscope):"
+			read -e -i $IPaddress -p $'\tIP adddress: ' IPaddress
+		fi
 	done
 	msg "Testing accessibility of $IPaddress. This will take a couple of seconds.\n"
 	curl -s --max-time 3 $IPaddress >/dev/null
