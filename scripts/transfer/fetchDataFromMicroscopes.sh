@@ -64,8 +64,6 @@ LOG="$LOGDIR/$D.$(basename $0 .sh).log"
 echo "logs at $LOG"
 date >> $LOG
 
-intro $(basename $0)
-
 debug=2
 dbg2 "save: $save"
 dbg2 "pattern: $pattern"
