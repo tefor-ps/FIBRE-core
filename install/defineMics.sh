@@ -9,20 +9,19 @@ image-generating devices).
 
 README
 
-#fsdb-rev-date: 251023
+#fsdb-rev-date: 260210
 
 function getIP() {
-	#regex='^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'
-	#regex='^([0-9]{1,3}\.){3}[0-9]{1,3}$'
 	regex='^((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])$'
-	while [[ -z $IPaddress ]] ||  [[ ! $IPaddress =~ $regex ]]; do 
-		if [[ -z $IPaddress ]]; then
-			intro "Enter IP address of remote computer (microscope):"
-			read -p $'\tIP adddress: ' IPaddress
-		else
+	while :; do
+		if [[ -n $IPaddress ]]; then
 			intro "Reuse or modify recently used IP address of remote computer (microscope):"
-			read -e -i $IPaddress -p $'\tIP adddress: ' IPaddress
+			read -e -i "$IPaddress" -p $'\tIP address: ' IPaddress
+		else
+			intro "Enter IP address of remote computer (microscope):"
+			read -p $'\tIP address: ' IPaddress
 		fi
+		[[ $IPaddress =~ $regex ]] && break
 	done
 	msg "Testing accessibility of $IPaddress. This will take a couple of seconds.\n"
 	curl -s --max-time 3 $IPaddress >/dev/null
@@ -63,7 +62,7 @@ function getCredName(){
 	fi
 }
 
-function getCreds(){
+function addCreds(){
 	intro "Generating credential file for autonomous access of this comupter to the remote computer (microscope)." 
 	intro "Enter the name of the account, which shall be used to connect to the remote computer."
 	read -p "account: " admin
@@ -97,8 +96,8 @@ function defineMic(){
 	getMountPoint
 	getCredName
 	addRemote
-	getCreds
-	skipPerm "Preparing to add another microscope." defineMic
+	addCreds
+	skipPerm "Preparing to add another data source." defineMic
 }
 
 function fail(){
@@ -112,30 +111,13 @@ function fail(){
 ## FUNCTION CALLS
 ## ======
 
-# find and source getVar.sh to set all global variables
+
+
+# get location of this script
 thisDir=$(dirname $(realpath "$0"))
-if [[ -z $1 || "$1" =~ "-" ]]; then
-	if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
-		FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
-	else
-		FSDBDIR="$(realpath $thisDir/../..)"
-	fi
-	gv=$(find "$FSDBDIR" -type f -name getVar.sh)
-else
-	if [[ -d $1 ]]; then
-		gv=$(find "$1" -type f -name getVar.sh)
-	else
-		gv=$(find $(dirname "$1") -type f -name getVar.sh)
-	fi
-fi
 
-if [[ -f "$gv" ]]; then
-	source "$gv"
-else
-	echo "ERROR: Can't find getVar.sh"
-	exit 555
-fi
-
+# find and source getVar.sh to set all global variables
+source getVar || echo "ERROR: can't find getVar"
 intro $(basename $0)
 
 #debug=2
