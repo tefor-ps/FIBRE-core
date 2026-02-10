@@ -113,29 +113,30 @@ function selectModules(){
 	index=0
 	lineArr=("all")
 	repoBase=https://gitlab.com/
+	modArr=($(curl -s "${repoBase}api/v4/groups/tefor/projects?per_page=1000" | jq -r '.[].path_with_namespace' |sort ))
+	defaultModules=($(echo ${modArr[@]} |tr " " "\n" |grep -e core -e install))
+	facultativeModules=($(printf '%s\n' "${modArr[@]}" |grep -vxF -f <(printf '%s\n'  "${defaultModules[@]}")))
 	intro "$index\t${lineArr[$index]}";
 	index=$((index+1)) 
-	while read line; do 
-		#intro "$index\t$line"; 
+	while read line ; do 
 		lineArr[$index]="$line"
 		intro "$index\t${lineArr[$index]}"; 
 		index=$((index+1)) 
-	done < <(curl -s "https://gitlab.com/api/v4/groups/tefor/projects?per_page=50" | jq -r '.[].path_with_namespace' )
+	done < <(printf '%s\n' ${facultativeModules[@]})
 	# guide selelction of repos, which shall be installed
 	intro "Which repo(s) do you want to install? (type indices, whitespace-separated) "
+	intro "The modules ($(echo ${defaultModules[@]})) will be installed by default."
 	read -p $'\t' -e repos
-	
-	repoArr=()
-	c=0
+
 	# check if the user selected "all" (index 0)
 	if [[ $(echo $repos |grep -w -c 0) -gt 0 ]]; then
 		maxInd=$((${#lineArr[@]}-1))
 	# generate array of all repos
-		for i in $(seq 1 $maxInd); do
-			repoArr[$c]=${lineArr[$i]}
-			c=$((c+1))
-		done
+		repoArr=(${modArr[@]})
 	else
+	#populate default modules (fsdb-install, fsdb-core)
+		repoArr=($(printf '%s\n' ${defaultModules[@]} ))
+		c=${#repoArr[@]}
 	# generate array of selected repos
 		for i in $repos; do
 	# ensure valid input
@@ -231,11 +232,14 @@ fi
 <<fijiinstall
 fiji is just imagej - batteries included. This is an application used extensively used within the fsdb. 
 fijiinstall
-#TODO: move this into the installer for the secDataGenerator.
+
 if [[ -f $FIJIDIR/fiji ]]; then
 	skipRest "Fiji is already installed. Do you want to reinstall anyhow?" bash $FIJI_SETUP
 else
-	bash $FIJI_SETUP
+	# as FIJI_SETUP is defined in sdg.config we need to check, if it is defined and the corresponding script exists.
+	if [[ ! -z $FIJI_SETUP && -f $FIJI_SETUP]]; then
+		bash $FIJI_SETUP
+	fi
 fi
 #fail "debugging exit. COREINSTALL: $COREINSTALL"
 
