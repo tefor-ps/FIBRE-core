@@ -39,8 +39,8 @@ IMPORTS imports				# <-- subfolder in both storage locations; facilitates introd
 ARCHIVEDIR $LABDATADIR/archive	# <-- output folder for table of content of compressed archives. default: $LABDATADIR/archive
 EXCHANGEDIR $LABDATADIR/exchange	# <-- central storage location for lab-interal file-exchange, read-writable for lab members. default: $LABDATADIR/exchange
 PROJECTSDIR $LABDATADIR/projects	# <-- same data as in $LABDATA; but sorted by projectID. default: $LABDATADIR/projects
-LOGDIR $FSDBDIR/logs		# <-- storage location for the fsdb log files. default: $FSDBDIR/logs
-INDEXDIR $FSDBDIR/index		# <-- storage location for the fsdb index files. default: $FSDBDIR/index
+LOGDIR $ADMINDIR/logs		# <-- storage location for the fsdb log files. default: $FSDBDIR/logs
+INDEXDIR $ADMINDIR/index		# <-- storage location for the fsdb index files. default: $FSDBDIR/index
 
 ### == OPERATION SYSTEM SPECIFIC MOUNT POINTS OF DATAROOT==
 MOUNT_BASH /DATA			#default: /DATA
