@@ -157,12 +157,29 @@ function selectModules(){
 
 #debug=2
 
+# get location of this script
+thisDir=$(dirname $(realpath "$0"))
+
 # initialize 'SCRIPTSDIR'
 defineScriptsDir $@
 
 # update all scripts and macros of selected modules of the fsdb
 selectModules
 echo ${repoArr[@]}
+
+# ensure, that user.name and user.email are set in git
+if ! git config user.name >/dev/null; then
+  git config --local user.name "$(whoami)"
+  echo "git user.name was automatically set to $(whoami) (--local)"
+  echo "Please ensure resetting it to a correct value before contributing to any of the fsdb-repositories"
+fi
+
+if ! git config user.email >/dev/null; then
+  git config --local user.email "$(whoami)@$(hostname)"
+  echo "git user.email was automatically set to $(whoami)@$(hostname) (--local)"
+  echo "Please ensure resetting it to a correct value before contributing to any of the fsdb-repositories"
+fi
+
 
 # clone or pull selected repos
 for repo in ${repoArr[@]}; do 
@@ -201,7 +218,24 @@ ln -svf $GETVAR /usr/local/bin/getVar
 if [[ $2 == "config" ]]; then #TODO: check if meaningful at this location
 	source $GETVAR config
 else
-	source $GETVAR
+	# get variables of fsdb from getVar.sh
+	if ! source getVar; then
+		dir=$thisDir 
+		for _ in $(seq 1 4); do
+			GV=$(find "$dir" -name "getVar.sh" -print -quit)
+			if [[ -f $GV ]]; then 
+				source "${GV}"
+				break 
+			else
+				dir="$(dirname "$dir")"
+			fi
+		done
+		if [[ ! -f "${GV}" ]]; then
+			echo "ERROR: Can't find getVar.sh"
+			exit 555
+		fi
+	fi
+	intro $(basename $0)
 fi
 
 ## from here on this script uses the variables defined in the configuration file (.scripts.config)

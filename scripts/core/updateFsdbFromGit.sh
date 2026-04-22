@@ -8,7 +8,7 @@ no parameter needed
 README
 # fsdb revision 251023
 
-#DEPRECATED?
+#DEPRECATED!!! 260422
 
 # get location of this script
 thisDir=$(dirname $(realpath "$0"))

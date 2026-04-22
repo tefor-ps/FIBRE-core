@@ -9,7 +9,7 @@ README
 
 #debug=2
 
-#DEPRECATED?
+#DEPRECATED!!! 260422
 
 # get location of this script
 thisDir=$(dirname $(realpath "$0"))

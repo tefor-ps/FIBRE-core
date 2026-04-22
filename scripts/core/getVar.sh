@@ -309,7 +309,14 @@ sudoer
 
 #debug=2
 
-getVarDir=$(dirname $(realpath $BASH_SOURCE))
+GV=$(realpath $BASH_SOURCE)
+chmod 770 $GV
+
+mkdir -p /usr/local/bin
+
+ln -sf "$GV" /usr/local/bin/getVar
+
+getVarDir=$(dirname $GV)
 
 # the global debug level is set as parameter to fun_colMsg (0-2; default 1)
 source "$getVarDir/fun_colMsg.sh" $DEBUGLEVEL

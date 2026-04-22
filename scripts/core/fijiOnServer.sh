@@ -18,7 +18,26 @@ README
 forceXvfb=0 # if this is greater than zero, it forces the execution in xvfb (on real Linux only) 
 force=1
 
-source getVar
+# get location of this script
+thisDir=$(dirname $(realpath "$0"))
+
+# get variables of fsdb from getVar.sh
+if ! source getVar; then
+	dir=$thisDir 
+	for _ in $(seq 1 4); do
+		GV=$(find "$dir" -name "getVar.sh" -print -quit)
+		if [[ -f $GV ]]; then 
+			source "${GV}"
+			break 
+		else
+			dir="$(dirname "$dir")"
+		fi
+	done
+	if [[ ! -f "${GV}" ]]; then
+		echo "ERROR: Can't find getVar.sh"
+		exit 555
+	fi
+fi
 intro $(basename $0)
 
 # define local debug level (overwrites global one). Comment out to follow global debug level.

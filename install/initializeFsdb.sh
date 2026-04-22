@@ -123,10 +123,13 @@ sudoer
 appArr=(wget xvfb curl unzip cifs-utils nfs-common imagemagick jq)
 
 
+
+# get location of this script
+thisDir=$(dirname $(realpath "$0"))
+
 # define FSDBDIR, which is the root of the fsdb dynamically
 # on the basis of the location of this script.
 # This will be immediatly overwritten/corrected when sourcing getVar.sh
-thisDir="$(realpath "$(dirname "$0")")"
 if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
 	FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
 else
@@ -138,17 +141,26 @@ fi
 INITDIR="$(realpath $thisDir |sed -r 's@/fsdb-core/.*@@')"
 repoName=$(ls -ltr "${FSDBDIR}" |tail -1 |awk '{print $NF}')
 
-# set all global variables or at least the ones necessary
-GETVAR=$(find "${FSDBDIR}" -type f -name getVar.sh)
-if [[ -f $GETVAR ]]; then
-	source "$GETVAR" #TODO: make sure, that the configs exist and are in the right locations, first (or inside of getVar)!!!!
-	modFSDBCONFIG=$(find $INITDIR -type f -name fsdb.config |grep -v template |tail -1)
-else
-	ADMINDIR="/tmp/"
-	LOG="$ADMINDIR/$(basename $0 .sh).log"
-	FSDBVERSION=fsdb
-	error "Can't locate getVar.sh in ${FSDBDIR}."
+# get variables of fsdb from getVar.sh
+if ! source getVar; then
+	dir=$thisDir 
+	for _ in $(seq 1 4); do
+		GV=$(find "$dir" -name "getVar.sh" -print -quit)
+		if [[ -f $GV ]]; then 
+			source "${GV}"
+			break 
+		else
+			dir="$(dirname "$dir")"
+		fi
+	done
+	if [[ ! -f "${GV}" ]]; then
+		ADMINDIR="/tmp/"
+		LOG="$ADMINDIR/$(basename $0 .sh).log"
+		FSDBVERSION=fsdb
+		error "Can't locate getVar.sh in ${FSDBDIR}."
+	fi
 fi
+modFSDBCONFIG=$(find $INITDIR -type f -name fsdb.config |grep -v template |tail -1)
 
 intro "As a linux tool the fsdb employes many other linux tools. 
 	Some of them are part of the standard linux installation; others will need to be installed. 
@@ -205,17 +217,13 @@ else
 #	echo "$(basename $0):modFSDBCONFIG: $modFSDBCONFIG"
 	
 	FSDBCONFIG=$SCRIPTSDIR/fsdb.config
-#	if [[ ! -f $FSDBCONFIG ]]; then
-		if [[ ! -f $modFSDBCONFIG ]]; then
-			msg "$defaultConfig --> $FSDBCONFIG\n"
-			cp -fv $defaultConfig $FSDBCONFIG
-		else
-			msg "$modFSDBCONFIG --> $FSDBCONFIG\n"
-			cp -fv $modFSDBCONFIG $FSDBCONFIG
-		fi
-#	else
-#		msg "$FSDBCONFIG already exists.\n"
-#	fi
+	if [[ ! -f $modFSDBCONFIG ]]; then
+		msg "$defaultConfig --> $FSDBCONFIG\n"
+		cp -fv $defaultConfig $FSDBCONFIG
+	else
+		msg "$modFSDBCONFIG --> $FSDBCONFIG\n"
+		cp -fv $modFSDBCONFIG $FSDBCONFIG
+	fi
 	msg "$INITDIR/ ---> $INSTDIR/\n"
 	rsync -Sau --exclude="fsdb.config" $INITDIR/ $INSTDIR/
 fi
