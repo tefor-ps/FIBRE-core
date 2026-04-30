@@ -99,14 +99,15 @@ if [[ $(grep -c -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $IN
 # remove problematic filenames from index
 	FILTERED=$(echo $INFILE |sed 's@.index$@.filtered@')
 	grep -v -f $PROBLEMATIC $INFILE > $FILTERED
-	mv $FILTERED $INFILE
+	mv $FILTERED $INFILE 2> $LOG
+	#TODO: implement alert as in makeProjectsDirs
 # fix filenames with white-spaces by replacing them with underscores
 	grep -P "[\x20]" $PROBLEMATIC |while read line; do
 		if [[ ! -d "$line" ]]; then
 			out=$(echo "$line" |sed 's@ @_@g') 
 			warn "renaming $line to $out"
 			mkdir -pv $(dirname $out)
-			mv -v "$line" $out
+			mv -v "$line" $out 2> $LOG
 			if [[ $? -eq 0 ]]; then
 # remove update line in PROBLEMATIC
 				sed -i "s@$line@$out@" $PROBLEMATIC
@@ -146,6 +147,7 @@ AE Æ
 oe œ
 OE Œ
 " > $DICT
+#TODO: expand DICT to include ',' and '{', and.... 
 # populate array of non-ascii characters from dictionary
 	cArr=($(cut -d " " -f 2- $DICT |sed -e 's@ @\n@g' -e '/^[[:space:]]*$/d'))
 # find and replace all non-ascii characters, one file name after the other.
@@ -163,7 +165,7 @@ OE Œ
 		dbg "$line --> $out"
 # apply new file name
 		mkdir -p "$(dirname $out)"
-		mv -v "$line" "$out"
+		mv -v "$line" "$out" 2> $LOG
 # update INDEX
 		if [[ $? -eq 0 ]]; then
 			sed -i "s@$line@@" $PROBLEMATIC
