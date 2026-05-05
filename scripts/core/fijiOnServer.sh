@@ -126,18 +126,69 @@ function fail(){
 }
 
 function get_active_session_type() {
-    local session_id session_type
-    session_id=$(loginctl list-sessions --no-legend \
-      | awk '{
-          if (NF==4) {sess=$1; user=$2; seat=$3; tty=$4; state="active"; remote="no"}
-          else if (NF>=8) {sess=$1; uid=$2; user=$3; seat=$4; tty=$5; state=$6; remote=$7}
-          if (seat=="seat0" && state=="active" && remote=="no") {print sess; exit}
-      }')
-    if [ -n "$session_id" ]; then
-        session_type=$(loginctl show-session "$session_id" -p Type --value)
-        echo "$session_type"
+    local user=${SUDO_USER:-$USER}
+    local best_sid=""
+    local best_ts=0
+    local best_type=""
+
+    while read -r sid _; do
+        # Read all needed properties in one call
+        local Name Active Remote Seat Type Timestamp
+        readarray -t props < <(
+            loginctl show-session "$sid" \
+                -p Name -p Active -p Remote -p Seat -p Type -p Timestamp \
+                --value 2>/dev/null
+        )
+
+        # Skip if session disappeared
+        [ "${#props[@]}" -lt 6 ] && continue
+
+        Name=${props[0]}
+        Active=${props[1]}
+        Remote=${props[2]}
+        Seat=${props[3]}
+        Type=${props[4]}
+        Timestamp=${props[5]}
+
+        # Normalize timestamp → epoch (fallback safe)
+        local ts_epoch
+        ts_epoch=$(date -d "$Timestamp" +%s 2>/dev/null || echo 0)
+
+        # Apply filters
+        if [ "$Name" = "$user" ] &&
+           { [ "$Active" = "yes" ] || [ "$Active" = "online" ]; } &&
+           [ "$Remote" = "no" ] &&
+           [ "$Seat" = "seat0" ]; then
+
+            # Prefer Wayland immediately
+            if [ "$Type" = "wayland" ]; then
+                echo "wayland"
+                return 0
+            fi
+
+            # Otherwise keep best fallback (typically X11)
+            if [ -z "$best_sid" ] || [ "$ts_epoch" -ge "$best_ts" ]; then
+                best_sid=$sid
+                best_ts=$ts_epoch
+                best_type=$Type
+            fi
+        fi
+    done < <(loginctl list-sessions --no-legend)
+
+    # Fallback to best candidate
+    if [ -n "$best_sid" ]; then
+        echo "$best_type"
+        return 0
+    fi
+
+    # Final fallback: environment (containers / non-systemd)
+    if [ "$XDG_SESSION_TYPE" = "wayland" ] || [ -n "$WAYLAND_DISPLAY" ]; then
+        echo "wayland"
+    elif [ "$XDG_SESSION_TYPE" = "x11" ] || [ -n "$DISPLAY" ]; then
+        echo "x11"
     else
         echo "none"
+        return 1
     fi
 }
 
@@ -154,6 +205,7 @@ function defineFiji(){
 				fijiOnX11
 			else
 				gs=$(get_active_session_type)
+				dbg2 "gs: $gs"
 				if [[ "$gs" == "wayland" ]]; then
 					fijiOnWayland
 				elif [[ "$gs" == "x11" ]]; then
