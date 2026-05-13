@@ -39,13 +39,15 @@ and are treated like merged images.
 
 README
 
+#fsdb-rev-date: 251105
+
 #TODO: implement search on $PROJECTSDIR ?
 
 #============================
 # function definitions
 #============================
 usage() {
-	printf "Usage: $(basename $0) [-p project] [-o order] [-h] absolute-paths
+	printf "Usage: $(basename $0) [-p project] [-d dir] [-o order] [-h] absolute-paths
 
 	-p	project/pattern
 			This is a limiting string, which is included in the 'find' command.
@@ -77,47 +79,6 @@ functionExplanation
 		warn "Guardian says: Invalid argument: $1" >&2
 		usage
 	fi
-}
-
-
-getTOG() {
-<<functionExplanation
-This function reads the toggles from $CONFIG and returns the corresponding (concatenated) suffix for the secondary data.
-Possible inputs are
-PP for _PPTOG for the pre-processing steps (color map correction, automatic cropping) 
-IP for _IPTOG for the actual image processing steps
-IA for _IATOG for the image annotation steps (scalebars, contrast settings)
-
-These GLOBAL toogles overrule the others, meaning if they are set 0, none of the 
-subordiante steps are performed, not matter of their toggles.
-
-!!! This function is returning the string $suffixString via echo. 
-Therefore it needs to stay silent (no other output) with the exception of the
-final 'echo $suffixString'
-functionExplanation
-	
-	proctog=_${1}TOG #process-toggle
-	suff=${1}SUFF
-	suffixString=""
-	global=GLOBAL${proctog}
-# respect global toggle	
-	if [[ ${!global} -eq 1 ]]; then
-		#grep $global $CONFIG # for debugging only, make sure to comment-out before using
-		for i in $(grep $proctog $CONFIG |cut -f 1 |grep -v ^# |grep -v 0 |grep -v GLOBAL|cut -d "_" -f 1); do 
-			if [[ $(grep ${i}$proctog $CONFIG |awk -F "|" '{print $NF}' |cut -d " " -f 2) -eq 1 ]]; then
-				#grep ${i}$proctog $CONFIG # for debugging only, make sure to comment-out before using
-				if [[ "$proctog" == "_IPTOG" ]]; then
-					suffixString="${suffixString} $(grep ${i}.*$suff $CONFIG |awk -F "|" '{print $NF}' |cut -d " " -f 2)"
-				else
-					suffixString=${suffixString}$(grep ${i}.*$suff $CONFIG |awk -F "|" '{print $NF}' |cut -d " " -f 2)
-				fi
-			fi
-		done
-	else
-		#dbg "preprocessing toggled off globally"
-		suffixString=""
-	fi
-	echo $suffixString
 }
 
 writeSubIndices() {
@@ -164,19 +125,35 @@ exportIndex() {
 # function calls
 #============================
 
-# set all global variables
-thisDir=$(dirname $(realpath $0))
-source $thisDir/../core/getVar.sh
+# get location of this script
+thisDir=$(dirname $(realpath "$0"))
 
-debug=3
+# get variables of fsdb from getVar.sh
+if ! source getVar; then
+	dir=$thisDir 
+	for _ in $(seq 1 4); do
+		GV=$(find "$dir" -name "getVar.sh" -print -quit)
+		if [[ -f $GV ]]; then 
+			source "${GV}"
+			break 
+		else
+			dir="$(dirname "$dir")"
+		fi
+	done
+	if [[ ! -f "${GV}" ]]; then
+		echo "ERROR: Can't find getVar.sh"
+		exit 555
+	fi
+fi
+intro $(basename $0)
 
-intro $0
+#debug=2
 
-dbg "starting ..."
 dbg2 $permissibleAgeOfIndex
 
 # set default values 
-INDIR=$LABDATADIR
+DEFAULTINDIR=$LABDATADIR/$IMPORTS/
+INDIR=$DEFAULTINDIR
 SEARCHSTRING="."
 FORCEINDEX=0
 HN=$(hostname)
@@ -225,8 +202,8 @@ dbg "$PSTRING $DSTRING $FSTRING"
 
 dbg "search string: $SEARCHSTRING"
 
-date
-D=$(date +%y%m%d)
+dbg2 $(date)
+#D=$(date +%y%m%d)
 
 # ensure INDEXDIR exists
 dbg "INDEXDIR: $INDEXDIR"
@@ -251,7 +228,8 @@ dbg2 "INDIR: $INDIR"
 
 # decide which directory to index
 if [[ -z $INDIR ]]; then
-	INDIR=$LABDATADIR/$IMPORTS/
+	warn "$INDIR does not exist. Falling back to $DEFAULTINDIR."
+	INDIR=$DEFAULTINDIR
 fi
 
 # Write list of raw data or reuse existing one, if it is not too old.
@@ -262,57 +240,34 @@ if [[ $(find $INDEX -ignore_readdir_race -mmin -$permissibleAgeOfIndex 2>/dev/nu
 	$FORCEINDEX is TRUE when '-f' is set in the call of this script.
 functionExplanation
 #TODO: backup $INDEX #???
-
 	ls -l $INDEX  2>&1 |tee -a $LOG
 	stop=1
 	warn "$INDEX is younger than $permissibleAgeOfIndex minutes. Skipping all index generation." |tee -a $LOG
 else
 	if [[ "$SEARCHSTRING" == "." ]]; then
 		dbg " Writing ${INDEX}. \n\tDepending on the number of files this may take some time. \n\tPlease be patient."
+# TODO: catch option -t here
 		find $INDIR/ -type f |grep -E /[0-9]{6} |grep -v lock |grep -v _QC |grep -v tiles  > $INDEX
 	else
 		dbg " Writing ${INDEX} for ${SEARCHSTRING}. \n\tThis should be rather quick. \n\tAnyhow, please be patient."
+# TODO: catch option -t here
 		find $INDIR/ -type f -name "*${SEARCHSTRING}*" |grep -E /[0-9]{6} |grep -v lock |grep -v _QC |grep -v tiles  > $INDEX
 	fi		
-#	time find $INDIR/ -type f |grep -E /[0-9]{6} |grep -v lock |grep -v _QC |grep -v tiles|grep $SEARCHSTRING  > $INDEX
-#	find $INDIR/ -type f |grep -E /[0-9]{6} |grep -v lock |grep -v _QC |grep -v tiles|grep $SEARCHSTRING  > $INDEX
 <<functionExplanation
-find $INDIR/ -type f          --> find exclusively files (no directories)
-   -name "*${SEARCHSTRING}*"  --> include only files which names contain $SEARCHSTRING
-   |grep -E /[0-9]{6}         --> which file names start with a six-digit timestamp
-   |grep -v lock              --> exculde lock-files
-   |grep -v _QC               --> exculde _QC-files (quality check files)
-   |grep -v tiles             --> exculde tiles 
-    > $INDEX                  --> (over-)writes $INDEX with new list 
+find $INDIR/                   --> search in $INDIR
+	-type f                    --> find exclusively files (no directories)
+	-name "*${SEARCHSTRING}*"  --> include only files which names contain $SEARCHSTRING
+	|grep -E /[0-9]{6}         --> which file names start with a six-digit timestamp
+	|grep -v lock              --> exculde lock-files
+	|grep -v _QC               --> exculde _QC-files (quality check files)
+	|grep -v tiles             --> exculde tiles 
+	> $INDEX                   --> (over-)write $INDEX with new list 
 functionExplanation
 	date
-	
-#	# filter index against unvalid characters
-#	# motivated by https://www.baeldung.com/linux/find-non-ascii-chars#:~:text=Non%2DASCII%20characters%20are%20those,ASCII%20characters%20within%20text%20files.
-#	# and https://donsnotes.com/tech/charsets/ascii.html
-#		if [[ $(grep -c -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $INDEX) -gt 0 ]]; then
-#			PROBLEMATIC=$(echo $INDEX |sed 's@.index$@.problematic@')
-#			warn "The follwing file names are problematic!" 
-#			grep --color='auto' -P "[^\x00-\x1F\x30-\x39\x41-\x5A\x61-\x7A\x2E\x2D\x5F\x2F]" $INDEX |tee $PROBLEMATIC
-#	# remove problematic filenames from index
-#			FILTERED=$(echo $INDEX |sed 's@.index$@.filtered@')
-#			grep -v -f $PROBLEMATIC $INDEX > $FILTERED
-#			mv $FILTERED $INDEX
-#	# fix filenames with white-spaces by replacing them with underscores
-#			grep -P "[\x20]" $PROBLEMATIC |while read line; do 
-#				out=$(echo "$line" |sed 's@ @_@g') 
-#				warn "renaming $line to $out"
-#				mkdir -pv $(dirname $out)
-#				mv -v "$line" $out
-#				if [[ $? -eq 0 ]]; then
-#	# remove line from PROBLEMATIC
-#					sed -i "@$line@d" $PROBLEMATIC
-#	# add corrected filename back to index
-#					echo $out >> $INDEX
-#				fi
-#			done
-#		fi
-	bash $CHECKPATH $INDEX
+# clean paths and filenames from non-ASCII characters
+	dbg2 "$CORESCRIPTS"
+	dbg2 "$CHECKPATH -i $INDEX"
+	bash $CHECKPATH -i $INDEX
 fi
 
 # remove leftover lock-files 

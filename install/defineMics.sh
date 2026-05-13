@@ -1,6 +1,6 @@
 #!/bin/bash
 <<README
-This script is part of the installation routine of the TPS fsdb23.
+This script is part of the installation routine of the TPS fsdb.
 
 This script interactively collects and saves the data needed to set up a connection 
 between the computer the fsdb is installed on and the computers which are providing 
@@ -9,27 +9,20 @@ image-generating devices).
 
 README
 
-
-<<STATUS
-tested on
-- windows: does not apply 
-- wsl: 230914; OK
-- linux:
-STATUS
-
-# set all global variables
-thisDir=$(dirname $(realpath $0))
-if [[ -z $1 ]]; then
-	source $thisDir/../scripts/core/getVar.sh
-else 
-	source $1/core/getVar.sh
-fi
+#fsdb-rev-date: 260210
 
 function getIP() {
-	while [[ -z $IPaddress ]] ||  [[ ! $IPaddress =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; do 
-		intro "Enter IP address of remote computer (microscope):"
-		read -p "IP adddress: " IPaddress
-	done 
+	regex='^((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])$'
+	while :; do
+		if [[ -n $IPaddress ]]; then
+			intro "Reuse or modify recently used IP address of remote computer (microscope):"
+			read -e -i "$IPaddress" -p $'\tIP address: ' IPaddress
+		else
+			intro "Enter IP address of remote computer (microscope):"
+			read -p $'\tIP address: ' IPaddress
+		fi
+		[[ $IPaddress =~ $regex ]] && break
+	done
 	msg "Testing accessibility of $IPaddress. This will take a couple of seconds.\n"
 	curl -s --max-time 3 $IPaddress >/dev/null
 	res=$?
@@ -52,7 +45,7 @@ function getMountPoint(){
 	read -e -p "mount-point: " mountPoint
 #check if mountpoint exists, dont' allow overwrite
 	if [[ -d $mountPoint ]]; then
-		skipRest "$mountPoint already exists. Preparing to re-define this mount-point." getMountPoint
+		skipRest "$mountPoint already exists. Please re-define this mount-point." getMountPoint
 	fi
 	mkdir -p $mountPoint
 	if [[ $(echo $?) -gt 0 ]];then
@@ -69,7 +62,7 @@ function getCredName(){
 	fi
 }
 
-function getCreds(){
+function addCreds(){
 	intro "Generating credential file for autonomous access of this comupter to the remote computer (microscope)." 
 	intro "Enter the name of the account, which shall be used to connect to the remote computer."
 	read -p "account: " admin
@@ -103,9 +96,46 @@ function defineMic(){
 	getMountPoint
 	getCredName
 	addRemote
-	getCreds
-	skipPerm "Preparing to add another microscope." defineMic
+	addCreds
+	skipPerm "Preparing to add another data source." defineMic
 }
+
+function fail(){
+	date
+	printf "\033[31mError in $(basename $0):${FUNCNAME[2]}:${FUNCNAME[1]} $@ \033[0m"
+	printf "\033[31m\nExiting.\033[0m\n"
+	exit 128
+}
+
+## ======
+## FUNCTION CALLS
+## ======
+
+
+
+# get location of this script
+thisDir=$(dirname $(realpath "$0"))
+
+# get variables of fsdb from getVar.sh
+if ! source getVar; then
+	dir=$thisDir 
+	for _ in $(seq 1 4); do
+		GV=$(find "$dir" -name "getVar.sh" -print -quit)
+		if [[ -f $GV ]]; then 
+			source "${GV}"
+			break 
+		else
+			dir="$(dirname "$dir")"
+		fi
+	done
+	if [[ ! -f "${GV}" ]]; then
+		echo "ERROR: Can't find getVar.sh"
+		exit 555
+	fi
+fi
+intro $(basename $0)
+
+#debug=2
 
 header="IP name-of-share mount-point credential-name"
 if [[ -f $MICS && $(grep -c "mountMic" $MICS) -gt 0 ]]; then
@@ -117,6 +147,4 @@ else
 	warn "User interaction needed: define computers (of microscopes) which shall be accessed by this computer."
 	defineMic
 fi
-
-
 

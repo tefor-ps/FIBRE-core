@@ -11,29 +11,29 @@ README
 
 #TODO: This script does not work (yet),as intended. Needs a general overhaul.
 
-# set all global variables
-thisDir="$(realpath "$(dirname "$0")")"
-# define FSDBDIR, which is the root of the fsdb, 
-# dynamically on the basis of the location of this script
-if [[ "$thisDir" =~ /fsdb[0-9]{2}/ ]]; then
-	FSDBDIR="$(realpath $thisDir |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
-else
-	FSDBDIR="$(realpath $thisDir/../..)"
-fi
+# get location of this script
+thisDir=$(dirname $(realpath "$0"))
 
-# set all global variables or at least the ones necessary
-GETVAR=$(find $FSDBDIR -type f -name getVar.sh)
-if [[ -f $GETVAR ]]; then
-	source "$GETVAR"
-	intro "$0"
-else
-	ADMINDIR="/tmp/"
-	LOG="$ADMINDIR/$(basename $0 .sh).log"
-	FSDBVERSION=fsdb
-	error "Can't locate getVar.sh."
+# get variables of fsdb from getVar.sh
+if ! source getVar; then
+	dir=$thisDir 
+	for _ in $(seq 1 4); do
+		GV=$(find "$dir" -name "getVar.sh" -print -quit)
+		if [[ -f $GV ]]; then 
+			source "${GV}"
+			break 
+		else
+			dir="$(dirname "$dir")"
+		fi
+	done
+	if [[ ! -f "${GV}" ]]; then
+		echo "ERROR: Can't find getVar.sh"
+		exit 555
+	fi
 fi
+intro $(basename $0)
 
-debug=2
+#debug=2
 
 #define documentation input directory
 callDir=$(find $(pwd) -type d -name "documentation")
@@ -95,7 +95,7 @@ for CATDIR in $(find $FSDBDIR -mindepth 1 -maxdepth 3 -type d -name "fsdb-*" |gr
 done
 
 
-# if run for an external moduel, add 'chapters' for its scripts and macros 
+# if run for an external modul, add 'chapters' for its scripts and macros 
 if [[ "$callDir" != "$thisDir" ]]; then
 	printf "## file-specific documentation for the $mod    \n" >> $READMETMP
 	printf "(in alphabetical order)\n---\n" >> $READMETMP 

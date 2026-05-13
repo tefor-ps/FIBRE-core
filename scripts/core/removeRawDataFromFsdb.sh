@@ -4,14 +4,31 @@ This script removes the raw data (only) from inputPath.
 
 README
 
-# set all global variables
-thisDir=$(dirname $(realpath $0))
-source $thisDir/../core/getVar.sh
-source $thisDir/paramChecksum.sh
+#fsdb-rev-date: 251112
 
-#debug=1
+# get location of this script
+thisDir=$(dirname $(realpath "$0"))
 
-intro $0
+# get variables of fsdb from getVar.sh
+if ! source getVar; then
+	dir=$thisDir 
+	for _ in $(seq 1 4); do
+		GV=$(find "$dir" -name "getVar.sh" -print -quit)
+		if [[ -f $GV ]]; then 
+			source "${GV}"
+			break 
+		else
+			dir="$(dirname "$dir")"
+		fi
+	done
+	if [[ ! -f "${GV}" ]]; then
+		echo "ERROR: Can't find getVar.sh"
+		exit 555
+	fi
+fi
+intro $(basename $0)
+
+debug=2
 
 # make sure, $DUMPDIR exists
 sudo mkdir -pv $DUMPDIR

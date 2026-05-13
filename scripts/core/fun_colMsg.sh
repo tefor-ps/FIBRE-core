@@ -54,7 +54,18 @@ getLevel() {
 
 if [[ -z $LOG ]]; then
 	td=$(realpath $(dirname $BASH_SOURCE))
-	LOGDIR=$td/../../logs
+	FSDBDIR=$(echo $td |sed 's@\(fsdb[0-9][0-9]\)/.*@\1@')
+	if [[ "$td" == "$FSDBDIR" ]]; then
+		LOGDIR=$td/logs
+	else
+		FSDBCONFIG=$(find $FSDBDIR -name "fsdb.config" |grep -v templates)
+		if [[ -f $FSDBCONFIG ]]; then 
+			LD=$(grep LOGDIR $FSDBCONFIG |awk '{printf $2}')
+			LOGDIR=$(eval echo $LD)
+		else
+			LOGDIR=$td/logs
+		fi
+	fi
 	mkdir -p $LOGDIR
 	LOG="$LOGDIR/$D.$(basename $0 .sh).log"
 fi
@@ -66,7 +77,7 @@ error() { if [[ -t 2 ]] ; then date >> $LOG; printf $'\e[37;1;41m'"\r\e[2KERROR:
 # green message, no new line
 msg() { if [[ -t 2 ]] ; then printf $'\r\e[2K\t\e[32;1;40m'"$(basename $0): $@"$'\e[0m\r' || echo "$@"; else echo "$@"; fi >&1 ;}
 # red warning message
-warn() { if [[ -t 2 ]] ; then date >> $LOG; printf $'\r\e[2K\t\e[31;1;40m'"$(basename $0): $@"$'\e[0m\n' |tee -a $LOG; else echo "$@"; fi >&1 ;}
+warn() { if [[ -t 2 ]] ; then date >> $LOG 2>/dev/null; printf $'\r\e[2K\t\e[31;1;40m'"$(basename $0): $@"$'\e[0m\n' |tee -a $LOG 2>/dev/null; else echo "$@"; fi >&1 ;}
 # magenta debuggin message level 1 (most prevalent)
 dbg() { if [[ -t 2 ]] ; then if [[ $(getLevel) -ge 1 ]]; then printf $'\r\e[2K\t\e[35;1;40m'"$(basename $0): $@"$'\e[0m\n'; fi else echo "$@"; fi >&1 ;}
 # beige debugging message level 2
@@ -77,8 +88,9 @@ dbg3() { if [[ -t 2 ]] ; then if [[ $(getLevel) -ge 3 ]]; then printf $'\r\e[2K\
 interPerm(){ if [[ -t 2 ]] ; then printf $'\r\e[2K\t\e[32;1;40m'"$(basename $0): $@"$'\e[0m\n'; questPerm; else echo "$@"; fi >&1 ;}
 # white question and answer used by inter()
 questPerm(){ 
-	printf "\r\e[2K\tDo you want to proceed? [Y/n]\n"; 
-	read -i "Y" -e ans; 
+#	printf "\r\e[2K\tDo you want to proceed? [Y/n]\n"; 
+	intro "Do you want to proceed? [Y/n]"; 
+	read -p $'\t' -i "Y" -e ans; 
 	if [[ "$ans" =~ [Yy] || -z $ans ]]; then 
 		msg "going ahead\n";
 	elif [[ "$ans" =~ [Nn] ]]; then
@@ -93,10 +105,11 @@ questPerm(){
 interRest(){ if [[ -t 2 ]] ; then printf $'\r\e[2K\t\e[31;1;40m'"$(basename $0): $@"$'\e[0m\n'; questRest; else echo "$@"; fi >&1 ;}
 # white question and answer used by inter()
 questRest(){
-	printf "\r\e[2K\tDo you want to proceed? [y/N]\n"; 
-	read -i "N" -e ans; 
+#	printf "\r\e[2K\tDo you want to proceed? [y/N]\n"; 
+	intro "Do you want to proceed? [y/N]"; 
+	read -p $'\t' -i "N" -e ans; 
 	if [[ "$ans" =~ [Yy] ]]; then 
-		msg "going ahead\ns";
+		msg "going ahead\n";
 	elif [[ "$ans" =~ [Nn] ]]; then
 		error "abort by user.";
 		exit 1;
@@ -107,6 +120,15 @@ questRest(){
 }
 # cyan text on black background to introduce the current script or say something important
 intro() { if [[ -t 2 ]] ; then printf $'\r\e[2K\t\e[36;1m'"$@"$'\e[0m\n'; else echo "$@"; fi >&2 ;}
+
+# graceful failure and exit.
+function fail(){
+	warn "$(date)"
+	warn "${FUNCNAME[2]}:${FUNCNAME[1]} $@"
+	warn "Exiting."
+	cv=36
+	exit 128
+}
 
 # standardized replies for the skipping-procedures
 #skip() { if [[ -t 2 ]] ; then msg "${ans}: skipping this step.\n" >&2 ; else echo "$@"; fi >&2 ; skipFlag=1;}
@@ -140,13 +162,17 @@ skipPerm(){
 	if [[ -t 2 ]] ; then
 		task=${@:2}
 		intro "$1"; 
-		read -e -p "Do you want to proceed? [Y/n]: " -i "Y" ans; 
+		intro "Do you want to proceed? [Y/n/e]: "
+		read -p $'\t' -i "Y" -e ans; 
 		case $ans in
 			[Yy])
 				proceed ${@:2}
 				;;
 			[Nn])
-				skip 
+				skip $task
+				;;
+			[Ee])
+				fail "Abort by user."
 				;;
 			*)
 				wrong
@@ -164,13 +190,17 @@ skipRest(){
 	if [[ -t 2 ]] ; then 
 		task=${@:2}
 		intro "$1"; 
-		read -e -p "Do you want to proceed? [y/N]: " -i "N" ans; 
+		intro "Do you want to proceed? [y/N/e]: "
+		read -p $'\t' -i "N" -e ans; 
 		case $ans in
 			[Yy])
 				proceed ${@:2}
 				;;
 			[Nn])
 				skip $task 
+				;;
+			[Ee])
+				fail "Abort by user."
 				;;
 			*) 
 				wrong

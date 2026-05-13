@@ -34,6 +34,8 @@ xvfb-run-safe [*]: motivated by https://stackoverflow.com/a/30336424
 
 README
 
+#fsdb-rev-date: 260205
+
 #TODO: integrate into extractReadme
 #TODO: modify function-descriptions to be reflected in extractREADME (--> <<README)
 
@@ -41,54 +43,113 @@ README
 ## FUNCTION DEFINITIONS
 ## ======
 
+# cyan text on black background to introduce the current script or say something important
+intro() { if [[ -t 2 ]] ; then printf $'\r\e[2K\t\e[36;1m'"$@"$'\e[0m\n'; else echo "$@"; fi >&2 ;}
+# red warning message
+warn() { if [[ -t 2 ]] ; then date 2>/dev/null; printf $'\r\e[2K\t\e[31;1;40m'"$(basename $0): $@"$'\e[0m\n' 2>/dev/null; else echo "$@"; fi >&1 ;}
+# error message; white on red background
+error() { if [[ -t 2 ]] ; then date ; printf $'\e[37;1;41m'"\r\e[2KERROR:\t$0: $@"$'\e[0m\n' ; else echo "$@"; fi >&2 ;}
 
 function installLatestJava(){
 	latestJDK=$( apt-cache search openjdk |grep -e "-jdk" |grep "(JDK)" |grep -v headless |sort |head -1 |cut -d " " -f 1)
 	apt-get install -y $latestJDK
 }
 
-function installFiji() {
-	# installation of fiji and the fsdb macros within
-	dbg " Next step: fiji installation."
-	cd /tmp
-	wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip
-	unzip -d $SCRIPTSDIR -o fiji-linux64.zip && rm fiji-linux64.zip 
-	#rsync -Sauv /tmp/Fiji.app/ $SCRIPTSDIR/Fiji.app/
-	chmod -R a+rx $SCRIPTSDIR/Fiji.app/
-	sudo ln -s $SCRIPTSDIR/Fiji.app/ImageJ-linux64 /usr/local/bin/fiji #TODO: check if this is really necessary!!
-	# update fiji
-	fiji --update update
-}
-
-function installBFtools(){
-	# install bftools
-	dbg "Next step: installation of bioformats tools (bftools)."
-	cd /tmp
-	wget http://downloads.openmicroscopy.org/bio-formats/latest/artifacts/bftools.zip
-	unzip -d $SCRIPTSDIR -o bftools.zip && rm bftools.zip
-	chmod -R a+rx $SCRIPTSDIR/bftools/*
-}
-
-function defineScriptsDir() {
-	if [[ -z $1 ]]; then 
-		read -p "User interaction needed: Enter the path to the fsdb scripts directory: " -i $SCRIPTSDIR -e SCRIPTSDIR
-		SCRIPTSDIR=$(realpath $SCRIPTSDIR)
-	else
-		SCRIPTSDIR=$(realpath $1)
-	fi
-	if [[ $(basename $SCRIPTSDIR) != "scripts" ]]; then
-		printf "$SCRIPTSDIR does not end on 'scripts'. Please try again.\n"
-		defineScriptsDir
-	else
-		if [[ ! -d $SCRIPTSDIR ]]; then
-			printf "$SCRIPTSDIR does not exist. Please try again.\n"
-			defineScriptsDir
+function touchDir() {
+	# check if 'SCRIPTSDIR' exists 
+	if [[ ! -d $1 ]]; then
+		# create 'SCRIPTSDIR' because user set $2 greater than 0
+		if [[ $2 -gt 0 ]]; then
+			#mkdir -pv $1
+			mkdir -p $1
+		else
+			# ask for permission to create 'SCRIPTSDIR'
+			read -p "$1 is not a directory. Do you want to create it? " -i "y" -e ans
+			if [[ "$ans" == "y" ]]; then
+				mkdir -pfv $1
+				#mkdir -p $1
+			else
+				error "Please try again."
+				defineScriptsDir
+			fi
 		fi
 	fi
 }
 
-error() { if [[ -t 2 ]] ; then date >> $LOG; printf $'\e[37;1;41m'"\r\e[2KERROR:\t$0: $@"$'\e[0m\n' |tee -a $LOG; else echo "$@"; fi >&2 ;}
+function defineScriptsDir() {
+	# Determine the invoking user's home directory, even under sudo
+	if [[ -n "$SUDO_USER" ]]; then
+		INVOKING_HOME=$(eval echo "~$SUDO_USER")
+	else
+		INVOKING_HOME="$HOME"
+	fi
+	if [[ -z $1 ]]; then
+    	read -p "User interaction needed: Enter the path to the fsdb scripts directory: " -i $SCRIPTSDIR -e SCRIPTSDIR
+		SCRIPTSDIR="$(realpath $(echo "${SCRIPTSDIR}" | sed "s@~@$INVOKING_HOME@"))"
+	else
+		SCRIPTSDIR="$(realpath $(echo "${1}" | sed "s@~@$INVOKING_HOME@"))"
+	fi
+	# check if 'SCRIPTSDIR' ends on 'scripts'
+	if [[ $(basename $SCRIPTSDIR) != "scripts" ]]; then
+		error "$SCRIPTSDIR does not end on 'scripts'. Please try again."
+		defineScriptsDir
+	else
+		touchDir $SCRIPTSDIR 1
+	fi
+	FSDBDIR="$(realpath $SCRIPTSDIR |sed -r 's@(/fsdb[0-9]{2}/).*@\1@')"
+}
 
+function fail(){
+	warn "$(date)"
+	warn "Error in $(basename $0):${FUNCNAME[2]}:${FUNCNAME[1]} $@ "
+	warn "Exiting."
+	exit 333
+}
+
+function selectModules(){
+	# update all scripts and macros of selected modules of the fsdb
+	printf "updating fsdb...\n"
+	# list all installable repos
+	index=0
+	lineArr=("all")
+	repoBase=https://gitlab.com/
+	modArr=($(curl -s "${repoBase}api/v4/groups/tefor/projects?per_page=1000" | jq -r '.[].path_with_namespace' |sort ))
+	defaultModules=($(echo ${modArr[@]} |tr " " "\n" |grep -e core -e install))
+	facultativeModules=($(printf '%s\n' "${modArr[@]}" |grep -vxF -f <(printf '%s\n'  "${defaultModules[@]}")))
+	intro "$index\t${lineArr[$index]}";
+	index=$((index+1)) 
+	while read line ; do 
+		lineArr[$index]="$line"
+		intro "$index\t${lineArr[$index]}"; 
+		index=$((index+1)) 
+	done < <(printf '%s\n' ${facultativeModules[@]})
+	# guide selelction of repos, which shall be installed
+	intro "Which repo(s) do you want to install? (type indices, whitespace-separated) "
+	intro "The modules ($(echo ${defaultModules[@]})) will be installed by default."
+	read -p $'\t' -e repos
+
+	# check if the user selected "all" (index 0)
+	if [[ $(echo $repos |grep -w -c 0) -gt 0 ]]; then
+		maxInd=$((${#lineArr[@]}-1))
+	# generate array of all repos
+		repoArr=(${modArr[@]})
+	else
+	#populate default modules (fsdb-install, fsdb-core)
+		repoArr=($(printf '%s\n' ${defaultModules[@]} ))
+		c=${#repoArr[@]}
+	# generate array of selected repos
+		for i in $repos; do
+	# ensure valid input
+			if [[ $i -le $((${#lineArr[@]}-1)) ]]; then
+				repoArr[$c]=${lineArr[$i]}
+				c=$((c+1))
+			else
+				echo "ERROR: invalid entry $i. Retry."
+				selectModules				
+			fi
+		done
+	fi
+}
 
 ## ======
 ## FUNCTION CALLS
@@ -96,44 +157,96 @@ error() { if [[ -t 2 ]] ; then date >> $LOG; printf $'\e[37;1;41m'"\r\e[2KERROR:
 
 #debug=2
 
-if [[ -d $1 ]]; then
-	defineScriptsDir $1
-else
-	defineScriptsDir
+# get location of this script
+thisDir=$(dirname $(realpath "$0"))
+
+# initialize 'SCRIPTSDIR'
+defineScriptsDir $@
+
+# update all scripts and macros of selected modules of the fsdb
+selectModules
+echo ${repoArr[@]}
+
+# ensure, that user.name and user.email are set in git
+if ! git config user.name >/dev/null; then
+  git config --local user.name "$(whoami)"
+  echo "git user.name was automatically set to $(whoami) (--local)"
+  echo "Please ensure resetting it to a correct value before contributing to any of the fsdb-repositories"
 fi
 
-# update all scripts and macros of the fsdb
-printf "updating fsdb...\n"
-cd $SCRIPTSDIR
-git pull 
-printf "fsdb-scripts updated.\n"
+if ! git config user.email >/dev/null; then
+  git config --local user.email "$(whoami)@$(hostname)"
+  echo "git user.email was automatically set to $(whoami)@$(hostname) (--local)"
+  echo "Please ensure resetting it to a correct value before contributing to any of the fsdb-repositories"
+fi
 
-# activate (default) configuration files as needed
-for i in $(find $SCRIPTSDIR -name "*config.default"); do 
-	conf=$(echo $i |sed 's@.default@@'); 
-	if [[ -f $conf  ]]; then 
-#		dbg2 "$conf already exists"
-		printf "$conf already exists\n" 
+
+# clone or pull selected repos
+for repo in ${repoArr[@]}; do 
+	intro "Updating or installing from  $repoBase/$repo"
+	repoBn=$(basename $repo)
+	if [[ -d ${FSDBDIR}/$repoBn ]]; then
+# create temporary directory for download and unpacking.
+		TMPDIR=$(mktemp -d)
+		cd "$TMPDIR" || fail "Can't access $TMPDIR"
+# clone repo into temporary directory	
+		git clone $repoBase/$repo || fail "Can't access $repoBase/$repo"
+# rsync (updating) repo into final location 
+		repoDir="$(basename $repo .git)"
+		mkdir -pv "${repoDir}"
+		sudo rsync -Sau "${TMPDIR}/${repoDir}/" "${FSDBDIR}/${repoDir}/" || fail "Can't transfer files from ${TMPDIR}/${repoDir}/ to ${FSDBDIR}/${repoDir}/"
+# remove temporary directory
+		cd -
+		rm -rf $TMPDIR
 	else
-		cp -v $i $conf
+# clone repo into FSDBDIR
+		cd "${FSDBDIR}" || fail "Can't access ${FSDBDIR}" 
+		git clone $repoBase/$repo || fail "Can't access $repoBase/$repo"
 	fi
+# generate time-stamped commit
+	cd ${FSDBDIR}/${repoDir}/
+	git add --all
+	git commit -am "$(date)"
+# set pull-mode to 'merge'
+	git config pull.rebase false
 done
+intro "fsdb-modules updated."
 
 # set all global variables
 GETVAR=$(find $SCRIPTSDIR -name getVar.sh)
-if [[ $2 == "config" ]];then
+ln -svf $GETVAR /usr/local/bin/getVar
+if [[ $2 == "config" ]]; then #TODO: check if meaningful at this location
 	source $GETVAR config
 else
-	source $GETVAR
+	# get variables of fsdb from getVar.sh
+	if ! source getVar; then
+		dir=$thisDir 
+		for _ in $(seq 1 4); do
+			GV=$(find "$dir" -name "getVar.sh" -print -quit)
+			if [[ -f $GV ]]; then 
+				source "${GV}"
+				break 
+			else
+				dir="$(dirname "$dir")"
+			fi
+		done
+		if [[ ! -f "${GV}" ]]; then
+			echo "ERROR: Can't find getVar.sh"
+			exit 555
+		fi
+	fi
+	intro $(basename $0)
 fi
 
 ## from here on this script uses the variables defined in the configuration file (.scripts.config)
+
+skipPerm "Next step: Installation of fsdb infrastructure." 
 
 # install java
 <<javainstall
  In its latest version bftools depends on java8 or later to function. Otherwise it will throw an error: 
  java.lang.UnsupportedClassVersionError: loci/formats/tools/ImageInfo : Unsupported major.minor version 52.0 
- This can be fixed by installing the latetes java as described here. Today (2019) this is java11.
+ This can be fixed by installing the latetes java as described here. Today (2025) this is openjdk 21.0.8.
 javainstall
 which java
 if [[ $? -eq 0 ]]; then
@@ -151,22 +264,27 @@ else
 fi
 
 <<fijiinstall
-fiji is just imagej - batteries included. This is an application used extensively within the fsdb. 
+fiji is just imagej - batteries included. This is an application used extensively used within the fsdb. 
 fijiinstall
-if [[ -f $FIJISDIR/fiji ]]; then
-	skipRest "Fiji is already installed. Do you want to reinstall anyhow?" installFiji
+
+if [[ -f $FIJIDIR/fiji ]]; then
+	skipRest "Fiji is already installed. Do you want to reinstall anyhow?" bash $FIJI_SETUP
 else
-	installFiji
+	# as FIJI_SETUP is defined in sdg.config we need to check, if it is defined and the corresponding script exists.
+	if [[ ! -z $FIJI_SETUP && -f $FIJI_SETUP]]; then
+		bash $FIJI_SETUP
+	fi
 fi
+#fail "debugging exit. COREINSTALL: $COREINSTALL"
 
 <<bftoolsinstall
 The OME bio-format tools are a central component of the fsdb. They are responsible for seamless reading and writing 
 of image file formats. more info on these tools at https://www.openmicroscopy.org/bio-formats/
 bftoolsinstall
 if [[ -f $SCRIPTSDIR/bftools/showinf ]]; then
-	skipRest "bftools are already installed. Do you want to reinstall anyhow?" installBFtools
+	skipRest "bftools are already installed. Do you want to reinstall anyhow?" bash $BFT_SETUP
 else
-	installBFtools
+	bash $BFT_SETUP
 fi
 	
 # set up samba 
@@ -178,9 +296,9 @@ It DOES NOT deal with samba-accounts/passwords as this task is handled by makeAc
 smb_install
 which samba
 if [[ $? -eq 0 ]]; then
-	skipRest "Samba $(samba --version) is installed on this system. Do you want to reinstall anyhow?" bash $MATDIR/smb-install.sh $SCRIPTSDIR   
+	skipRest "Samba $(samba --version) is installed on this system. Do you want to reinstall anyhow?" bash $SMB_SETUP $SCRIPTSDIR   
 else
-	skipPerm "Next step: samba-installation." bash $MATDIR/smb-install.sh $SCRIPTSDIR
+	skipPerm "Next step: samba-installation." bash $SMB_SETUP $SCRIPTSDIR
 fi
 
 # generate user accounts
@@ -188,7 +306,7 @@ fi
 the script makeAccounts creates the necessary unix user account and assigns them 
 to the necessary groups and permissions (as defined in fsdb.config).
 makeAccounts
-skipPerm "Next step: generation of user accounts." sudo bash $MATDIR/makeAccounts.sh $SCRIPTSDIR
+skipPerm "Next step: generation of user accounts." sudo bash $ACCOUNTS_SETUP $SCRIPTSDIR
 
 dbg "accounts set up. Next step: generation of folder structure."
 
@@ -225,14 +343,14 @@ dbg "folders set up. "
 The processes of the fsdb are triggered in regular intervals using cron. 
 The script setCron is configuring the local cron-job.
 setCron
-skipPerm "Next step: setup of scheduling for the fsdb-scripts." bash $MATDIR/setCron.sh $SCRIPTSDIR
+skipPerm "Next step: setup of scheduling for the fsdb-scripts." bash $CRON_SETUP $SCRIPTSDIR
 
 
 # define new remote computers (acquisition machines) for data import
 <<defineMics
 
 defineMics
-skipPerm "Next  step: defining new acquisition machines." bash $MATDIR/defineMics.sh $SCRIPTSDIR
+skipPerm "Next  step: defining new acquisition machines." bash $MICS_SETUP $SCRIPTSDIR
 
 
 # mount the image acqisition machines.
@@ -248,7 +366,7 @@ dbg "acquisition machines connected"
 This script is writing a .bat file and provides the tooling (Bat_To_Exe_Converter.exe) to convert it to an executable. 
 The executable is meant to be run on windows computers to connect them easily to the fsdb-server. 
 makeBat
-skipPerm "Next (last) step: Build of connection-tool for windows desktop computers." bash $MATDIR/makeBat.sh $SCRIPTSDIR
+skipPerm "Next (last) step: Build of connection-tool for windows desktop computers." bash $BAT_SETUP $SCRIPTSDIR
 
 intro "Congrats. Your fsdb is ready to use"
 
