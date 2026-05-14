@@ -87,6 +87,7 @@ FSDBDIRSTATUS=$?
 FSDBDIR=$(echo $thisDir |sed "s@$FSDBDIRSTRING.*@$FSDBDIRSTRING@")
 # define log
 LOGDIR=$FSDBDIR/log
+mkdir -pv $LOGDIR
 D=$(date +%y%m%d)
 LOG=$LOGDIR/${D}.$(basename $0 .sh).log
 # exit gracefully, if FSDBDIR can't be found.
@@ -104,6 +105,12 @@ for dir in $(dirname $(find $FSDBDIR -name ".git" )); do
 # update knowledge of the remote.
 	dbg2 "git fetch"
 	git fetch
+	festchstatus=$?
+	dbg3 $festchstatus
+	if [[ $festchstatus -ne 0 ]]; then
+		error "fetch didn't succeed. Skipping."
+		break
+	fi
 # select the right branch
 	dbg2 "git checkout $branch"
 	git checkout $branch
