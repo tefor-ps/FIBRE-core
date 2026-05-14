@@ -79,9 +79,10 @@ for dir in $(dirname $(find $FSDBDIR -name ".git" )); do
 	cd $dir
 	dbg2 $(pwd)
 # select the right branch
+	dbg2 "git checkout $branch"
 	git checkout $branch
 	if [[ $? -ne 0 ]]; then
-		error "ERROR: $dir doesn't have branch $branch. Skipping."
+		error "$dir doesn't have branch $branch. Skipping."
 	else
 # get latest version from online repository
 		dbg2 "git stash"
