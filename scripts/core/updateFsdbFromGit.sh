@@ -106,7 +106,7 @@ for dir in $(dirname $(find $FSDBDIR -name ".git" )); do
 	dbg2 "git fetch"
 	git fetch
 	festchstatus=$?
-	dbg3 $festchstatus
+	dbg3 "festchstatus: $festchstatus"
 	if [[ $festchstatus -ne 0 ]]; then
 		error "fetch didn't succeed. Skipping."
 	else
@@ -114,13 +114,14 @@ for dir in $(dirname $(find $FSDBDIR -name ".git" )); do
 		dbg2 "git checkout $branch"
 		git switch $branch
 		switchstatus=$?
-		dbg3 $switchstatus
+		dbg3 "switchstatus: $switchstatus"
 		if [[ $switchstatus -ne 0 ]]; then
 			dbg2 "git stash ($(git branch --show-current)) push -m $D"
 			git stash push -m "$D"
 # try switching again
 			git switch $branch
 			switchstatus=$?
+			dbg3 "switchstatus 2: $switchstatus"
 			if [[ $switchstatus -ne 0 ]]; then
 				error "$dir doesn't have branch $branch. Skipping."
 			fi
