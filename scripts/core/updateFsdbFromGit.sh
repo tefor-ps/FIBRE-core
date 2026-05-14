@@ -18,6 +18,8 @@ set -o pipefail
 force=0
 defaultBranch=stable
 branch=$defaultBranch
+# define local debug level. Comment out to follow default debug level (1).
+debug=3
 
 function usage() {
 <<readme
@@ -30,7 +32,6 @@ readme
 		" 1>&2
 	exit 1
 }
-
 
 while getopts "hfm" opt; do
 	printf "Option -$opt was triggered. " >&2 
@@ -48,54 +49,66 @@ while getopts "hfm" opt; do
 done
 shift $((OPTIND-1))
 
-# get location of this script
-thisDir=$(dirname $(realpath "$0"))
+# set debug level (default 1) by variable of parameter 
+getLevel() { 
+	if [[ -z $debug ]]; then 
+		if [[ -z $DEBUGLEVEL ]]; then 
+			debug=1; 
+		else 
+			debug=$DEBUGLEVEL ; 
+		fi ; 
+	fi ; 
+	echo $debug ;
+}
 
-# get variables of fsdb from getVar.sh
-if ! source getVar; then
-	dir=$thisDir 
-	for _ in $(seq 1 4); do
-		GV=$(find "$dir" -name "getVar.sh" -print -quit)
-		if [[ -f $GV ]]; then 
-			source "${GV}"
-			break 
-		else
-			dir="$(dirname "$dir")"
-		fi
-	done
-	if [[ ! -f "${GV}" ]]; then
-		echo "ERROR: Can't find getVar.sh"
-		exit 555
-	fi
-fi
+# error message; white on red background
+error() { if [[ -t 2 ]] ; then date >> $LOG; printf $'\e[37;1;41m'"\r\e[2KERROR:\t$0: $@"$'\e[0m\n' |tee -a $LOG; else echo "$@"; fi >&2 ;}
+# green message, no new line
+msg() { if [[ -t 2 ]] ; then printf $'\r\e[2K\t\e[32;1;40m'"$(basename $0): $@"$'\e[0m\r' || echo "$@"; else echo "$@"; fi >&1 ;}
+# red warning message
+warn() { if [[ -t 2 ]] ; then date >> $LOG 2>/dev/null; printf $'\r\e[2K\t\e[31;1;40m'"$(basename $0): $@"$'\e[0m\n' |tee -a $LOG 2>/dev/null; else echo "$@"; fi >&1 ;}
+# magenta debuggin message level 1 (most prevalent)
+dbg() { if [[ -t 2 ]] ; then if [[ $(getLevel) -ge 1 ]]; then printf $'\r\e[2K\t\e[35;1;40m'"$(basename $0): $@"$'\e[0m\n'; fi else echo "$@"; fi >&1 ;}
+# beige debugging message level 2
+dbg2() { if [[ -t 2 ]] ; then if [[ $(getLevel) -ge 2 ]]; then printf $'\r\e[2K\t\e[33;1;40m'"$(basename $0): $@"$'\e[0m\n'; fi else echo "$@"; fi >&1 ;}
+# dark-blue debugging message level 3
+dbg3() { if [[ -t 2 ]] ; then if [[ $(getLevel) -ge 3 ]]; then printf $'\r\e[2K\t\e[34;1;40m'"$(basename $0): $@"$'\e[0m\n'; fi else echo "$@"; fi >&1 ;}
+
+
 intro $(basename $0)
 
-# define local debug level (overwrites global one). Comment out to follow global debug level.
-debug=3
-
-cd $FSDBDIR
-dbg $FSDBDIR
-for dir in $(dirname $(find $FSDBDIR -name ".git" )); do 
-	echo
-	cd $dir
-	dbg2 $(pwd)
+# get location of this script
+thisDir=$(dirname $(realpath "$0"))
+# get location of FSDBDIR (root of fsdb scripts)
+FSDBDIR=$($thisDir | grep -oE 'fsdb[0-9]{2}')
+if [[ $? -ne 0 ]]; then
+	error "Can't find FSDBDIR of $pwd). Exiting."
+	exit
+else
+	cd $FSDBDIR
+	dbg $FSDBDIR
+	for dir in $(dirname $(find $FSDBDIR -name ".git" )); do 
+		echo
+		cd $dir
+		dbg2 $(pwd)
 # update knowledge of the remote.
-	dbg2 "git fetch"
-	git fetch
+		dbg2 "git fetch"
+		git fetch
 # select the right branch
-	dbg2 "git checkout $branch"
-	git checkout $branch
-	if [[ $? -ne 0 ]]; then
-		error "$dir doesn't have branch $branch. Skipping."
-	else
+		dbg2 "git checkout $branch"
+		git checkout $branch
+		if [[ $? -ne 0 ]]; then
+			error "$dir doesn't have branch $branch. Skipping."
+		else
 # get latest version from online repository
-		dbg2 "git stash"
-		git stash
-		if [[ $force -eq 1 ]]; then
-			dbg2 "git reset --hard HEAD"
-			git reset --hard HEAD
+			dbg2 "git stash"
+			git stash
+			if [[ $force -eq 1 ]]; then
+				dbg2 "git reset --hard HEAD"
+				git reset --hard HEAD
+			fi
+			dbg2 "git pull"
+			git pull
 		fi
-		dbg2 "git pull"
-		git pull
-	fi
-done
+	done
+fi
