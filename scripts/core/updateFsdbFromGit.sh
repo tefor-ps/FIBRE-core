@@ -85,7 +85,6 @@ thisDir=$(dirname $(realpath "$0"))
 FSDBDIRSTRING=$(echo $thisDir | grep -oE 'fsdb[0-9]{2}')
 FSDBDIRSTATUS=$?
 FSDBDIR=$(echo $thisDir |sed "s@$FSDBDIRSTRING.*@$FSDBDIRSTRING@")
-dbg3 $FSDBDIR
 # define log
 LOGDIR=$FSDBDIR/log
 D=$(date +%y%m%d)
