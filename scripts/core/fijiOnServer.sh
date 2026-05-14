@@ -126,6 +126,7 @@ function fail(){
 }
 
 function get_active_session_type() {
+#DEPRECATED	
     local user=${SUDO_USER:-$USER}
     local best_sid=""
     local best_ts=0
@@ -192,6 +193,16 @@ function get_active_session_type() {
     fi
 }
 
+get_headless_display() {
+    if command -v weston &>/dev/null; then
+        echo "wayland"
+    elif command -v Xvfb &>/dev/null; then
+        echo "X11"
+    else
+        echo "none"
+    fi
+}
+
 function defineFiji(){
 	dbg2 "$(date)" |tee -a "$LOG"
 # define fiji to work with 
@@ -204,11 +215,11 @@ function defineFiji(){
 			if [[ $force -eq 0 ]]; then
 				fijiOnX11
 			else
-				gs=$(get_active_session_type)
+				gs=$(get_headless_display)
 				dbg2 "gs: $gs"
 				if [[ "$gs" == "wayland" ]]; then
 					fijiOnWayland
-				elif [[ "$gs" == "x11" ]]; then
+				elif [[ "$gs" == "X11" ]]; then
 					fijiOnXvfb
 				else
 					echo "Unknown graphical session. Exiting."
