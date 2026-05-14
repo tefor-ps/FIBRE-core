@@ -79,6 +79,9 @@ for dir in $(dirname $(find $FSDBDIR -name ".git" )); do
 	echo
 	cd $dir
 	dbg2 $(pwd)
+# update knowledge of the remote.
+	dbg2 "git fetch"
+	git fetch
 # select the right branch
 	dbg2 "git checkout $branch"
 	git checkout $branch
