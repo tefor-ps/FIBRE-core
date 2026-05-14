@@ -116,7 +116,14 @@ for dir in $(dirname $(find $FSDBDIR -name ".git" )); do
 		switchstatus=$?
 		dbg3 $switchstatus
 		if [[ $switchstatus -ne 0 ]]; then
-			error "$dir doesn't have branch $branch. Skipping."
+			dbg2 "git stash ($(git branch)) push -m $D"
+			git stash push -m "$D"
+# try switching again
+			git switch $branch
+			switchstatus=$?
+			if [[ $switchstatus -ne 0 ]]; then
+				error "$dir doesn't have branch $branch. Skipping."
+			fi
 		else
 # get latest version from online repository
 			dbg2 "git stash"
