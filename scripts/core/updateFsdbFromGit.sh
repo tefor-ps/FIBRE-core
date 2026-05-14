@@ -19,7 +19,7 @@ force=0
 defaultBranch=stable
 branch=$defaultBranch
 # define local debug level. Comment out to follow default debug level (1).
-debug=3
+debug=0
 
 function usage() {
 <<readme
@@ -101,7 +101,7 @@ dbg $FSDBDIR
 for dir in $(dirname $(find $FSDBDIR -name ".git" )); do 
 	echo
 	cd $dir
-	dbg2 $(pwd)
+	echo $(pwd)
 # update knowledge of the remote.
 	dbg2 "git fetch"
 	git fetch
