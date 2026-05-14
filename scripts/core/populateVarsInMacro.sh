@@ -3,11 +3,32 @@
 #============================
 # define variables and generate directories as needed
 #============================
-# set all global variables
-thisDir=$(dirname $(realpath $0))
-source $thisDir/../core/getVar.sh
 
-debug=0
+#DEPRECATED? 260422
+
+# get location of this script
+thisDir=$(dirname $(realpath "$0"))
+
+# get variables of fsdb from getVar.sh
+if ! source getVar; then
+	dir=$thisDir 
+	for _ in $(seq 1 4); do
+		GV=$(find "$dir" -name "getVar.sh" -print -quit)
+		if [[ -f $GV ]]; then 
+			source "${GV}"
+			break 
+		else
+			dir="$(dirname "$dir")"
+		fi
+	done
+	if [[ ! -f "${GV}" ]]; then
+		echo "ERROR: Can't find getVar.sh"
+		exit 555
+	fi
+fi
+intro $(basename $0)
+
+#debug=2
 
 if [[ ! -f $1 ]];then
 	error "missing macro as first parameter. Exiting."

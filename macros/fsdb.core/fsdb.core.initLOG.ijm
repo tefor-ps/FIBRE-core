@@ -1,4 +1,4 @@
-//fsdb-rev-date: 240430
+//fsdb-rev-date: 260122
 /*
  this macro initializes the log file of the calling macro. 
  it expects the basename of the log file as a parameter.
@@ -14,11 +14,6 @@ dbgName="initLOG";
 if (dbg > 0) { print("::"+dbgName); }
 fs=File.separator;
 
-test_tog=call("ij.Prefs.get", "fsdb.core.tog.test", 0);
-test_tog=1;
-call("ij.Prefs.set", "fsdb.core.tog.test", test_tog);
-if (dbg > 0) {print(dbgName+" test_tog:", test_tog); }
-
 getDateAndTime(year, month, dayOfWeek, dayOfMonth, hour, minute, second, msec);
 //print(year, month, dayOfWeek, dayOfMonth, hour, minute, second, msec);
 TS=substring(year,2,4)+IJ.pad(month+1, 2)+IJ.pad(dayOfMonth,2);
@@ -26,48 +21,32 @@ TS=substring(year,2,4)+IJ.pad(month+1, 2)+IJ.pad(dayOfMonth,2);
 FIJIDIR=getInfo("user.dir");
 FIJIDIR=replace(FIJIDIR, fs, "/");
 
-if (test_tog == 1) {
-	if (dbg > 0) { print("A"); }
-//	if (getInfo("os.name") == "Linux"){
-//		FIJIDIR="/home/teforadmin/tps/gitlab/fsdb23/scripts/Fiji.app/";
-//		//fn=replace(fn, "//wsl.localhost/Ubuntu-22.04", "");
-//	} else {
-//		FIJIDIR="C:/Users/teforadmin/tps/gitlab/fsdb23/scripts/Fiji.app/";
-//	}	
-	MACROSDIR=FIJIDIR+"/macros";
-	COREMACROS=MACROSDIR+"/fsdb.core";
-	DEBUG_FMAC=COREMACROS+"/fsdb.core.logger.ijm";
-	LOGdir=FIJIDIR+"/../../logs";
-	D=TS;
-	//call("ij.Prefs.set", "fsdb.getVar.static.d", D);
-} else {
-	if (dbg > 0) { print("B"); }
-// get all varables defined in the .scripts.config of the fsdb
-//	if (getInfo("os.name") == "Linux"){
-//		FIJIDIR=getDirectory("imagej");
-//	} else {
-//		FIJIDIR=File.getDirectory(getInfo("ij.executable"));
-//	}
-	MACROSDIR=call("ij.Prefs.get", "fsdb.getVar.static.macrosdir", FIJIDIR+"/macros");
-	COREMACROS=call("ij.Prefs.get", "fsdb.core.dir.coremacros", MACROSDIR+"/fsdb.core");
-	DEBUG_FMAC=call("ij.Prefs.get", "fsdb.core.fmac.debug", COREMACROS+"/fsdb.core.logger.ijm");
-	LOGdir=call("ij.Prefs.get", "fsdb.fsdb.dir.logdir", FIJIDIR+"/../../logs"); 
-	D=call("ij.Prefs.get", "fsdb.getVar.static.d", TS);
-	// import fsdb-variables into fiji
-	INITFSDB_FMAC=call("ij.Prefs.get", "fsdb.core.fmac.initfsdb", COREMACROS+"/fsdb.core.initFsdb.ijm"); 
-	runMacro(INITFSDB_FMAC);	
+myPath=getInfo("macro.filepath");
+//print(myPath);
+pArr=split(myPath, "/");
+for (i = 0; i < lengthOf(pArr); i++) {
+	if (matches(pArr[i], "fsdb..") == 1) {
+		FSDBVERSION=pArr[i];
+	}
 }
+FSDBDIR=replace(myPath, FSDBVERSION+"/.*", FSDBVERSION);
+//print("FSDBDIR:", FSDBDIR);
 
-FIJIDIR=replace(FIJIDIR, fs, "/");
+if (dbg > 0) { print("A"); }
+COREMACROS=FSDBDIR+"/fsdb-core/macros/fsdb.core/";
+INITLOG_FMAC=COREMACROS+"/fsdb.core.initLOG.ijm";
+DEBUG_FMAC=COREMACROS+"/fsdb.core.logger.ijm";
+LOGdir=FIJIDIR+"/logs";
+D=TS;
 
-if (dbg > 0) { print(FIJIDIR, "\n", MACROSDIR, "\n", COREMACROS, "\n", DEBUG_FMAC); }
+if (dbg > 0) { print("FSDBDIR:", FSDBDIR, "\nFIJIDIR:", FIJIDIR, "\nCOREMACROS:", COREMACROS, "\nDEBUG_FMAC:", DEBUG_FMAC); }
 
-if (dbg > 0) { print("LOGdir",LOGdir); }
+if (dbg > 1) { print("LOGdir:",LOGdir); }
 
 LOG=initLOG();
 return LOG;
 
-function debugger(str, LOG){ // DO NOT USE, HERE
+function debugger(str, LOG){ // DO NOT USE IN THIS MACRO
 	if (dbg > 0){
 		str=dbgName+dbg+": "+str+" "+LOG;
 		runMacro(DEBUG_FMAC, str);
@@ -78,15 +57,14 @@ function debugger(str, LOG){ // DO NOT USE, HERE
 //==== fsdb-end ====
 
 function initLOG(){
-	if (dbg > 0)
-		if (dbg > 0) { print("initLOG", D); }
+	if (dbg > 0) { print("initLOG", D); }
 	
 	if(File.isDirectory(LOGdir) == 0) {
 // recursivly generate directory for LOG-file
 		if (dbg > 0) {
 			print("making",LOGdir);
-			makeDirRecursively(LOGdir);
 		}	
+		makeDirRecursively(LOGdir);
 	}
 // thanks to windows backslashes have to removed from the path
 	LOG=replace(LOGdir+"/"+D+"."+LOGbn+".log", "\\", "/");

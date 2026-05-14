@@ -6,6 +6,7 @@ This script is updating the fsdb by pulling the scripts from the online reposito
 no parameter needed
 
 README
+# fsdb revision 251023
 
 # ensure correct reporting of failures within pipes
 set -o pipefail

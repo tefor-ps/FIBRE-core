@@ -9,10 +9,17 @@ README
 
 #debug=2
 
-#DEPRECATED?
+#DEPRECATED!!! 260422
 
-thisDir=$(dirname $(realpath $0))
-source $thisDir/../core/getVar.sh
+# get location of this script
+thisDir=$(dirname $(realpath "$0"))
+
+# find and source getVar.sh to set all global variables
+source getVar
+intro $(basename $0)
+
+#debug=2
+
 scriptsDir=$(realpath $thisDir/../)
 
 dbg $SCRIPTSDIR

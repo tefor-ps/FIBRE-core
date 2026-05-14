@@ -5,21 +5,49 @@ This script is setting up smb
 It is NOT dealing with greating users nor their passwords, because this is done by makeAccounts.sh . 
 README
 
-# set all global variables
-thisDir=$(dirname $(realpath $0))
-if [[ -z $1 ]]; then
-	source $thisDir/../scripts/core/getVar.sh
-else 
-	source $1/core/getVar.sh
-fi
+#fsdb-rev-date: 251023
 
+function fail(){
+	date
+	printf "\033[31mError in $(basename $0):${FUNCNAME[2]}:${FUNCNAME[1]} $@ \033[0m"
+	printf "\033[31m\nExiting.\033[0m\n"
+	exit 128
+}
+
+## ======
+## FUNCTION CALLS
+## ======
+
+# get location of this script
+thisDir=$(dirname $(realpath "$0"))
+
+# get variables of fsdb from getVar.sh
+if ! source getVar; then
+	dir=$thisDir 
+	for _ in $(seq 1 4); do
+		GV=$(find "$dir" -name "getVar.sh" -print -quit)
+		if [[ -f $GV ]]; then 
+			source "${GV}"
+			break 
+		else
+			dir="$(dirname "$dir")"
+		fi
+	done
+	if [[ ! -f "${GV}" ]]; then
+		echo "ERROR: Can't find getVar.sh"
+		exit 555
+	fi
+fi
+intro $(basename $0)
+
+#debug=2
 
 # install smb
 sudo apt install -y samba 
 dbg "samba installed"
 
 
-TMPCONF=$MATDIR/smb.conf.fsdb.bup.$D
+TMPCONF=$TEMPLATESDIR/smb.conf.fsdb.bup$D
 # import and adjust smb.conf
 # populate the 'hosts allow' in smb.conf from 'HOSTS' in .SCRIPTS.CONFIG
 # These computers are granted access for remote maintenance.
@@ -48,7 +76,3 @@ dbg "restarting samba"
 # incoming UDP connections on ports 137 and 138 and 
 # TCP connections on ports 139 and 445.
 #sudo ufw allow 'Samba'
-
-
-
-

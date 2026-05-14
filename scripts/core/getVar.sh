@@ -80,7 +80,8 @@ function checkConfig(){
 		intro "Welcome to the fsdb-setup.
 	It appears, that you didn't set up the configuration of the system, yet.
 	Since this is necessary for the correct installation of the fsdb, 
-	it is strongly recommended to do this right now."
+	it is strongly recommended to do this right now.
+	Below is displayed the content of the default fsdb.config:"
 		makeConfig
 	else
 	# reconfigure pre-existing installation, if demanded by passing parameter 'config' to getVar 
@@ -91,7 +92,8 @@ function checkConfig(){
 			cat "$fsdbconfig"
 			warn "$config already exists."
 			skipRest "Above you find the contents of your current fsdb.config.\nDo you want to reset it to default values." resetConfig
-			editConfig
+			#editConfig
+			editOrImport
 		fi
 	# update scripts.config, if needed.
 		updateConfig
@@ -104,15 +106,53 @@ function makeConfig() {
 	if [[ ! -f "$fsdbconfig" ]]; then
 		resetConfig
 	else
-		ONLINEDOC="$(grep "^ONLINEDOC " "$fsdbconfig" |cut -d " " -f 2)" #TODO: $ONLINEDOC is the URL of the repo at gitlab. 
+		ONLINEDOC="$(grep "^ONLINEDOC " "$fsdbconfig" |cut -d " " -f 2)" #TODO: $ONLINEDOC is the URL of the repo at gitlab.
+		nohup xdg-open "$ONLINEDOC" &> /dev/null &
 		# This is intended to open/access the online documentation (in the default browser) but is not at all implemented, yet. 
 		# See https://stackoverflow.com/a/38147878/5269099
 		backup "$fsdbconfig"
 	fi
+	editOrImport
+	updateConfig
+}
+
+function editOrImport(){
 	cat "$fsdbconfig"
 	echo
-	skipPerm "Above you find the content of your $fsdbconfig. Preparing editor.\nThe next step will give you the opportunity to edit a preformatted fsdb.config file in you default text editor.\nFor details on this please consult the README at this project's gitlab page:\n$ONLINEDOC" editor $fsdbconfig
-	updateConfig
+	#skipPerm "Above you find the content of your $fsdbconfig. \nThe next step will give you the opportunity to edit a preformatted fsdb.config file in you default text editor.\nFor details on this please consult the README at this project's gitlab page:\n$ONLINEDOC \n\t- Preparing editor -" editConfig $fsdbconfig
+	intro "Above you find the content of your $fsdbconfig. 
+	The next step will give you the opportunity to edit a preformatted fsdb.config file in you default text editor.
+	For details on this please consult the README at this project's gitlab page:
+	$ONLINEDOC \n"
+	intro "Do you want to proceed? [Y/n]: "
+	read -p $'\t' -i "Y" -e ans
+	case $ans in 
+		[Yy]*)
+			intro "\t- Preparing editor -\n" 
+			editConfig $fsdbconfig
+			;;
+		[Ii]*)
+			intro "\t- Importing config -\n"
+			importConfig || fail
+			;;
+		[Nn]*)
+			echo "ABORT BY USER"
+			exit 1
+			;;
+		*)
+			error "$ans in an invalid input. Try again."
+			editOrImport
+			;;
+	esac	
+	cat "$fsdbconfig"
+	skipRest  "Above you find the content of your new/modified $fsdbconfig. Do you still want to modify it?" editOrImport
+}
+
+function importConfig(){
+	ccd="$(find "$FSDBDIR" -name "core.config.default")"
+	IMPORTCONFIG=$(find "$FSDBDIR" -name $(grep "^IMPORTCONFIG" $ccd |cut -d " " -f 2 |awk -F "/" '{print $NF}'))
+	dbg "sudo bash $IMPORTCONFIG $FSDBDIR force"
+	sudo bash $IMPORTCONFIG $FSDBDIR force
 }
 
 function resetConfig(){
@@ -123,9 +163,10 @@ function resetConfig(){
 }
 
 function editConfig(){
-	skipPerm "Do you want to modify your fsdb.config?\n" editor $fsdbconfig
-	intro "Below you find the content of your new $fsdbconfig\n"
-	cat "$fsdbconfig"
+	#skipPerm "Do you want to modify your fsdb.config?\n" editor $fsdbconfig
+	editor $1
+	intro "Below you find the content of your new ${1}\n"
+	cat "$1"
 }
 
 function updateConfig(){
@@ -239,12 +280,8 @@ function makeDirs() {
 # create default directories as defined in .scripts.config
 	for defaultdir in $(cut -d " " -f 1 "$config" |grep -v "#" |grep DIR$ |sort -u); do
 		path=$(grep "^$defaultdir " "$config" |awk -F "|" '{print $NF}'|cut -d " " -f 2 |sed -e 's@\t.*@@' -e 's@#.*@@')
-		#echo "$path"
-	#	defaultpath="$(realpath $(eval echo "$path" |cut -d " " -f 1))"
-	#	defaultpath="$(realpath $(eval echo "$path"))"
 		defaultpath="$(eval echo "$path" |tail -1)"
 		mkdir -pv "$defaultpath" >> "$LOG" 2>&1
-	#	defaultpath="$(realpath $(eval echo "$defaultpath"))"
 		dbg2 "${defaultdir}: ${path}: $defaultpath"
 		chown -R "$ADMIN":"$GROUP" "$defaultpath" >> "$LOG" 2>&1
 		chmod -R 770 "$defaultpath" >> "$LOG" 2>&1
@@ -272,7 +309,14 @@ sudoer
 
 #debug=2
 
-getVarDir=$(dirname $(realpath $BASH_SOURCE))
+GV=$(realpath $BASH_SOURCE)
+chmod 770 $GV
+
+mkdir -p /usr/local/bin
+
+ln -sf "$GV" /usr/local/bin/getVar
+
+getVarDir=$(dirname $GV)
 
 # the global debug level is set as parameter to fun_colMsg (0-2; default 1)
 source "$getVarDir/fun_colMsg.sh" $DEBUGLEVEL
@@ -289,10 +333,13 @@ if [[ "$getVarDir" =~ /fsdb[0-9]{2}/ ]]; then
 else
 	FSDBDIR="$(realpath $getVarDir/../../..)"
 fi
+# Define central configuration file.
 config="$(realpath "$SCRIPTSDIR/.scripts.config")"
-#config=$(find $(realpath $SCRIPTSDIR) -name ".scripts.config")
+#config=$(find $(realpath $SCRIPTSDIR) -type f -name ".scripts.config")
+
+# Define configuration file of the fsedb. This defines/dictates the structure of the fsdb. 
 fsdbconfig="$(realpath "$SCRIPTSDIR/fsdb.config")"
-#fsdbconfig=$(find $(realpath $SCRIPTSDIR) -name "fsdb.config")
+#fsdbconfig=$(find $(realpath $SCRIPTSDIR) -type f -name "fsdb.config")
 
 # timestamp for index files
 D=$(date +%y%m%d)
@@ -300,9 +347,9 @@ D=$(date +%y%m%d)
 export "D=$(echo $D)"
 # for processes, which may run longer than a day, 
 # (and by that will change D),
-# define a fixed STARTDATE. 
+# define a fixed STARTDATE.
 # This will be set at the first run only.
-if [ -z "$STARTDATE" ]; then 
+if [ -z "$STARTDATE" ]; then
 	export "STARTDATE=$(echo $D)"
 fi
 
@@ -327,11 +374,14 @@ for i in $(cut -d " " -f 1 "$config" |grep -v "#"); do
 		d="$(grep "^$i " "$config" |sort |tail -1)"
 		warn "keeping $d"
 	fi
+	dbg2 "$d"
 	if [[ $(echo "$d" |grep -c "|" ) -eq 0 ]]; then #check for existence of a category (e.g., |cat|)
 		# the outer subshell is needed for expanding variables within the read-in values
-		export "$i=$(eval echo $(echo "$d" |cut -d " " -f 2- |sed -e 's@\t.*@@' -e 's@#.*@@' -e 's@^ @@') |awk '{print $1}')"
+		#export "$i=$(eval echo $(echo "$d" |cut -d " " -f 2- |sed -e 's@\t.*@@' -e 's@#.*@@' -e 's@^ @@') |awk '{print $1}')"
+		export "$i=$(eval echo $(echo "$d" |cut -d " " -f 2- |sed -e 's@\t.*@@' -e 's@#.*@@' -e 's@^ @@'))"
 	else
-		export "$i=$(eval echo $(echo "$d" |awk -F "|" '{print $NF}'|cut -d " " -f 2- |sed -e 's@\t.*@@' -e 's@#.*@@' -e 's@^ @@' |awk '{print $1}'))"
+		#export "$i=$(eval echo $(echo "$d" |awk -F "|" '{print $NF}'|cut -d " " -f 2- |sed -e 's@\t.*@@' -e 's@#.*@@' -e 's@^ @@' |awk '{print $1}'))"
+		export "$i=$(eval echo $(echo "$d" |awk -F "|" '{print $NF}'|cut -d " " -f 2- |sed -e 's@\t.*@@' -e 's@#.*@@' -e 's@^ @@'))"
 	fi
 	dbg2 "getVar: $i = ${!i}"
 done
