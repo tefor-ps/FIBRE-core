@@ -112,8 +112,10 @@ for dir in $(dirname $(find $FSDBDIR -name ".git" )); do
 	else
 # select the right branch
 		dbg2 "git checkout $branch"
-		git checkout $branch
-		if [[ $? -ne 0 ]]; then
+		git switch $branch
+		switchstatus=$?
+		dbg3 $switchstatus
+		if [[ $switchstatus -ne 0 ]]; then
 			error "$dir doesn't have branch $branch. Skipping."
 		else
 # get latest version from online repository
