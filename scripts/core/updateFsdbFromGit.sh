@@ -81,34 +81,40 @@ intro $(basename $0)
 thisDir=$(dirname $(realpath "$0"))
 # get location of FSDBDIR (root of fsdb scripts)
 FSDBDIR=$($thisDir | grep -oE 'fsdb[0-9]{2}')
-if [[ $? -ne 0 ]]; then
-	error "Can't find FSDBDIR of $pwd). Exiting."
+FSDBDIRSTATUS=$?
+# define log
+LOGDIR=$FSDBDIR/log
+D=$(date +%y%m%d)
+LOG=$LOGDIR/${D}.$(basename $0 .sh).log
+# exit gracefully, if FSDBDIR can't be found.
+if [[ $FSDBDIRSTATUS -ne 0 ]]; then
+	error "Can't find FSDBDIR of $(pwd). Exiting."
 	exit
-else
-	cd $FSDBDIR
-	dbg $FSDBDIR
-	for dir in $(dirname $(find $FSDBDIR -name ".git" )); do 
-		echo
-		cd $dir
-		dbg2 $(pwd)
-# update knowledge of the remote.
-		dbg2 "git fetch"
-		git fetch
-# select the right branch
-		dbg2 "git checkout $branch"
-		git checkout $branch
-		if [[ $? -ne 0 ]]; then
-			error "$dir doesn't have branch $branch. Skipping."
-		else
-# get latest version from online repository
-			dbg2 "git stash"
-			git stash
-			if [[ $force -eq 1 ]]; then
-				dbg2 "git reset --hard HEAD"
-				git reset --hard HEAD
-			fi
-			dbg2 "git pull"
-			git pull
-		fi
-	done
 fi
+
+cd $FSDBDIR
+dbg $FSDBDIR
+for dir in $(dirname $(find $FSDBDIR -name ".git" )); do 
+	echo
+	cd $dir
+	dbg2 $(pwd)
+# update knowledge of the remote.
+	dbg2 "git fetch"
+	git fetch
+# select the right branch
+	dbg2 "git checkout $branch"
+	git checkout $branch
+	if [[ $? -ne 0 ]]; then
+		error "$dir doesn't have branch $branch. Skipping."
+	else
+# get latest version from online repository
+		dbg2 "git stash"
+		git stash
+		if [[ $force -eq 1 ]]; then
+			dbg2 "git reset --hard HEAD"
+			git reset --hard HEAD
+		fi
+		dbg2 "git pull"
+		git pull
+	fi
+done
