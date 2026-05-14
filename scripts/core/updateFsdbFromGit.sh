@@ -109,22 +109,22 @@ for dir in $(dirname $(find $FSDBDIR -name ".git" )); do
 	dbg3 $festchstatus
 	if [[ $festchstatus -ne 0 ]]; then
 		error "fetch didn't succeed. Skipping."
-		break
-	fi
-# select the right branch
-	dbg2 "git checkout $branch"
-	git checkout $branch
-	if [[ $? -ne 0 ]]; then
-		error "$dir doesn't have branch $branch. Skipping."
 	else
+# select the right branch
+		dbg2 "git checkout $branch"
+		git checkout $branch
+		if [[ $? -ne 0 ]]; then
+			error "$dir doesn't have branch $branch. Skipping."
+		else
 # get latest version from online repository
-		dbg2 "git stash"
-		git stash
-		if [[ $force -eq 1 ]]; then
-			dbg2 "git reset --hard HEAD"
-			git reset --hard HEAD
+			dbg2 "git stash"
+			git stash
+			if [[ $force -eq 1 ]]; then
+				dbg2 "git reset --hard HEAD"
+				git reset --hard HEAD
+			fi
+			dbg2 "git pull"
+			git pull
 		fi
-		dbg2 "git pull"
-		git pull
 	fi
 done
