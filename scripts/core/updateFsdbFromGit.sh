@@ -111,7 +111,7 @@ for dir in $(dirname $(find $FSDBDIR -name ".git" )); do
 		error "fetch didn't succeed. Skipping."
 	else
 # select the right branch
-		dbg2 "git checkout $branch"
+		dbg2 "git switch $branch"
 		git switch $branch
 		switchstatus=$?
 		dbg3 "switchstatus: $switchstatus"
