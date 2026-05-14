@@ -116,7 +116,7 @@ for dir in $(dirname $(find $FSDBDIR -name ".git" )); do
 		switchstatus=$?
 		dbg3 $switchstatus
 		if [[ $switchstatus -ne 0 ]]; then
-			dbg2 "git stash ($(git branch)) push -m $D"
+			dbg2 "git stash ($(git branch --show-current)) push -m $D"
 			git stash push -m "$D"
 # try switching again
 			git switch $branch
