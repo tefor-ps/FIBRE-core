@@ -7,6 +7,8 @@ between the computer the fsdb is installed on and the computers which are provid
 the image data to be managed by the fsdb (in most cases microscopes or other 
 image-generating devices). 
 
+#TODO: create sibling-script to this one, which removes a microscope from the system.
+
 README
 
 #fsdb-rev-date: 260210
