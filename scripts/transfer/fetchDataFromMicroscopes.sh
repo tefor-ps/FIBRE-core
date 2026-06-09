@@ -122,36 +122,50 @@ for share in $(grep -P ^mountMic $MICS |cut -d " " -f 4); do
 # generate file name and basename
 					fn=$(basename $i)
 					bn=$(basename $i .$suff)
+					dn=$(dirname $i)
+					fsdbDir=${bn}${FSDB_EXT}
 					dbg2 $bn |tee -a $LOG 2>&1
 # generate '-fsdb' folders on storage server
-					mkdir -pv $STORAGEDIR/$IMPORTS/${member}  |tee -a $LOG 2>&1 # on the storage server
+					mkdir -pv $STORAGEDIR/$IMPORTS/${member}/${fsdbDir}  |tee -a $LOG 2>&1 # on the storage server
 # transfer data from microscope to storage server
 					if [ $save -eq 0 ]; then
-						dbg "move $i to $STORAGEDIR/$IMPORTS/${member}/ "
-						rsync -Sauv --remove-source-files "$i" $STORAGEDIR/$IMPORTS/${member}/ |tee -a $LOG 2>&1
+						dbg "move $i to $STORAGEDIR/$IMPORTS/${member}/${fsdbDir}/ "
+						rsync -Sauv --remove-source-files "$i" $STORAGEDIR/$IMPORTS/${member}/${fsdbDir}/ |tee -a $LOG 2>&1
 					else
-						dbg "copy $i to $STORAGEDIR/$IMPORTS/${member}/ "
-						rsync -Sauv "$i" $STORAGEDIR/$IMPORTS/${member}/ |tee -a $LOG 2>&1
+						dbg "copy $i to $STORAGEDIR/$IMPORTS/${member}/${fsdbDir}/ "
+						rsync -Sauv "$i" $STORAGEDIR/$IMPORTS/${member}/${fsdbDir}/ |tee -a $LOG 2>&1
+# generate '-fsdb' directories on microscope
+						if [[ "$dn" == *"${FSDB_EXT}"* ]]; then
+							dbg2 "good location. Skipping relocation of $i"
+						else
+							ld=$dn/${fsdbDir} # local fsdbDir
+							mkdir -pv $ld
+							if [[ $? -eq 0 ]]; then
+								rsync -Sauv --remove-source-files "$i" "$ld" |tee -a $LOG 2>&1
+							fi
+						fi
 					fi
 					dbg "$share :: $member :: $i" >> $LOGDIR/$D.transferred.txt
 					dbg "$share :: $member :: $i" |tee -a  $LOG 2>&1
 				done
 # clean up microscope drives
-				find $share/$member/ -type d -mmin +10 -empty -delete |tee -a $LOG 2>&1 
+# remove empty (left-over) directories from microscope
+				find $share/$member/ -type d -mmin +10 -empty -delete |tee -a $LOG 2>&1
+# ensure the member's directory exists for the next imaging session
 				mkdir -pv $share/$member/  |tee -a $LOG 2>&1
 # recreate '-fsdb' folder in LABDATADIR and link content into
-				for i in $(echo $fileList); do	
+		#		for i in $(echo $fileList); do	
 # make corrsponding folder in LABDATADIR
-					mkdir -pv $LABDATADIR/$IMPORTS/${member}  |tee -a $LOG 2>&1
+		#			mkdir -pv $LABDATADIR/$IMPORTS/${member}  |tee -a $LOG 2>&1
 # create hardlink between files in STORAGEDIR and LABDATADIR
-					ln -v $STORAGEDIR/$IMPORTS/${member}/$fn $LABDATADIR/$IMPORTS/${member}  |tee -a $LOGDIR/$D.transferred.txt  |tee -a $LOG 2>&1
+		#			ln -v $STORAGEDIR/$IMPORTS/${member}/$fn $LABDATADIR/$IMPORTS/${member}  |tee -a $LOGDIR/$D.transferred.txt  |tee -a $LOG 2>&1
 # adjust ownership and access permissions of files in LABDATADIR
-					chown -R $GROUP:$GROUP $LABDATADIR/$IMPORTS/${member}
-					chmod -R 770 $LABDATADIR/$IMPORTS/${member}
+		#			chown -R $GROUP:$GROUP $LABDATADIR/$IMPORTS/${member}
+		#			chmod -R 770 $LABDATADIR/$IMPORTS/${member}
 # adjust ownership and access permissions of files in STORAGEDIR
-					chown $ADMIN:$GROUP $STORAGEDIR/$IMPORTS/${member}/$fn
-					chmod 750 $STORAGEDIR/$IMPORTS/${member}/$fn
-				done
+		#			chown $ADMIN:$GROUP $STORAGEDIR/$IMPORTS/${member}/$fn
+		#			chmod 750 $STORAGEDIR/$IMPORTS/${member}/$fn
+		#		done
 			else 
 				dbg "filelist is empty." |tee -a $LOG 2>&1
 			fi
@@ -160,9 +174,8 @@ for share in $(grep -P ^mountMic $MICS |cut -d " " -f 4); do
 done
 dbg2 "$(date)"
 date  >> $LOG 2>&1
- 
 
-#bash $JANITOR
+bash $JANITOR
 
 ## start secondary data generation 
 #bash $SECDATAGEN &
