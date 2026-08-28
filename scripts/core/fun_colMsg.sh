@@ -83,23 +83,20 @@ error() {
 	_fsdb_emit stderr '37;1;41' "$text"
 }
 
-# Green status message. The carriage return preserves the interactive display
-# behaviour of the previous implementation; redirected output uses a newline.
+# Green status message. Status messages are discrete log events, not an
+# in-place progress indicator, so they always end with a newline. A carriage
+# return allowed the next prompt or message to erase important diagnostics such
+# as "SDG is paused" on an interactive terminal.
 msg() {
 	local text="\t$(basename -- "$0"): $*"
-	local ending=newline
 
-	if [[ -t 1 ]]; then
-		ending=carriage-return
-	fi
-
-	_fsdb_emit stdout '32;1;40' "$text" "$ending"
+	_fsdb_emit stdout '32;1;40' "$text"
 }
 
 # Red warning. Warnings now intentionally use stderr, while ordinary messages
 # and debug output remain on stdout.
 warn() {
-	local text="\t$(basename -- "$0"): $*"
+	local text="WARN:\t$(basename -- "$0"): $*"
 
 	_fsdb_log "$(date)"
 	_fsdb_log "$text"
