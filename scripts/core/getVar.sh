@@ -66,11 +66,17 @@ README
 # TODO: revise README
 
 # Load the shared helpers before defining or executing getVar operations.
-# Both helper files are side-effect-free when sourced.
-getVarDir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+# Both helper files are side-effect-free when sourced. Resolve BASH_SOURCE
+# first: getVar is intentionally exposed through /usr/local/bin/getVar, and
+# helper paths must remain relative to the real script rather than the symlink.
+getVarSource=$(realpath -- "${BASH_SOURCE[0]}") || {
+	printf 'ERROR: Cannot resolve getVar source: %s\n' "${BASH_SOURCE[0]}" >&2
+	return 1 2>/dev/null || exit 1
+}
+getVarDir=$(dirname -- "$getVarSource")
 DEBUGLEVEL=${DEBUGLEVEL:-1}
-source "$getVarDir/fun_colMsg.sh"
-source "$getVarDir/fun_machineProfile.sh"
+source "$getVarDir/fun_colMsg.sh" || return 1 2>/dev/null || exit 1
+source "$getVarDir/fun_machineProfile.sh" || return 1 2>/dev/null || exit 1
 
 ## ======
 ## FUNCTION DEFINITIONS

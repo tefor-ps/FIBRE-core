@@ -21,7 +21,7 @@ mode of function:
 - set permissions for $INDEXDIR/ to 770
 - set permissions for $STORAGEDIR/$IMPORTS/ to 750
 README
-#fsdb-rev-date: 260123
+#fsdb-rev-date: 260828
 
 usage() {
 	printf "Usage: $(basename $0) [-f] [-h] [-d dir] [-p project]  
@@ -59,27 +59,19 @@ functionExplanation
 	fi
 }
 
-# get location of this script
-thisDir=$(dirname $(realpath "$0"))
-
-# get variables of fsdb from getVar.sh
-if ! source getVar; then
-	dir=$thisDir 
-	for _ in $(seq 1 4); do
-		GV=$(find "$dir" -name "getVar.sh" -print -quit)
-		if [[ -f $GV ]]; then 
-			source "${GV}"
-			break 
-		else
-			dir="$(dirname "$dir")"
-		fi
-	done
-	if [[ ! -f "${GV}" ]]; then
-		echo "ERROR: Can't find getVar.sh"
+# Load getVar from the same core directory. Using the PATH-level convenience
+# symlink here previously made a broken source attempt mutate variables before
+# the fallback search ran, and could enter interactive configuration recovery.
+thisDir=$(dirname -- "$(realpath -- "$0")")
+getVarPath="$thisDir/getVar.sh"
+if [[ ! -f $getVarPath ]]; then
+	printf 'ERROR: Cannot find getVar.sh beside fixPermissions.sh: %s\n' \
+		"$getVarPath" >&2
 		exit 555
 	fi
-fi
-intro $(basename $0)
+# shellcheck source=getVar.sh
+source "$getVarPath" || exit $?
+intro "$(basename -- "$0")"
 
 #debug=2
 
