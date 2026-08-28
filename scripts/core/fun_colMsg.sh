@@ -1,89 +1,134 @@
 #!/bin/bash
-<<README
-completely independent script for the colorization of outputs.
-this script should be sourced by the script, which needs to colorize its output.
 
-This script provides the following output (color) modes:
-error:		error <-- white on red background, new-line
-message:	msg <-- green, no new-line
-warning:	warn <-- red, new-line
-debug level 1-3: dbg, dbg1, dbg2	<-- magenta, beige, dark blue
-introduction:	intro <-- cyan, new-line
-permissive interrupt: interPerm <-- green, new-line, by default 'yes'
-restrictive interrupt:	interRest <-- red, new-line, by default 'no"
+# Shared output helpers for FSDB shell scripts.
+#
+# This file is intended to be sourced. Sourcing it is deliberately free of
+# filesystem side effects: it does not search for configuration, create a log
+# directory, or assign LOG. A caller that wants logging must set LOG itself.
+#
+# Public message functions and their streams:
+#   msg                 stdout
+#   dbg, dbg2, dbg3     stdout
+#   warn                stderr
+#   error, intro        stderr
+#
+# Colour is used only when the destination stream is a terminal. Debug-level
+# filtering is independent of terminal detection, so cron and redirected runs
+# behave in the same way as interactive runs.
 
-Alternative default colors:
-Foreground colors
-39	Default foreground color
-30	Black
-31	Red
-32	Green
-33	Yellow
-34	Blue
-35	Magenta
-36	Cyan
-37	Light gray
+# fsdb-rev-date: 260828
 
-Background colors
-49	Default background color
-40	Black
-41	Red
-42	Green
-43	Yellow
-44	Blue
-45	Magenta
-46	Cyan
-47	Light gray
+# Return the effective debug level without changing a global variable.
+#
+# The legacy `debug` variable takes precedence over DEBUGLEVEL. Invalid values
+# fall back to level 1, which preserves the historical default.
+getLevel() {
+	local level=${debug:-${DEBUGLEVEL:-1}}
 
-:: from https://misc.flogisoft.com/bash/tip_colors_and_formatting
+	if [[ ! $level =~ ^[0-3]$ ]]; then
+		level=1
+	fi
 
-README
-#fsdb-rev-date: 230313
-
-# set debug level (default 1) by variable of parameter 
-getLevel() { 
-	if [[ -z $debug ]]; then 
-		if [[ -z $DEBUGLEVEL ]]; then 
-			debug=1; 
-		else 
-			debug=$DEBUGLEVEL ; 
-		fi ; 
-	fi ; 
-	echo $debug ;
+	printf '%s\n' "$level"
 }
 
-if [[ -z $LOG ]]; then
-	td=$(realpath $(dirname $BASH_SOURCE))
-	FSDBDIR=$(echo $td |sed 's@\(fsdb[0-9][0-9]\)/.*@\1@')
-	if [[ "$td" == "$FSDBDIR" ]]; then
-		LOGDIR=$td/logs
-	else
-		FSDBCONFIG=$(find $FSDBDIR -name "fsdb.config" |grep -v templates)
-		if [[ -f $FSDBCONFIG ]]; then 
-			LD=$(grep LOGDIR $FSDBCONFIG |awk '{printf $2}')
-			LOGDIR=$(eval echo $LD)
-		else
-			LOGDIR=$td/logs
-		fi
+# Append a message to the configured log, if there is one.
+#
+# Logging must never hide or replace the original terminal message. In
+# particular, an absent or unwritable LOG is not itself a fatal error.
+_fsdb_log() {
+	local text=${1:-}
+
+	[[ -n ${LOG:-} ]] || return 0
+	printf '%b\n' "$text" >> "$LOG" 2>/dev/null || true
+}
+
+# Print a message without allowing its contents to become a printf format.
+#
+# Arguments:
+#   $1  destination: stdout or stderr
+#   $2  ANSI colour sequence without the leading escape character
+#   $3  plain message text
+#   $4  line ending: newline or carriage-return
+_fsdb_emit() {
+	local destination=${1:-stdout}
+	local colour=${2:-}
+	local text=${3:-}
+	local ending=${4:-newline}
+	local fd=1
+	local terminator='\n'
+
+	if [[ $destination == stderr ]]; then
+		fd=2
 	fi
-	mkdir -p $LOGDIR
-	LOG="$LOGDIR/$D.$(basename $0 .sh).log"
-fi
 
-#good explanation of color codes at http://www.andrewnoske.com/wiki/Bash_-_adding_color
+	if [[ $ending == carriage-return ]]; then
+		terminator='\r'
+	fi
 
-# error message; white on red background
-error() { if [[ -t 2 ]] ; then date >> $LOG; printf $'\e[37;1;41m'"\r\e[2KERROR:\t$0: $@"$'\e[0m\n' |tee -a $LOG; else echo "$@"; fi >&2 ;}
-# green message, no new line
-msg() { if [[ -t 2 ]] ; then printf $'\r\e[2K\t\e[32;1;40m'"$(basename $0): $@"$'\e[0m\r' || echo "$@"; else echo "$@"; fi >&1 ;}
-# red warning message
-warn() { if [[ -t 2 ]] ; then date >> $LOG 2>/dev/null; printf $'\r\e[2K\t\e[31;1;40m'"$(basename $0): $@"$'\e[0m\n' |tee -a $LOG 2>/dev/null; else echo "$@"; fi >&1 ;}
-# magenta debuggin message level 1 (most prevalent)
-dbg() { if [[ -t 2 ]] ; then if [[ $(getLevel) -ge 1 ]]; then printf $'\r\e[2K\t\e[35;1;40m'"$(basename $0): $@"$'\e[0m\n'; fi else echo "$@"; fi >&1 ;}
-# beige debugging message level 2
-dbg2() { if [[ -t 2 ]] ; then if [[ $(getLevel) -ge 2 ]]; then printf $'\r\e[2K\t\e[33;1;40m'"$(basename $0): $@"$'\e[0m\n'; fi else echo "$@"; fi >&1 ;}
-# dark-blue debugging message level 3
-dbg3() { if [[ -t 2 ]] ; then if [[ $(getLevel) -ge 3 ]]; then printf $'\r\e[2K\t\e[34;1;40m'"$(basename $0): $@"$'\e[0m\n'; fi else echo "$@"; fi >&1 ;}
+	if [[ -t $fd && -n $colour ]]; then
+		printf '\r\e[2K\e[%sm%b\e[0m%b' \
+			"$colour" "$text" "$terminator" >&"$fd"
+	else
+		printf '%b%b' "$text" "$terminator" >&"$fd"
+	fi
+}
+
+# White text on a red background. Errors are written to stderr and logged.
+error() {
+	local text="ERROR:\t$0: $*"
+
+	_fsdb_log "$(date)"
+	_fsdb_log "$text"
+	_fsdb_emit stderr '37;1;41' "$text"
+}
+
+# Green status message. The carriage return preserves the interactive display
+# behaviour of the previous implementation; redirected output uses a newline.
+msg() {
+	local text="\t$(basename -- "$0"): $*"
+	local ending=newline
+
+	if [[ -t 1 ]]; then
+		ending=carriage-return
+	fi
+
+	_fsdb_emit stdout '32;1;40' "$text" "$ending"
+}
+
+# Red warning. Warnings now intentionally use stderr, while ordinary messages
+# and debug output remain on stdout.
+warn() {
+	local text="\t$(basename -- "$0"): $*"
+
+	_fsdb_log "$(date)"
+	_fsdb_log "$text"
+	_fsdb_emit stderr '31;1;40' "$text"
+}
+
+# Emit a debug message if the configured level reaches the requested level.
+_fsdb_debug() {
+	local required_level=${1:-1}
+	local colour=${2:-35;1;40}
+	shift 2 || true
+	local text="\t$(basename -- "$0"): $*"
+
+	(( $(getLevel) >= required_level )) || return 0
+	_fsdb_emit stdout "$colour" "$text"
+}
+
+# Debug messages, from the most common (level 1) to most detailed (level 3).
+dbg() {
+	_fsdb_debug 1 '35;1;40' "$@"
+}
+
+dbg2() {
+	_fsdb_debug 2 '33;1;40' "$@"
+}
+
+dbg3() {
+	_fsdb_debug 3 '34;1;40' "$@"
+}
 # green message with permissive interrupt and user interaction (pot. emergency exit). If answer is empty, go on.
 interPerm(){ if [[ -t 2 ]] ; then printf $'\r\e[2K\t\e[32;1;40m'"$(basename $0): $@"$'\e[0m\n'; questPerm; else echo "$@"; fi >&1 ;}
 # white question and answer used by inter()
@@ -118,15 +163,26 @@ questRest(){
 		exit 2;
 	fi ;
 }
-# cyan text on black background to introduce the current script or say something important
-intro() { if [[ -t 2 ]] ; then printf $'\r\e[2K\t\e[36;1m'"$@"$'\e[0m\n'; else echo "$@"; fi >&2 ;}
+# Cyan text used to introduce a script or highlight important information.
+intro() {
+	_fsdb_emit stderr '36;1' "\t$*"
+}
 
-# graceful failure and exit.
-function fail(){
+# Report the calling context and terminate with the established exit status.
+# All call-stack access has a default so this also works at the top level under
+# `set -u`.
+fail() {
+	local function_name=${FUNCNAME[1]:-main}
+	local caller=${FUNCNAME[2]:-}
+	local context=$function_name
+
+	if [[ -n $caller ]]; then
+		context="$caller:$function_name"
+	fi
+
 	warn "$(date)"
-	warn "${FUNCNAME[2]}:${FUNCNAME[1]} $@"
+	warn "$context: $*"
 	warn "Exiting."
-	cv=36
 	exit 128
 }
 
