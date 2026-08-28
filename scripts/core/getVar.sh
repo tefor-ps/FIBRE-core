@@ -34,8 +34,8 @@ local setting is always overwriting the global one.
 2 - verbose   
 3 - very verbose   
 
-The global debugging level is defined by the first parameter to the sourcing of 
- fun_colMsg.sh
+The global debugging level is defined by DEBUGLEVEL. If it is unset or invalid,
+fun_colMsg.sh uses level 1.
 The local debugging level is set (for each script individually) by the variable 
  'debug', which also can have the same values as the global levels (0-3)
 	
@@ -57,24 +57,28 @@ populates the following variables:
 - FIJIONSERVER : potentially overwrites which script is used to run the 
 	secData-Generator
 
+Machine-specific values are resolved by fun_machineProfile.sh. The helper
+normalizes the short hostname and reports the complete effective profile.
+
 README
-#fsdb-rev-date: 250917
+#fsdb-rev-date: 260828
 
 # TODO: revise README
+
+# Load the shared helpers before defining or executing getVar operations.
+# Both helper files are side-effect-free when sourced.
+getVarDir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+DEBUGLEVEL=${DEBUGLEVEL:-1}
+source "$getVarDir/fun_colMsg.sh"
+source "$getVarDir/fun_machineProfile.sh"
 
 ## ======
 ## FUNCTION DEFINITIONS
 ## ======
 
-function fail(){
-	#intro "$@"
-	date
-	printf "\033[31mError in $(basename $0):${FUNCNAME[2]}:${FUNCNAME[1]} $@ \033[0m"
-	printf "\033[31m\nExiting.\033[0m\n"
-	exit 128
-}
-
 function checkConfig(){
+	local mode=${1:-}
+
 	# detect missing configuration file and create one from template, if needed.
 	if [[ ! -f $config || ! -f $fsdbconfig ]]; then 
 		intro "Welcome to the fsdb-setup.
@@ -85,7 +89,7 @@ function checkConfig(){
 		makeConfig
 	else
 	# reconfigure pre-existing installation, if demanded by passing parameter 'config' to getVar 
-		if  [[ "$1" == "config" ]]; then
+		if  [[ $mode == "config" ]]; then
 			intro "Welcome to the reconfiguration of an existing fsdb-installation
 	In the following you can change the configuration and layout of your fsdb-installation or create a completely new one."
 			backup "$config"
@@ -258,7 +262,7 @@ function restructureConfig(){
 
 function backup() {
 # This function creates a dated and numbered backup of the input file 
-	if [[ -d "$2" ]]; then 
+	if [[ -n ${2:-} && -d $2 ]]; then
 		bupdir=$(realpath "$2") #TODO: restructure to get rid of the $2
 	else
 		bupdir="$(dirname "$(realpath "$1")")"
@@ -295,8 +299,8 @@ function sudoer() {
 # on shares with limited write permissions root rights are needed, check for 
 # these at the very beginning. 
 	if [ "$(whoami)" != "root" ]; then 
-		printf $'\r\e[2K\t\e[31;1;40m'"WARNING: This script needs to be run with root-priviledges."$'\e[0m\n' 
-		exit
+		error "This script needs to be run with root privileges."
+		exit 1
 	fi
 }
 
@@ -309,17 +313,6 @@ sudoer
 
 #debug=2
 
-GV=$(realpath $BASH_SOURCE)
-chmod 770 $GV
-
-mkdir -p /usr/local/bin
-
-ln -sf "$GV" /usr/local/bin/getVar
-
-getVarDir=$(dirname $GV)
-
-# the global debug level is set as parameter to fun_colMsg (0-2; default 1)
-source "$getVarDir/fun_colMsg.sh" $DEBUGLEVEL
 
 # define SCRIPTSDIR and FSDBDIR, which is the root of the fsdb, 
 # dynamically on the basis of the location of this script
@@ -349,12 +342,12 @@ export "D=$(echo $D)"
 # (and by that will change D),
 # define a fixed STARTDATE.
 # This will be set at the first run only.
-if [ -z "$STARTDATE" ]; then
-	export "STARTDATE=$(echo $D)"
+if [[ -z ${STARTDATE:-} ]]; then
+	export "STARTDATE=$D"
 fi
 
 # check, if $config exists and is up-to-date
-checkConfig $@
+checkConfig "${1:-}"
 
 # export directories defined above
 dbg2 "SCRIPTSDIR = $SCRIPTSDIR"
@@ -386,73 +379,15 @@ for i in $(cut -d " " -f 1 "$config" |grep -v "#"); do
 	dbg2 "getVar: $i = ${!i}"
 done
 
-dbg "global debug level: $DEBUGLEVEL"
+dbg "global debug level: ${DEBUGLEVEL:-1}"
 
-# machine-specific configurations, 
-case $(hostname) in
-	Monster)
-		COMP="monster"
-#		14GB =	14771089024
-		maxsize=250000000000	#250GB @ 512GB RAM --> process everything
-		minsize=100000000		#--> process everything bigger than 100MB
-		ORDER="size"
-#		ORDER="age"
-#		FIJIONSERVER=fijiOnMonster.sh
-		;;
-	beast)
-		COMP="beast"
-#               14GB =  14771089024
-		maxsize=250000000000    #250GB @ 512GB RAM --> process everything
-		minsize=100000000               #--> process everything bigger than 100MB
-		ORDER="size"
-#               ORDER="age"
-#               FIJIONSERVER=fijiOnMonster.sh
-		;;
-	PWE-T630-TEFOR-2)
-		COMP="beast"
-#       14GB =  14771089024
-		maxsize=250000000000    #250GB @ 512GB RAM --> process everything
-		minsize=1000000000      #--> process everything bigger than 1GB
-		ORDER="size"
-#       ORDER="age"
-		#FIJIONSERVER=fijiOnMonster.sh
-		;;
-	celph-gif)
-		COMP="celph-gif"
-#		14GB =	14771089024
-		maxsize=6000000000 	    #6GB @16GB RAM
-		minsize=1000000         #--> process everything bigger than 1MB
-		ORDER="size"
-#		ORDER="age"
-		;;
-	tefor-gif)
-		COMP="tefor-gif"
-#		14GB =	14771089024
-		maxsize=20000000000     #20GB @62GB RAM
-		minsize=1000000         #--> process everything bigger than 1MB
-		ORDER="age"
-		;;
-	celph-lyon)
-		COMP="celph-lyon"
-#		14GB =	14771089024
-		maxsize=6000000000      #6GB @16GB RAM
-		minsize=1000000         #--> process everything bigger than 1MB
-		ORDER="size"
-		;;
-	*)
-		COMP=$(hostname)
-#		14GB =	14771089024
-		maxsize=4000000000      #4GB
-		minsize=1000000         #--> process everything bigger than 1MB
-		ORDER="age"
-		;;
-esac
-dbg2 "getVar: $COMP $ORDER"
-export "COMP="$(echo "$COMP")""
-export "maxsize=$maxsize"
-export "minsize=$minsize"
-export "ORDER=$ORDER"
-export "FIJIONSERVER=$FIJIONSERVER"
+# Machine-specific processing limits are isolated in a testable helper. Use
+# the short hostname so local DNS configuration cannot change profile matching.
+setMachineProfile "$(hostname -s 2>/dev/null || hostname)"
+
+# FIJIONSERVER may be supplied by a module configuration. An empty value is a
+# valid indication that no machine-specific override has been configured.
+export FIJIONSERVER="${FIJIONSERVER:-}"
 
 # log file for debugging and cleanup
 mkdir -p "$LOGDIR"
